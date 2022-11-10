@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsOutboundItemFullMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsOutboundItemFull"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="ITEM_ALL_ID" property="itemAllId" jdbcType="DECIMAL" />
+        <result column="INVOICE_ID" property="invoiceId" jdbcType="DECIMAL" />
+        <result column="INVOICE_NO" property="invoiceNo" jdbcType="VARCHAR" />
+        <result column="ITEM_NO" property="itemNo" jdbcType="VARCHAR" />
+        <result column="ITEM_DESC" property="itemDesc" jdbcType="VARCHAR" />
+        <result column="EXCHANGE_QTY" property="exchangeQty" jdbcType="DECIMAL" />
+        <result column="OUTBOUND_QTY" property="outboundQty" jdbcType="DECIMAL" />
+        <result column="QUANTITY_PCS" property="quantityPcs" jdbcType="DECIMAL" />
+        <result column="INVOICE_LINE_ID" property="invoiceLineId" jdbcType="DECIMAL" />
+        <result column="UOM_CODE" property="uomCode" jdbcType="VARCHAR" />
+        <result column="UNIT_OF_MEASURE" property="unitOfMeasure" jdbcType="VARCHAR" />
+
+    </resultMap>
+
+    <select id="selectCsOutboundItemFullFromHap" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundItemFull">
+        SELECT ITEM_ALL_ID,
+        INVOICE_ID,
+        INVOICE_NO,
+        ITEM_NO,
+        ITEM_DESC,
+        EXCHANGE_QTY,
+        OUTBOUND_QTY,
+        QUANTITY_PCS,
+        INVOICE_LINE_ID,
+        UOM_CODE,
+        UNIT_OF_MEASURE,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCOIF"/>
+        </include>
+        FROM HCUX_CS_OUTBOUND_ITEM_FULL HCOIF
+        WHERE HCOIF.INVOICE_LINE_ID = #{invoiceLineId,jdbcType=DECIMAL}
+    </select>
+
+    <select id="selectCsOutboundItemFullFromEbs" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundOrderFull">
+        SELECT INVOICE_ID,
+        INVOICE_NO,
+        ITEM_NO,
+        ITEM_DESC,
+        EXCHANGE_QTY,
+        OUTBOUND_QTY,
+        QUANTITY_PCS,
+        INVOICE_LINE_ID,
+        UOM_CODE,
+        UNIT_OF_MEASURE,
+        null REQUEST_ID,
+        null PROGRAM_ID,
+        null OBJECT_VERSION_NUMBER,
+        null CREATED_BY,
+        null CREATION_DATE,
+        null LAST_UPDATED_BY,
+        null LAST_UPDATE_DATE,
+        null LAST_UPDATE_LOGIN
+        FROM cux_outbound_line_item_v@ebs_db
+        WHERE LAST_UPDATE_DATE >=  TO_DATE(TO_CHAR(#{lastUpdateDate},'yyyy-MM-dd HH24:mi:ss'),'yyyy-MM-dd HH24:mi:ss')
+    </select>
+</mapper>

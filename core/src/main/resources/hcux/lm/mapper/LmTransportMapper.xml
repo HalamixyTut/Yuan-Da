@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.lm.mapper.LmTransportMapper">
+    <resultMap id="BaseResultMap" type="hcux.lm.dto.LmTransport"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="TRANSPORT_ID" property="transportId" jdbcType="DECIMAL"/>
+        <result column="ORDER_ID" property="orderId" jdbcType="DECIMAL"/>
+        <result column="TRANSPORT_CODE" property="transportCode" jdbcType="VARCHAR"/>
+        <result column="TRANSPORT_STATUS" property="transportStatus" jdbcType="VARCHAR"/>
+        <result column="TRANSPORT_PRICE" property="transportPrice" jdbcType="DECIMAL"/>
+        <result column="DRIVER_NAME" property="driverName" jdbcType="VARCHAR"/>
+        <result column="DRIVER_MOBILE" property="driverMobile" jdbcType="VARCHAR"/>
+        <result column="DRIVER_ID" property="driverId" jdbcType="VARCHAR"/>
+        <result column="CAR_NUMBER" property="carNumber" jdbcType="VARCHAR"/>
+        <result column="TRAILER_CAR_NUMBER" property="trailerCarNumber" jdbcType="VARCHAR"/>
+        <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+        <result column="GOODS_NAME" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="WEIGHT" property="weight" jdbcType="DECIMAL"/>
+        <result column="VOLUME" property="volume" jdbcType="DECIMAL"/>
+        <result column="DISPATCH_AMOUNT" property="dispatchAmount" jdbcType="DECIMAL"/>
+        <result column="UNIT" property="unit" jdbcType="VARCHAR"/>
+        <result column="DRAW_GOODS_AMOUNT" property="drawGoodsAmount" jdbcType="DECIMAL"/>
+        <result column="DRAW_GOODS_DATE" property="drawGoodsDate" jdbcType="TIMESTAMP"/>
+        <result column="SIGN_AMOUNT" property="signAmount" jdbcType="DECIMAL"/>
+        <result column="SIGN_DATE" property="signDate" jdbcType="TIMESTAMP"/>
+        <result column="SETTLEMENT_WAY" property="settlementWay" jdbcType="VARCHAR"/>
+        <result column="FREIGHT_PRICE" property="freightPrice" jdbcType="DECIMAL"/>
+        <result column="LINK" property="link" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="ATTACHMENT_ID" property="attachmentId" jdbcType="DECIMAL"/>
+        <result column="ZH_TRANSPORT_ID" property="zhTransportId" jdbcType="DECIMAL"/>
+        <result column="ARRIVED_DATE" property="arrivedDate" jdbcType="DECIMAL"/>
+    </resultMap>
+
+    <select id="queryTransport" resultMap="BaseResultMap" parameterType="hcux.lm.dto.LmTransport">
+        SELECT
+        HLT.TRANSPORT_ID,
+        HLT.ORDER_ID,
+        HLT.TRANSPORT_CODE,
+        HLT.TRANSPORT_STATUS,
+        HLT.TRANSPORT_PRICE,
+        HLT.DRIVER_NAME,
+        HLT.DRIVER_MOBILE,
+        HLT.DRIVER_ID,
+        HLT.CAR_NUMBER,
+        HLT.TRAILER_CAR_NUMBER,
+        HLT.REMARK,
+        HLT.GOODS_NAME,
+        HLT.WEIGHT,
+        HLT.VOLUME,
+        HLT.DISPATCH_AMOUNT,
+        HLT.UNIT,
+        HLT.DRAW_GOODS_AMOUNT,
+        HLT.DRAW_GOODS_DATE,
+        HLT.SIGN_AMOUNT,
+        HLT.SIGN_DATE,
+        HLT.SETTLEMENT_WAY,
+        HLT.LINK,
+        HLT.DELETE_FLAG,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HLT"/>
+        </include>
+        FROM HCUX_LM_TRANSPORT HLT
+        WHERE HLT.ORDER_ID = #{orderId, jdbcType=DECIMAL}
+    </select>
+
+    <select id="selectByTrancode" resultMap="BaseResultMap" parameterType="hcux.lm.dto.LmTransport">
+        SELECT
+        HLT.TRANSPORT_ID,
+        HLT.ORDER_ID,
+        HLT.TRANSPORT_CODE,
+        HLT.TRANSPORT_STATUS,
+        HLT.TRANSPORT_PRICE,
+        HLT.DRIVER_NAME,
+        HLT.DRIVER_MOBILE,
+        HLT.DRIVER_ID,
+        HLT.CAR_NUMBER,
+        HLT.TRAILER_CAR_NUMBER,
+        HLT.REMARK,
+        HLT.GOODS_NAME,
+        HLT.WEIGHT,
+        HLT.VOLUME,
+        HLT.DISPATCH_AMOUNT,
+        HLT.UNIT,
+        HLT.DRAW_GOODS_AMOUNT,
+        HLT.DRAW_GOODS_DATE,
+        HLT.SIGN_AMOUNT,
+        HLT.SIGN_DATE,
+        HLT.SETTLEMENT_WAY,
+        HLT.LINK,
+        HLT.DELETE_FLAG,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HLT"/>
+        </include>
+        FROM HCUX_LM_TRANSPORT HLT
+        <where>
+            <if test="transportCode != null">
+                AND HLT.TRANSPORT_CODE = #{transportCode}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryForPortal" resultMap="BaseResultMap" parameterType="hcux.lm.dto.LmTransport">
+        SELECT
+            HLOH.ARRIVED_DATE,
+            HLT.GOODS_NAME,
+            HLT.DISPATCH_AMOUNT,
+            HLT.CAR_NUMBER,
+            HLT.TRANSPORT_STATUS,
+            HLT.LINK,
+            <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+                <property name="std" value="HLT"/>
+            </include>
+        FROM
+            HCUX_LM_TRANSPORT HLT
+            LEFT JOIN HCUX_LM_ORDER_HEADER HLOH ON HLT.ORDER_ID = HLOH.ORDER_ID
+            LEFT JOIN (
+                SELECT
+                    DISTINCT CUST_PO_NUMBER,
+                    CUSTOMER_NAME,
+                    CUSTOMER_CODE
+                FROM HCUX_CS_CONTRACT
+            ) HCC ON HLOH.CONTRACT_CODE_ONE = HCC.CUST_PO_NUMBER
+        <where>
+            AND HCC.CUSTOMER_CODE = #{request.userName}
+            <if test="goodsName != null">
+                AND GOODS_NAME LIKE CONCAT('%',CONCAT(LOWER(#{goodsName,jdbcType=VARCHAR}),'%'))
+            </if>
+            <if test="dispatchAmountFrom != null">
+                AND HLT.DISPATCH_AMOUNT >= #{dispatchAmountFrom}
+            </if>
+            <if test="dispatchAmountTo != null">
+                AND HLT.DISPATCH_AMOUNT &lt;= #{dispatchAmountTo}
+            </if>
+            <if test="arrivedDateFrom != null">
+                AND HLOH.ARRIVED_DATE >= #{arrivedDateFrom}
+            </if>
+            <if test="arrivedDateTo != null">
+                AND HLOH.ARRIVED_DATE &lt;= #{arrivedDateTo}
+            </if>
+            <if test="carNumber != null">
+                AND HLT.CAR_NUMBER LIKE CONCAT('%',CONCAT(LOWER(#{carNumber,jdbcType=VARCHAR}),'%'))
+            </if>
+            <if test="transportStatus != null">
+                AND HLT.TRANSPORT_STATUS = #{transportStatus, jdbcType=VARCHAR}
+            </if>
+        </where>
+        ORDER BY HLOH.ARRIVED_DATE DESC
+    </select>
+</mapper>

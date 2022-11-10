@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.lm.mapper.LmTransportImgMapper">
+    <resultMap id="BaseResultMap" type="hcux.lm.dto.LmTransportImg"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="TRANSPORT_IMG_ID" property="transportImgId" jdbcType="DECIMAL" />
+        <result column="TRANSPORT_ID" property="transportId" jdbcType="DECIMAL" />
+        <result column="IMG_TYPE" property="imgType" jdbcType="VARCHAR" />
+        <result column="IMG_URL" property="imgUrl" jdbcType="VARCHAR" />
+        <result column="ATTACHMENT_ID" property="attachmentId" jdbcType="DECIMAL" />
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR" />
+        <result column="FILE_ID" property="fileId" jdbcType="DECIMAL"/>
+        <result column="FILE_NAME" property="fileName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <select id="queryImgCount" resultType="Long" parameterType="hcux.lm.dto.LmTransportImg">
+        select count(*)
+        from HCUX_LM_TRANSPORT_IMG
+        where TRANSPORT_ID = #{transportId,jdbcType=DECIMAL}
+    </select>
+
+    <select id="queryListByAttachmentIsNull" resultMap="BaseResultMap">
+        select *
+        from HCUX_LM_TRANSPORT_IMG
+        where ATTACHMENT_ID is null
+    </select>
+
+    <select id="selectLists" resultMap="BaseResultMap" parameterType="hcux.lm.dto.LmTransportImg">
+        SELECT
+            HLTI.TRANSPORT_IMG_ID,
+            HLTI.TRANSPORT_ID,
+            HLTI.IMG_TYPE,
+            HLTI.IMG_URL,
+            HLTI.ATTACHMENT_ID,
+            SF.FILE_ID,
+            SF.FILE_NAME
+        FROM
+            HCUX_LM_TRANSPORT_IMG HLTI
+            LEFT JOIN SYS_FILE SF ON SF.ATTACHMENT_ID = HLTI.ATTACHMENT_ID
+        <where>
+            <if test="transportId != null">
+                AND HLTI.TRANSPORT_ID = #{transportId, jdbcType=DECIMAL}
+            </if>
+
+            <if test="imgType != null">
+                AND HLTI.IMG_TYPE = #{imgType, jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+</mapper>

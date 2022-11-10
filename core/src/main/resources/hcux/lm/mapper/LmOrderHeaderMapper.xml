@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.lm.mapper.LmOrderHeaderMapper">
+    <resultMap id="BaseResultMap" type="hcux.lm.dto.LmOrderHeader"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="ORDER_ID" property="orderId" jdbcType="DECIMAL"/>
+        <result column="CONTRACT_CODE_ONE" property="contractCodeOne" jdbcType="VARCHAR"/>
+        <result column="CONTRACT_CODE_TWO" property="contractCodeTwo" jdbcType="VARCHAR"/>
+        <result column="CONTRACT_CODE_THREE" property="contractCodeThree" jdbcType="VARCHAR"/>
+        <result column="ORDER_NUMBER" property="orderNumber" jdbcType="VARCHAR"/>
+        <result column="CARRIER" property="carrier" jdbcType="VARCHAR"/>
+        <result column="CONSIGNOR_NAME" property="consignorName" jdbcType="VARCHAR"/>
+        <result column="DRAW_GOODS_UNIT" property="drawGoodsUnit" jdbcType="VARCHAR"/>
+        <result column="DRAW_GOODS_PROVINCE" property="drawGoodsProvince" jdbcType="VARCHAR"/>
+        <result column="DRAW_GOODS_CITY" property="drawGoodsCity" jdbcType="VARCHAR"/>
+        <result column="DRAW_GOODS_AREA" property="drawGoodsArea" jdbcType="VARCHAR"/>
+        <result column="DRAW_GOODS_ADDRESS" property="drawGoodsAddress" jdbcType="VARCHAR"/>
+        <result column="DRAW_GOODS_PEOPLE" property="drawGoodsPeople" jdbcType="VARCHAR"/>
+        <result column="DRAW_GOODS_MOBILE" property="drawGoodsMobile" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE_UNIT" property="consigneeUnit" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE_PROVINCE" property="consigneeProvince" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE_CITY" property="consigneeCity" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE_AREA" property="consigneeArea" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE_ADDRESS" property="consigneeAddress" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE" property="consignee" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE_MOBILE" property="consigneeMobile" jdbcType="VARCHAR"/>
+        <result column="DRAW_GOODS_DATE" property="drawGoodsDate" jdbcType="DATE"/>
+        <result column="ARRIVED_DATE" property="arrivedDate" jdbcType="DATE"/>
+        <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+        <result column="STATUS" property="status" jdbcType="VARCHAR"/>
+        <result column="LINK" property="link" jdbcType="VARCHAR"/>
+        <result column="REJECT_REASON" property="rejectReason" jdbcType="VARCHAR"/>
+        <result column="ZH_ORDER_ID" property="zhOrderId" jdbcType="DECIMAL"/>
+        <result column="ZH_ORDER_NUMBER" property="zhOrderNumber" jdbcType="VARCHAR"/>
+        <result column="CONSIGNOR_SELF_NUMBER" property="consignorSelfNumber" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="USER_NAME" property="userName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectLists" resultMap="BaseResultMap" parameterType="hcux.lm.dto.LmOrderHeader">
+        select
+        HLOH.ORDER_ID,
+        HLOH.CONTRACT_CODE_ONE,
+        HLOH.CONTRACT_CODE_TWO,
+        HLOH.CONTRACT_CODE_THREE,
+        HLOH.ORDER_NUMBER,
+        HLOH.CARRIER,
+        HLOH.CONSIGNOR_NAME,
+        HLOH.DRAW_GOODS_UNIT,
+        HLOH.DRAW_GOODS_PROVINCE,
+        HLOH.DRAW_GOODS_CITY,
+        HLOH.DRAW_GOODS_AREA,
+        HLOH.DRAW_GOODS_ADDRESS,
+        HLOH.DRAW_GOODS_PEOPLE,
+        HLOH.DRAW_GOODS_MOBILE,
+        HLOH.CONSIGNEE_UNIT,
+        HLOH.CONSIGNEE_PROVINCE,
+        HLOH.CONSIGNEE_CITY,
+        HLOH.CONSIGNEE_AREA,
+        HLOH.CONSIGNEE_ADDRESS,
+        HLOH.CONSIGNEE,
+        HLOH.CONSIGNEE_MOBILE,
+        HLOH.DRAW_GOODS_DATE,
+        HLOH.ARRIVED_DATE,
+        HLOH.REMARK,
+        HLOH.STATUS,
+        HLOH.LINK,
+        HLOH.DELETE_FLAG,
+        HLOH.REJECT_REASON,
+        HLOH.ZH_ORDER_ID,
+        HLOH.ZH_ORDER_NUMBER,
+        HLOH.CONSIGNOR_SELF_NUMBER,
+        HE.NAME USER_NAME,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HLOH"/>
+        </include>
+        from HCUX_LM_ORDER_HEADER HLOH
+        LEFT JOIN SYS_USER SU ON HLOH.CREATED_BY = SU.USER_ID
+        LEFT JOIN HR_EMPLOYEE HE ON SU.EMPLOYEE_ID = HE.EMPLOYEE_ID
+        where 1=1
+        <if test="orderId !=null">
+            and ORDER_ID =#{orderId}
+        </if>
+        <if test="contractCodeOne !=null">
+            and CONTRACT_CODE_ONE like '%'||#{contractCodeOne}||'%'
+            or CONTRACT_CODE_TWO like '%'||#{contractCodeOne}||'%'
+            or CONTRACT_CODE_THREE like '%'||#{contractCodeOne}||'%'
+        </if>
+        <if test="orderNumber !=null">
+            and ORDER_NUMBER like '%'||#{orderNumber}||'%'
+        </if>
+        <if test="carrier !=null">
+            and CARRIER like '%'||#{carrier}||'%'
+        </if>
+        <if test="consigneeUnit !=null">
+            and CONSIGNEE_UNIT like '%'||#{consigneeUnit}||'%'
+        </if>
+        <if test="drawGoodsUnit !=null">
+            and DRAW_GOODS_UNIT like '%'||#{drawGoodsUnit}||'%'
+        </if>
+        <if test="arrivedDateFrom !=null">
+            and ARRIVED_DATE >=#{arrivedDateFrom}
+        </if>
+        <if test="arrivedDateTo !=null">
+            and ARRIVED_DATE &lt;=#{arrivedDateTo}
+        </if>
+        <if test="drawGoodsDateFrom !=null">
+            and DRAW_GOODS_DATE >=#{drawGoodsDateFrom}
+        </if>
+        <if test="drawGoodsDateTo !=null">
+            and DRAW_GOODS_DATE &lt;=#{drawGoodsDateTo}
+        </if>
+        <if test="userName !=null">
+            and HE.NAME like '%'||#{userName}||'%'
+        </if>
+        <if test="status !=null">
+            and HLOH.STATUS  = #{status}
+        </if>
+
+        order by DRAW_GOODS_DATE desc
+    </select>
+
+    <!--委托单 承运方来源-->
+    <select id="selectCarrier" resultMap="BaseResultMap" parameterType="hcux.lm.dto.LmOrderHeader">
+        select
+        CARRIER_NAME CARRIER
+        from WSH_CARRIERS_V1@ebs_db
+        where 1 = 1
+        <if test="carrier !=null">
+            and CARRIER_NAME like '%'||#{carrier}||'%'
+        </if>
+    </select>
+
+    <!--委托单 提货单位来源-->
+    <select id="selectDrawGoodsUnit" resultMap="BaseResultMap" parameterType="hcux.lm.dto.LmOrderHeader">
+        select
+        MAREHOUSE_NAME DRAW_GOODS_UNIT
+        from CUX_INV_WH_MANAGER_V1@ebs_db
+        where 1 = 1
+        <if test="drawGoodsUnit !=null">
+            and MAREHOUSE_NAME like '%'||#{drawGoodsUnit}||'%'
+        </if>
+    </select>
+
+    <!--委托单 获取最大的委托单号-->
+    <select id="queryMaxOrderNumber" resultMap="BaseResultMap" parameterType="hcux.lm.dto.LmOrderHeader">
+        select * from
+          (    select
+            ORDER_NUMBER
+            from HCUX_LM_ORDER_HEADER
+            where 1 = 1
+            and ORDER_NUMBER like '%'||#{contractCodeOne}||'%'
+            order by ORDER_NUMBER desc
+          )
+          where ROWNUM = 1
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap" parameterType="hcux.lm.dto.LmOrderHeader">
+        select
+        HLOH.ORDER_ID,
+        HLOH.CONTRACT_CODE_ONE,
+        HLOH.CONTRACT_CODE_TWO,
+        HLOH.CONTRACT_CODE_THREE,
+        HLOH.ORDER_NUMBER,
+        HLOH.CARRIER,
+        HLOH.CONSIGNOR_NAME,
+        HLOH.DRAW_GOODS_UNIT,
+        HLOH.DRAW_GOODS_PROVINCE,
+        HLOH.DRAW_GOODS_CITY,
+        HLOH.DRAW_GOODS_AREA,
+        HLOH.DRAW_GOODS_ADDRESS,
+        HLOH.DRAW_GOODS_PEOPLE,
+        HLOH.DRAW_GOODS_MOBILE,
+        HLOH.CONSIGNEE_UNIT,
+        HLOH.CONSIGNEE_PROVINCE,
+        HLOH.CONSIGNEE_CITY,
+        HLOH.CONSIGNEE_AREA,
+        HLOH.CONSIGNEE_ADDRESS,
+        HLOH.CONSIGNEE,
+        HLOH.CONSIGNEE_MOBILE,
+        HLOH.DRAW_GOODS_DATE,
+        HLOH.ARRIVED_DATE,
+        HLOH.REMARK,
+        HLOH.STATUS,
+        HLOH.LINK,
+        HLOH.DELETE_FLAG,
+        HLOH.REJECT_REASON,
+        HLOH.ZH_ORDER_ID,
+        HLOH.ZH_ORDER_NUMBER,
+        HLOH.CONSIGNOR_SELF_NUMBER,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HLOH"/>
+        </include>
+        from HCUX_LM_ORDER_HEADER HLOH
+        <where>
+            <if test="zhOrderId !=null">
+                AND HLOH.ZH_ORDER_ID =#{zhOrderId}
+            </if>
+        </where>
+    </select>
+</mapper>

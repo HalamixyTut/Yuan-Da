@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.doc.mapper.DocCustomsCodeMapper">
+    <resultMap id="BaseResultMap" type="hcux.doc.dto.DocCustomsCode">
+        <result column="CUSTOMS_CODE_ID" property="customsCodeId" jdbcType="DECIMAL" />
+        <result column="GOODS_CODE" property="goodsCode" jdbcType="VARCHAR" />
+        <result column="GOODS_NAME" property="goodsName" jdbcType="VARCHAR" />
+        <result column="DECLARATION_ELEMENT" property="declarationElement" jdbcType="VARCHAR" />
+        <result column="LOWEST_TAX_RATE" property="lowestTaxRate" jdbcType="DECIMAL" />
+        <result column="COMMON_TAX_RATE" property="commonTaxRate" jdbcType="DECIMAL" />
+        <result column="VAT_RATE" property="vatRate" jdbcType="DECIMAL" />
+        <result column="CONSUMPTION_TAX_RATE" property="consumptionTaxRate" jdbcType="DECIMAL" />
+        <result column="EXPORT_TAX_RATE" property="exportTaxRate" jdbcType="DECIMAL" />
+        <result column="EXPORT_REBATE_RATE" property="exportRebateRate" jdbcType="DECIMAL" />
+        <result column="LEGAL_UNIT" property="legalUnit" jdbcType="VARCHAR" />
+        <result column="LEGAL_SECOND_UNIT" property="legalSecondUnit" jdbcType="VARCHAR" />
+        <result column="REGULATION_CODE" property="regulationCode" jdbcType="VARCHAR" />
+        <result column="INSPECTION_TYPE" property="inspectionType" jdbcType="VARCHAR" />
+    </resultMap>
+
+
+</mapper>

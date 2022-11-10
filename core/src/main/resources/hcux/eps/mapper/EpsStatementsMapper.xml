@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsStatementsMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsStatements"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="STATEMENTS_ID" property="statementsId" jdbcType="DECIMAL" />
+        <result column="PROJECT_NUM" property="projectNum" jdbcType="VARCHAR" />
+        <result column="EXPORT_ADJUSTMENT" property="exportAdjustment" jdbcType="DECIMAL" />
+        <result column="specified_amount" property="specifiedAmount" jdbcType="DECIMAL" />
+        <result column="equivalent_amount" property="equivalentAmount" jdbcType="DECIMAL" />
+        <result column="has_payment" property="hasPayment" jdbcType="DECIMAL" />
+        <result column="un_payment" property="unPayment" jdbcType="DECIMAL" />
+        <result column="prepaid_freight" property="prepaidFreight" jdbcType="DECIMAL" />
+        <result column="other_export_expenses" property="otherExportExpenses" jdbcType="DECIMAL" />
+        <result column="customs_amount" property="customsAmount" jdbcType="DECIMAL" />
+        <result column="tax_refunds" property="taxRefunds" jdbcType="DECIMAL" />
+        <result column="AVERAGE_RATES" property="averageRates" jdbcType="DECIMAL" />
+        <result column="AGENCY_FEE" property="agencyFee" jdbcType="DECIMAL" />
+        <result column="BALANCE" property="balance" jdbcType="DECIMAL" />
+        <result column="BALANCE1" property="balance1" jdbcType="DECIMAL" />
+        <result column="RECEIPT_CNY" property="receiptCny" jdbcType="DECIMAL" />
+        <result column="DOMESTIC_FREIGHT" property="domesticFreight" jdbcType="DECIMAL" />
+        <result column="INCOME_EXPENSES" property="incomeExpenses" jdbcType="DECIMAL" />
+        <result column="FINANCIAL_COST" property="financialCost" jdbcType="DECIMAL" />
+        <result column="REIMBURSEMENT" property="reimbursement" jdbcType="DECIMAL" />
+        <result column="AGENCY_FEE1" property="agencyFee1" jdbcType="DECIMAL" />
+        <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+        <result column="total_Balance" property="totalBalance" jdbcType="DECIMAL" />
+        <result column="method_name" property="methodName" jdbcType="DECIMAL" />
+
+    </resultMap>
+
+    <select id="selectEpsStatements" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsStatements">
+        select
+        v1.PROJECT_NAME project_num,
+        (
+        select
+        sum(HDCL.TOTAL_PRICE)
+        FROM HCUX_DOC_CUSTOMS_HEADER HDCH  JOIN (
+        SELECT
+        CUSTOMS_ID,
+        SUM( TOTAL_PRICE ) TOTAL_PRICE
+        FROM
+        HCUX_DOC_CUSTOMS_LINE
+        GROUP BY CUSTOMS_ID
+        ) HDCL ON HDCH.CUSTOMS_ID = HDCL.CUSTOMS_ID
+        WHERE HDCH.INVOICE_NUMBER=v1.PROJECT_NAME
+        )customs_amount,--报关金额
+        sum(v1.cr_amount) specified_amount,--收汇金额
+        sum(v1.cr_base_amount) equivalent_amount,--等值金额
+        (
+        select sum(v2.base_amount)
+        from HCUX_EPS_PAYMENT_DETAIL v2
+        where v2.expenditure_type='货款' and v2.PROJECT_NUM=v1.PROJECT_NAME
+        ) has_payment,--已付货款
+        (
+        select sum(v5.local_amount)
+        from HCUX_EPS_BILL v5
+        where v5.accounts='应付账款' and v5.PROJECT_NAME=v1.PROJECT_NAME
+        ) un_payment,--未付贷款
+        (
+        select sum(v3.base_amount)
+        from HCUX_EPS_PAYMENT_DETAIL v3
+        where v3.expenditure_type='出口国内运费' and v3.PROJECT_NUM=v1.PROJECT_NAME
+        )prepaid_freight,--已付运费
+        (
+        select sum(v4.functional_currency_amount)
+        from cux_0_Export_cost_v@Ebs_Db v4 where v4.PROJECT_NUMBER=v1.PROJECT_NAME
+        )other_export_expenses--其他出口费用
+        from HCUX_EPS_RECEIPT_DETAIL v1
+        <where>
+
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                    <property name="projectNum" value="v1.PROJECT_NAME"/>
+                </include>
+            </if>
+
+            <if test="projectNum != null">
+                AND lower(v1.PROJECT_NAME) like '%'|| lower(#{projectNum}) ||'%'
+            </if>
+        </where>
+        group by v1.PROJECT_NAME
+    </select>
+    <!--计算退税额-->
+    <select id="queryTaxRefunds" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsStatements">
+        select round(sum(v6.back_tax),2) tax_refunds--退税额
+        from cux_0_back_tax_v@ebs_db v6
+        where v6.project_number=#{projectNum}
+    </select>
+
+    <!--根据项目号查询出口调整项是否存在-->
+    <select id="queryStatementByProjectNum" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsStatements">
+        select STATEMENTS_ID,
+        PROJECT_NUM,
+        EXPORT_ADJUSTMENT
+        from HCUX_EPS_STATEMENTS
+        where PROJECT_NUM = #{projectNum}
+    </select>
+
+    <select id="selectEpsStatementsFromEbs" resultMap="BaseResultMap">
+        SELECT
+        project_num
+        FROM
+        ((select
+        project_num
+        from CUX_HAP_PROJECTS_V@ebs_db CHPV
+        where creation_date >= to_date('2019-06-01','yyyy-MM-dd')
+        )
+        UNION
+        (
+        select
+        project_num
+        from CUX_HAP_PROJECTS_V@ebs_db CHPV
+        where
+        project_num in(select project_num from hcux_eps_code)
+        )) PRO
+    </select>
+
+    <select id="selectEpsStatementsAddFromEbs" resultMap="BaseResultMap">
+        SELECT
+        project_num
+        FROM
+        (select
+        project_num
+        from CUX_HAP_PROJECTS_V@ebs_db CHPV
+        where creation_date &lt; to_date('2019-06-01','yyyy-MM-dd')
+        and project_num  not in (
+        select project_num
+        from HCUX_EPS_CODE
+        )
+        and project_num in(
+                (select
+                project_Name
+                from cux_Det_acct_of_rec_in_adv_v@ebs_db
+				where LAST_UPDATE_DATE>=to_date('2019-06-01','yyyy-MM-dd')
+				)
+				union
+				(
+				select project_num
+				from cux_req_for_pending_payment_v4@ebs_db
+				where LAST_UPDATE_DATE>=to_date('2019-06-01','yyyy-MM-dd')
+				)
+        )
+       ) PRO
+    </select>
+    <!--从hap数据库查询数据-->
+    <select id="selectEpsStatementsFromHap" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsStatements">
+        select
+        STATEMENTS_ID,
+        PROJECT_NUM,
+        EXPORT_ADJUSTMENT,
+        CUSTOMS_AMOUNT,
+        SPECIFIED_AMOUNT,
+        AVERAGE_RATES,
+        EQUIVALENT_AMOUNT,
+        HAS_PAYMENT,
+        UN_PAYMENT,
+        PREPAID_FREIGHT,
+        OTHER_EXPORT_EXPENSES,
+        TAX_REFUNDS,
+        AGENCY_FEE,
+        BALANCE,
+        BALANCE1,
+        RECEIPT_CNY,
+        DOMESTIC_FREIGHT,
+        INCOME_EXPENSES,
+        FINANCIAL_COST,
+        REIMBURSEMENT,
+        AGENCY_FEE1,
+        REMARK,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HES"/>
+        </include>
+        from HCUX_EPS_STATEMENTS HES
+        where
+        1=1
+        <if test="projectNum != null">
+            and lower(HES.PROJECT_NUM) like '%'|| lower(#{projectNum}) ||'%'
+        </if>
+        <if test="projectNumFrom != null">
+            and lower(HES.PROJECT_NUM) >= lower(#{projectNumFrom})
+        </if>
+
+        <if test="projectNumTo != null">
+            and lower(HES.PROJECT_NUM) &lt;= lower(#{projectNumTo})
+        </if>
+
+        <if test="serialNumber != null">
+            and lower(substr(HES.project_num,2,8)) like '%'||lower(#{serialNumber})||'%'
+        </if>
+        and project_num not in
+        (
+        select project_num from  HCUX_EPS_STATEMENTS
+        where (EXPORT_ADJUSTMENT=0 or EXPORT_ADJUSTMENT is null)
+        and (CUSTOMS_AMOUNT=0 or CUSTOMS_AMOUNT is null)
+        and (SPECIFIED_AMOUNT=0 or SPECIFIED_AMOUNT is null)
+        and (AVERAGE_RATES=0 or AVERAGE_RATES is null)
+        and (EQUIVALENT_AMOUNT=0 or EQUIVALENT_AMOUNT is null)
+        and (HAS_PAYMENT=0 or HAS_PAYMENT is null)
+        and (UN_PAYMENT=0 or UN_PAYMENT is null)
+        and (PREPAID_FREIGHT=0 or PREPAID_FREIGHT is null)
+        and (OTHER_EXPORT_EXPENSES=0 or OTHER_EXPORT_EXPENSES is null)
+        and (TAX_REFUNDS=0 or TAX_REFUNDS is null)
+        and (AGENCY_FEE=0 or AGENCY_FEE is null)
+        and (BALANCE=0 or BALANCE is null)
+        and  (BALANCE1=0 or  BALANCE1 is null)
+        and  (RECEIPT_CNY=0 or  RECEIPT_CNY is null)
+        and  (DOMESTIC_FREIGHT=0 or  DOMESTIC_FREIGHT is null)
+        and  (INCOME_EXPENSES=0 or  INCOME_EXPENSES is null)
+        and  (FINANCIAL_COST=0 or  FINANCIAL_COST is null)
+        and  (REIMBURSEMENT=0 or  REIMBURSEMENT is null)
+        and  (AGENCY_FEE1=0 or  AGENCY_FEE1 is null)
+        and (REMARK is null)
+        )
+        order by PROJECT_NUM asc
+    </select>
+    <!--从hap数据库查询总计余额-->
+    <select id="selectTotalBalance" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsStatements">
+        select
+        round(sum(HES.BALANCE),2)total_Balance
+        from HCUX_EPS_STATEMENTS HES
+        where
+        1=1
+        <if test="projectNum != null">
+            and lower(HES.PROJECT_NUM) like '%'|| lower(#{projectNum}) ||'%'
+        </if>
+        <if test="projectNumFrom != null">
+            and lower(HES.PROJECT_NUM) >= lower(#{projectNumFrom})
+        </if>
+
+        <if test="projectNumTo != null">
+            and lower(HES.PROJECT_NUM) &lt;= lower(#{projectNumTo})
+        </if>
+
+        <if test="serialNumber != null">
+            and lower(substr(HES.project_num,2,8)) like '%'||lower(#{serialNumber})||'%'
+        </if>
+    </select>
+    <!--从hap数据库查询业务员对应的数据-->
+    <select id="selectEditableEpsStatements" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsStatements">
+        select
+        STATEMENTS_ID,
+        PROJECT_NUM,
+        EXPORT_ADJUSTMENT,
+        CUSTOMS_AMOUNT,
+        SPECIFIED_AMOUNT,
+        AVERAGE_RATES,
+        EQUIVALENT_AMOUNT,
+        HAS_PAYMENT,
+        UN_PAYMENT,
+        PREPAID_FREIGHT,
+        OTHER_EXPORT_EXPENSES,
+        TAX_REFUNDS,
+        AGENCY_FEE,
+        BALANCE,
+        BALANCE1,
+        RECEIPT_CNY,
+        DOMESTIC_FREIGHT,
+        INCOME_EXPENSES,
+        FINANCIAL_COST,
+        REIMBURSEMENT,
+        AGENCY_FEE1,
+        REMARK,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HES"/>
+        </include>
+        from HCUX_EPS_STATEMENTS HES
+        where
+        <foreach collection="serialNumberList" item="item" open="(" separator=" OR " close=")">
+            lower(substr(HES.PROJECT_NUM,2,8)) LIKE lower(#{item}) ||'%'
+        </foreach>
+
+        <if test="projectNum != null">
+            and lower(HES.PROJECT_NUM) like '%'|| lower(#{projectNum}) ||'%'
+        </if>
+        <if test="projectNumFrom != null">
+            and lower(HES.PROJECT_NUM) >= lower(#{projectNumFrom})
+        </if>
+
+        <if test="projectNumTo != null">
+            and lower(HES.PROJECT_NUM) &lt;= lower(#{projectNumTo})
+        </if>
+
+        <if test="serialNumber != null">
+            and lower(substr(HES.PROJECT_NUM,2,8)) like '%'||lower(#{serialNumber})||'%'
+        </if>
+        and project_num not in
+        (
+        select project_num from  HCUX_EPS_STATEMENTS
+        where (EXPORT_ADJUSTMENT=0 or EXPORT_ADJUSTMENT is null)
+        and (CUSTOMS_AMOUNT=0 or CUSTOMS_AMOUNT is null)
+        and (SPECIFIED_AMOUNT=0 or SPECIFIED_AMOUNT is null)
+        and (AVERAGE_RATES=0 or AVERAGE_RATES is null)
+        and (EQUIVALENT_AMOUNT=0 or EQUIVALENT_AMOUNT is null)
+        and (HAS_PAYMENT=0 or HAS_PAYMENT is null)
+        and (UN_PAYMENT=0 or UN_PAYMENT is null)
+        and (PREPAID_FREIGHT=0 or PREPAID_FREIGHT is null)
+        and (OTHER_EXPORT_EXPENSES=0 or OTHER_EXPORT_EXPENSES is null)
+        and (TAX_REFUNDS=0 or TAX_REFUNDS is null)
+        and (AGENCY_FEE=0 or AGENCY_FEE is null)
+        and (BALANCE=0 or BALANCE is null)
+        and  (BALANCE1=0 or  BALANCE1 is null)
+        and  (RECEIPT_CNY=0 or  RECEIPT_CNY is null)
+        and  (DOMESTIC_FREIGHT=0 or  DOMESTIC_FREIGHT is null)
+        and  (INCOME_EXPENSES=0 or  INCOME_EXPENSES is null)
+        and  (FINANCIAL_COST=0 or  FINANCIAL_COST is null)
+        and  (REIMBURSEMENT=0 or  REIMBURSEMENT is null)
+        and  (AGENCY_FEE1=0 or  AGENCY_FEE1 is null)
+        and (REMARK is null)
+        )
+        order by PROJECT_NUM asc
+    </select>
+    <!--从hap数据库查询可编辑对账单的总计余额-->
+    <select id="selectEditableTotalBalance" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsStatements">
+        select
+        round(sum(HES.BALANCE),2)total_Balance
+        from HCUX_EPS_STATEMENTS HES
+        where
+        <foreach collection="serialNumberList" item="item" open="(" separator=" OR " close=")">
+            lower(substr(HES.PROJECT_NUM,2,8)) LIKE lower(#{item}) ||'%'
+        </foreach>
+
+        <if test="projectNum != null">
+            and lower(HES.PROJECT_NUM) like '%'|| lower(#{projectNum}) ||'%'
+        </if>
+        <if test="projectNumFrom != null">
+            and lower(HES.PROJECT_NUM) >= lower(#{projectNumFrom})
+        </if>
+
+        <if test="projectNumTo != null">
+            and lower(HES.PROJECT_NUM) &lt;= lower(#{projectNumTo})
+        </if>
+
+        <if test="serialNumber != null">
+            and lower(substr(HES.PROJECT_NUM,2,8)) like '%'||lower(#{serialNumber})||'%'
+        </if>
+    </select>
+    <!--计算去量值-->
+    <select id="selectCalculateStatementsFromEbs" resultMap="BaseResultMap">
+        SELECT
+       customs_amount,
+       SPECIFIED_AMOUNT,
+       RECEIPT_CNY,
+       EQUIVALENT_AMOUNT,
+       HAS_PAYMENT,
+       UN_PAYMENT,
+       DOMESTIC_FREIGHT,
+       OTHER_EXPORT_EXPENSES,
+       TAX_REFUNDS
+         FROM
+         (
+        select
+        round(sum(HECD.TOTAL_PRICE),2)customs_amount
+        FROM HCUX_EPS_CUSTOMS_DETAIL HECD
+        where HECD.MODIFY_FLAG='N'
+        and HECD.INVOICE_NUMBER=#{projectNum}
+        ),--报关金额
+        (
+        select
+        round(sum(CR_AMOUNT),2)SPECIFIED_AMOUNT
+        from HCUX_EPS_RECEIPT_DETAIL HERD
+        where HERD.METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+        AND HERD.currency_code !='CNY'
+        AND HERD.PROJECT_NAME=#{projectNum}
+        ),--收汇金额
+        (
+        select
+        round(sum(CR_AMOUNT),2)RECEIPT_CNY
+        from HCUX_EPS_RECEIPT_DETAIL HERD
+        where HERD.METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+        and HERD.currency_Code='CNY'
+        AND HERD.PROJECT_NAME=#{projectNum}
+        ),--人民币收款
+        (
+        select
+        round(sum(CR_BASE_AMOUNT),2)EQUIVALENT_AMOUNT
+        from HCUX_EPS_RECEIPT_DETAIL HERD
+        where HERD.METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+        AND HERD.currency_code !='CNY'
+        AND HERD.PROJECT_NAME=#{projectNum}
+        ),--等值金额
+        (
+        select
+        round(sum(BASE_AMOUNT),2)HAS_PAYMENT
+        from HCUX_EPS_PAYMENT_DETAIL HEPD
+        where HEPD.EXPENDITURE_TYPE='货款'
+        AND HEPD.PROJECT_NUM=#{projectNum}
+        and HEPD.STATUS='已付'
+        ),--已付货款
+        (
+        select
+        round(sum(REMAIN_AMOUNT),2)UN_PAYMENT
+        from HCUX_EPS_BILL HEB
+        where
+        HEB.ACCOUNTS='应付账款'
+        and HEB.PROJECT_NAME=#{projectNum}
+        ),--未付货款
+        (
+        select
+        round(sum(BASE_AMOUNT),2)DOMESTIC_FREIGHT
+        from HCUX_EPS_PAYMENT_DETAIL HEPD
+        where HEPD.EXPENDITURE_TYPE='出口-国内运费'
+        AND HEPD.PROJECT_NUM=#{projectNum}
+        and HEPD.STATUS='已付'
+        <if test="projectNum.lastIndexOf('999999') > 0">
+            and to_char(HEPD.PAYMENT_DATE,'yyyy-MM-dd') >=('2019-06-01')
+        </if>
+        ),--国内运费
+        (
+        select
+        round(sum(functional_currency_amount),2)OTHER_EXPORT_EXPENSES
+        from cux_0_Export_cost_v@ebs_db CECV
+        where
+        CECV.PROJECT_NUMBER=#{projectNum}
+        ),--其他出口费用
+        (
+        select round(sum(REMAIN_AMOUNT),2)TAX_REFUNDS
+        from HCUX_EPS_BILL HEB
+        where HEB.PROJECT_NAME=#{projectNum}
+        AND HEB.ACCOUNTS='应收外汇账款'
+        )--退税款
+    </select>
+    <!--计算增量值-->
+    <select id="selectCalculateStatementsAddFromEbs" resultMap="BaseResultMap">
+        SELECT
+       SPECIFIED_AMOUNT,
+       RECEIPT_CNY,
+       EQUIVALENT_AMOUNT,
+       HAS_PAYMENT,
+       DOMESTIC_FREIGHT
+       from
+        (
+        select
+        round(sum(CR_AMOUNT),2)SPECIFIED_AMOUNT
+        from cux_Det_acct_of_rec_in_adv_v@ebs_db HERD
+        where HERD.METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+        AND HERD.currency_code !='CNY'
+        AND HERD.PROJECT_NAME=#{projectNum}
+        and HERD.gl_date>=('2019-06-01')
+        ),--收汇金额
+        (
+        select
+        round(sum(CR_AMOUNT),2)RECEIPT_CNY
+        from cux_Det_acct_of_rec_in_adv_v@ebs_db HERD
+        where HERD.METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+        and HERD.currency_Code='CNY'
+        AND HERD.PROJECT_NAME=#{projectNum}
+        and HERD.gl_date>=('2019-06-01')
+        ),--人民币收款
+        (
+        select
+        round(sum(CR_BASE_AMOUNT),2)EQUIVALENT_AMOUNT
+        from cux_Det_acct_of_rec_in_adv_v@ebs_db HERD
+        where HERD.METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+        AND HERD.currency_code !='CNY'
+        AND HERD.PROJECT_NAME=#{projectNum}
+        and HERD.gl_date>=('2019-06-01')
+        ),--等值金额
+        (
+        select
+        round(sum(BASE_AMOUNT),2)HAS_PAYMENT
+        from cux_req_for_pending_payment_v4@ebs_db HEPD
+        where HEPD.EXPENDITURE_TYPE='货款'
+        AND HEPD.PROJECT_NUM=#{projectNum}
+        AND HEPD.STATUS='已付'
+        and HEPD.payment_date>=to_date('2019-06-01','yyyy-MM-dd')
+        ),--已付货款
+        (
+        select
+        round(sum(BASE_AMOUNT),2)DOMESTIC_FREIGHT
+        from cux_req_for_pending_payment_v4@ebs_db HEPD
+        where HEPD.EXPENDITURE_TYPE='出口-国内运费'
+        AND HEPD.PROJECT_NUM=#{projectNum}
+        AND HEPD.STATUS='已付'
+        and HEPD.payment_date>=to_date('2019-06-01','yyyy-MM-dd')
+        )--国内运费
+    </select>
+    <!--从hap数据库查询单条-->
+    <select id="selectStatementsByProjectNum" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsStatements">
+        select
+        STATEMENTS_ID,
+        PROJECT_NUM,
+        EXPORT_ADJUSTMENT,
+        CUSTOMS_AMOUNT,
+        SPECIFIED_AMOUNT,
+        AVERAGE_RATES,
+        EQUIVALENT_AMOUNT,
+        HAS_PAYMENT,
+        UN_PAYMENT,
+        PREPAID_FREIGHT,
+        OTHER_EXPORT_EXPENSES,
+        TAX_REFUNDS,
+        AGENCY_FEE,
+        BALANCE,
+        BALANCE1,
+        RECEIPT_CNY,
+        DOMESTIC_FREIGHT,
+        INCOME_EXPENSES,
+        FINANCIAL_COST,
+        REIMBURSEMENT,
+        AGENCY_FEE1,
+        REMARK,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HES"/>
+        </include>
+        from HCUX_EPS_STATEMENTS HES
+        where
+        1=1
+        <if test="projectNum != null">
+            and HES.PROJECT_NUM=#{projectNum}
+        </if>
+    </select>
+    <!--删除hap里面原有的数据-->
+    <delete id="deleteByProject" parameterType="hcux.eps.dto.EpsStatements">
+        delete from hcux_eps_statements
+        where PROJECT_NUM=#{projectNum}
+    </delete>
+</mapper>

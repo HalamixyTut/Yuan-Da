@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsPurchaseDetailMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsPurchaseDetail"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="PURCHASE_ID" property="purchaseId" jdbcType="DECIMAL" />
+        <result column="INVOICE_ID" property="invoiceId" jdbcType="DECIMAL" />
+        <result column="LINE_NUMBER" property="lineNumber" jdbcType="DECIMAL" />
+        <result column="PROJECT_NUM" property="projectNum" jdbcType="VARCHAR" />
+        <result column="VENDOR_NAME" property="vendorName" jdbcType="VARCHAR" />
+        <result column="INVOICE_TYPE" property="invoiceType" jdbcType="VARCHAR" />
+        <result column="GL_DATE" property="glDate" jdbcType="DATE" />
+        <result column="INVOICE_CURRENCY_CODE" property="invoiceCurrencyCode" jdbcType="VARCHAR" />
+        <result column="CR_AMOUNT" property="crAmount" jdbcType="DECIMAL" />
+        <result column="CR_BASE_AMOUNT" property="crBaseAmount" jdbcType="DECIMAL" />
+        <result column="SUM_CR_BASE_AMOUNT" property="sumCrBaseAmount" jdbcType="DECIMAL" />
+        <result column="TOTAL_AMOUNT" property="totalAmount" jdbcType="DECIMAL" />
+    </resultMap>
+    <select id="selectEpsPurchaseDetailFromEbs" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsPurchaseDetail">
+        select
+        INVOICE_ID,
+        LINE_NUMBER,
+        PROJECT_NUM,
+        VENDOR_NAME,
+        INVOICE_TYPE,
+        GL_DATE,
+        INVOICE_CURRENCY_CODE,
+        CR_AMOUNT,
+        CR_BASE_AMOUNT,
+        null REQUEST_ID,
+        null PROGRAM_ID,
+        null OBJECT_VERSION_NUMBER,
+        null CREATED_BY,
+        null CREATION_DATE,
+        null LAST_UPDATED_BY,
+        LAST_UPDATE_DATE,
+        null LAST_UPDATE_LOGIN
+        from cux_Dt_acct_pay_in_advance_v2@ebs_db purchase
+        where
+        purchase.LAST_UPDATE_DATE >= #{lastUpdateDate}
+    </select>
+    <select id="selectEpsPurchaseDetailFromHap" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsPurchaseDetail">
+        select
+        purchase.PURCHASE_ID,
+        purchase.INVOICE_ID,
+        purchase.LINE_NUMBER,
+        purchase.PROJECT_NUM,
+        purchase.VENDOR_NAME,
+        purchase.INVOICE_TYPE,
+        purchase.GL_DATE,
+        purchase.INVOICE_CURRENCY_CODE,
+        purchase.CR_AMOUNT,
+        purchase.CR_BASE_AMOUNT,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="purchase"/>
+        </include>
+        from HCUX_EPS_PURCHASE_DETAIL purchase
+        where purchase.INVOICE_ID=#{invoiceId}
+        and purchase.LINE_NUMBER=#{lineNumber}
+    </select>
+    <select id="queryEpsPurchaseDetail" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsPurchaseDetail">
+        select
+        purchase.PURCHASE_ID,
+        purchase.INVOICE_ID,
+        purchase.LINE_NUMBER,
+        purchase.PROJECT_NUM,
+        purchase.VENDOR_NAME,
+        decode(purchase.INVOICE_TYPE, 'Standard', '标准', 'Credit Memo', '贷项通知单', INVOICE_TYPE) INVOICE_TYPE,
+        purchase.GL_DATE,
+        purchase.INVOICE_CURRENCY_CODE,
+        purchase.CR_AMOUNT,
+        purchase.CR_BASE_AMOUNT,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="purchase"/>
+        </include>
+        from HCUX_EPS_PURCHASE_DETAIL purchase
+        <where>
+
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                    <property name="projectNum" value="purchase.PROJECT_NUM"/>
+                </include>
+            </if>
+
+            <if test="projectNum != null">
+                and lower(PROJECT_NUM) like '%'|| lower(#{projectNum}) ||'%'
+            </if>
+            <if test="projectNumFrom != null">
+                and lower(PROJECT_NUM) >= lower(#{projectNumFrom})
+            </if>
+            <if test="projectNumTo != null">
+                and lower(PROJECT_NUM) &lt;= lower(#{projectNumTo})
+            </if>
+            <if test="vendorName != null">
+                and VENDOR_NAME like '%'||#{vendorName}||'%'
+            </if>
+            <if test="glDateFrom !=null">
+                and to_char(GL_DATE,'yyyy-MM-dd') >= to_char(#{glDateFrom,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+            <if test="glDateTo !=null">
+                and to_char(GL_DATE,'yyyy-MM-dd') &lt;= to_char(#{glDateTo,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+
+            AND (purchase.CR_AMOUNT != 0 AND purchase.CR_BASE_AMOUNT != 0)
+            AND NOT EXISTS (SELECT 'X' FROM HCUX_EPS_PROJECT_NUM HEPN WHERE purchase.PROJECT_NUM = HEPN.PROJECT_NUM)
+        </where>
+        order by purchase.GL_DATE desc,purchase.PURCHASE_ID desc
+    </select>
+    <select id="selectTotalAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsPurchaseDetail">
+        select
+        purchase.INVOICE_CURRENCY_CODE INVOICE_CURRENCY_CODE,
+        ROUND(sum(purchase.CR_AMOUNT),2)  TOTAL_AMOUNT
+        from HCUX_EPS_PURCHASE_DETAIL purchase
+        <where>
+
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                    <property name="projectNum" value="purchase.PROJECT_NUM"/>
+                </include>
+            </if>
+
+            <if test="projectNum != null">
+                and lower(PROJECT_NUM) like '%'|| lower(#{projectNum}) ||'%'
+            </if>
+            <if test="projectNumFrom != null">
+                and lower(PROJECT_NUM) >= lower(#{projectNumFrom})
+            </if>
+            <if test="projectNumTo != null">
+                and lower(PROJECT_NUM) &lt;= lower(#{projectNumTo})
+            </if>
+            <if test="vendorName != null">
+                and VENDOR_NAME like '%'||#{vendorName}||'%'
+            </if>
+            <if test="glDateFrom !=null">
+                and to_char(GL_DATE,'yyyy-MM-dd') >= to_char(#{glDateFrom,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+            <if test="glDateTo !=null">
+                and to_char(GL_DATE,'yyyy-MM-dd') &lt;= to_char(#{glDateTo,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+
+            AND (purchase.CR_AMOUNT != 0 AND purchase.CR_BASE_AMOUNT != 0)
+            AND NOT EXISTS (SELECT 'X' FROM HCUX_EPS_PROJECT_NUM HEPN WHERE purchase.PROJECT_NUM = HEPN.PROJECT_NUM)
+        </where>
+        GROUP  BY purchase.INVOICE_CURRENCY_CODE
+    </select>
+    <select id="querySumCrBaseAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsPurchaseDetail">
+        select
+        sum(CR_BASE_AMOUNT) SUM_CR_BASE_AMOUNT
+        from HCUX_EPS_PURCHASE_DETAIL purchase
+        where PROJECT_NUM=#{projectNum}
+    </select>
+</mapper>

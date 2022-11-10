@@ -1,0 +1,87 @@
+<!--
+* description: 文件上传页面
+* version: 1.0
+* author:feng.liu01@hand-china.com
+-->
+<#include "../include/header.html">
+    <link href="${base.contextPath}/lib/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <link href="${base.contextPath}/lib/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet" type="text/css"/>
+    <link href="${base.contextPath}/lib/bootstrap-fileinput/themes/explorer/theme.min.css" rel="stylesheet" type="text/css"/>
+
+    <script src="${base.contextPath}/lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+    <script src="${base.contextPath}/lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+
+    <script src="${base.contextPath}/lib/bootstrap-fileinput/js/plugins/piexif.min.js"></script>
+    <script src="${base.contextPath}/lib/bootstrap-fileinput/js/plugins/sortable.min.js"></script>
+    <script src="${base.contextPath}/lib/bootstrap-fileinput/js/plugins/purify.min.js"></script>
+    <script src="${base.contextPath}/lib/bootstrap-fileinput/js/fileinput.min.js"></script>
+    <script src="${base.contextPath}/lib/bootstrap-fileinput/js/locales/zh.js"></script>
+    <script src="${base.contextPath}/lib/bootstrap-fileinput/themes/explorer/theme.min.js"></script>
+    <body>
+    <script>
+        var sourceKey = '${RequestParameters.sourceKey!0}';
+        var ajaxUrl='${base.contextPath}/hcux/doc/synthesis/file/upload?${_csrf.parameterName}=${_csrf.token}';
+    </script>
+    <div id="content-container">
+        <div id="page-content" style="margin: 2px;">
+
+            <form id="mainform" class="form-horizontal" enctype="multipart/form-data">
+
+                <div class="file-loading">
+                    <input name="files" class="file" id="files" type="file"/>
+                </div>
+
+                <script>
+                    $("#files").fileinput({
+                        language: "zh",
+                        showUpload: true,
+                        previewFileType: 'any',
+                        browseOnZoneClick: true,
+                        // 'theme': 'explorer',
+                        uploadUrl: ajaxUrl,
+                        showRemove: true,
+//                        allowedFileExtensions: ['xlsx', 'xls'],
+                        initialPreviewAsData: true,
+                        uploadExtraData: function () {
+                            return {
+                                'sourceType': 'DOC_SYNTHESIS_FILE',
+                                'sourceKey': sourceKey ,
+                                'attachmentId':  ''
+                            };
+                        },
+                        ajaxSettings: {
+                            /*datatype: "json",*/
+                            /* contentType: "multipart/form-data",*/
+                            success: function (e) {
+                                if (!e.error) {
+                                    Hap.showToast({
+                                        type: 'success',
+                                        message: e.message || '上传成功！'
+                                    });
+                                    window.parent.$('#importWin').data("kendoWindow").close();
+
+
+                                } else {
+                                    Hap.showToast({
+                                        type: 'error',
+                                        message: e.message || '上传失败！'
+                                    });
+                                }
+
+                            },
+                            error: function (e) {
+                                Hap.showToast({
+                                    type: 'error',
+                                    message: e.message || '上传失败！'
+                                });
+                            }
+                        },
+                        mergeAjaxCallbacks: 'before'
+                    });
+
+
+                </script>
+            </form>
+        </div>
+    </div>
+    </body>

@@ -1,0 +1,111 @@
+<#--
+* description: 报关单审批同意界面
+* version: 1.0
+* author: feng.liu01@hand-china.com
+-->
+
+<#include "../include/header.html">
+
+<script type="text/javascript">
+
+//    var customsIdList = '${RequestParameters.customsIdList!}';
+
+    var viewModel = Hap.createGridViewModel("#grid", {
+        model: {
+ //           customsIdList: customsIdList,
+            operationType: 'APPROVE_AGREE',
+            remark: '同意'
+        },
+        agree: function () {
+            if ($.isEmpty(viewModel.model.remark)) {
+                Hap.showToast({
+                    type: 'warning',
+                    message: '请输入审批意见！'
+                });
+                return
+            }
+
+            Hap.blockUI();
+
+            var dto=window.parent.$('#grid').data("kendoGrid").selectedDataItems();
+            var docCustomsRecordList=[];
+            for(var i=0;i<dto.length;i++){
+                var record={};
+                record.customsId=dto[i].customsId;
+                record.operationType=viewModel.model.get('operationType');
+                record.remark=viewModel.model.get('remark');
+                docCustomsRecordList.push(record);
+            }
+            $.ajax({
+                type: 'POST',
+                url: '${base.contextPath}/hcux/doc/customs/header/approval',
+                datatype: "json",
+                contentType: "application/json",
+                data: JSON.stringify(docCustomsRecordList),
+                complete: function () {
+                    Hap.unblockUI();
+                },
+                success: function (data) {
+
+                    if (data.success) {
+                        Hap.showToast({
+                            type: 'success',
+                            message: '操作成功'
+                        });
+                        window.parent.$('#grid').data('kendoGrid').dataSource.read();
+
+                        viewModel.cancel();
+                    } else {
+                        Hap.showToast({
+                            type: 'error',
+                            message: data.message || ' 操作成功'
+                        });
+                    }
+                }
+            });
+        },
+        cancel: function () {
+            window.parent.$("#agreeWindow").data("kendoWindow").close();
+        }
+    });
+
+</script>
+<body>
+<div id="page-content">
+
+    <form class="form-horizontal" id="query-form" style="">
+
+        <div class="row">
+            <div class="col-md-12">
+
+                <textarea class="k-textbox"
+                          data-bind="value:model.remark"
+                          style="width: 100%;height: 120px;resize: none;"
+                          type="text">
+                </textarea>
+            </div>
+
+
+        </div>
+
+        <div class="row" style="margin-top: 10px">
+            <div class="col-md-3">
+                <span class="btn btn-success" data-bind="click:agree" style="float:left;width:70px">
+                    <@spring.message "确认"/></span>
+
+            </div>
+
+            <div class="col-md-offset-6 col-md-3">
+                <span class="btn btn-danger" data-bind="click:cancel" style="float:right;width:70px">
+                    <@spring.message "取消"/></span>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        kendo.bind($('#query-form'), viewModel);
+    </script>
+
+</div>
+</body>
+</html>

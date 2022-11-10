@@ -1,0 +1,398 @@
+<#include "../include/header.html">
+    <style>
+        /*表格标题居中显示*/
+        .k-grid th{
+            text-align: center!important;
+        }
+        /*表格列居中*/
+        .k-grid tr{
+            text-align: center!important;
+        }
+    </style>
+    <script src="${base.contextPath}/lib/jquery.fileDownload.js"></script>
+    <script type="text/javascript">
+        var viewModel = Hap.createGridViewModel("#grid", {
+            save: function () {
+                $("#grid").data('kendoGrid').saveChanges();
+                $('#grid').data('kendoGrid').dataSource.read();
+            },
+            exportExcel: function (e) {
+                var url = '${base.contextPath}/hcux/eps/statements/read/exportExcel?${_csrf.parameterName}=${_csrf.token}';
+
+                Hap.blockUI({
+                    message: '文件下载中...'
+                });
+                $.fileDownload(url, {
+                    httpMethod: "POST",
+                    data: Hap.prepareQueryParameter(viewModel.model.toJSON()),
+                    successCallback: function (url) {
+                        Hap.unblockUI();
+                    },
+                    failCallback: function (html, url) {
+                        Hap.unblockUI();
+                    }
+                });
+
+            },
+        });
+    </script>
+    <body>
+    <div id="page-content">
+        <div class="pull-left" id="toolbar-btn" style="padding-bottom:10px;">
+            <!--<input type="text" data-role="maskedtextbox" style="float:left;width:150px;margin-right:5px;" placeholder='项目号'
+                   data-bind="value:model.projectNum" class="k-textbox">-->
+           <!-- <span class="btn btn-success k-grid-save-changes" data-bind="click:save" style="float:left;margin-right:5px;"><@spring.message "hap.save"/></span>-->
+            <span class="btn btn-default" data-bind="click:exportExcel" style="float:left;margin-right:5px;"><@spring.message "hap.exportexcel"/></span>
+        </div>
+        <script>
+            kendo.bind($('#toolbar-btn'), viewModel);
+        </script>
+        <div class="pull-right" id="query-form" style="padding-bottom:10px;">
+            <input type="text" data-role="maskedtextbox" style="float:left;width:150px;margin-right:5px;" placeholder='发票号'
+                   data-bind="value:model.projectNum" class="k-textbox">
+            <input class="k-textbox" data-bind="value:model.projectNumFrom" data-role="maskedtextbox" placeholder='发票号从'
+                   style="width:150px;margin-right:5px;" type="text">
+            <input class="k-textbox" data-bind="value:model.projectNumTo" data-role="maskedtextbox" placeholder='发票号至'
+                   style="width:150px;margin-right:5px;" type="text">
+            <input placeholder='系列号'  data-bind="value:model.serialNumber" data-role="maskedtextbox"
+                    id="serialNumberInput" style="width:150px;margin-right:5px;" type="text">
+            <span class="btn btn-primary" style="width:70px" data-bind="click:query" type="submit"><@spring.message "hap.query"/></span>
+            <span class="btn btn-default" data-bind="click:reset" style="width:70px;" type="button"> <@spring.message "hap.reset"/></span>
+            <div style="clear:both"></div>
+        </div>
+        <script>
+            kendo.bind($('#query-form'), viewModel);
+            /*$("#serialNumberInput").kendoLov($.extend(${lovProvider.getLov(base.contextPath, base.locale, "HCUX_EPS_SERIAL_NUMBER_QUERY")}, {}));*/
+        </script>
+        <div style="clear:both">
+            <div id="grid"></div>
+        </div>
+        <div id="total-balance" style="float: right;color: red;margin-right:30px">
+            总计余额：<span data-bind="text:model.totalBalance"></span>
+        </div>
+        <div id="final-balance" style="float: left;color: red;margin-right:30px">
+            最终余额：<span data-bind="text:model.finalBalance"></span>
+        </div>
+        <div id="totalMinAgencyFee">
+            <span  style="color:red;display:none;" id="balance1"> 期初余额：</span>
+            <span id="balance2" style="color:red;display:none;" data-bind="text:model.totalMinAgencyFee"></span>
+        </div>
+        <script>kendo.bind($('#total-balance'), viewModel);</script>
+        <script>kendo.bind($('#final-balance'), viewModel);</script>
+        <script>kendo.bind($('#totalMinAgencyFee'), viewModel);</script>
+    </div>
+    <div id="newsWindow"></div>
+    <div id="newsWindow1"></div>
+    <div id="newsWindow2"></div>
+    <div id="newsWindow3"></div>
+    <script type="text/javascript">
+        Hap.initEnterQuery('#query-form', viewModel.query);
+        var BaseUrl = _basePath;
+        dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: BaseUrl + "/hcux/eps/statements/only/query",
+                    type: "POST",
+                    dataType: "json"
+                },
+                update: {
+                    url: BaseUrl + "/hcux/eps/statements/submit",
+                    type: "POST",
+                    contentType: "application/json"
+                },
+                destroy: {
+                    url: BaseUrl + "/hcux/eps/statements/remove",
+                    type: "POST",
+                    contentType: "application/json"
+                },
+                create: {
+                    url: BaseUrl + "/hcux/eps/statements/submit",
+                    type: "POST",
+                    contentType: "application/json"
+                },
+                parameterMap: function (options, type) {
+                    if (type !== "read" && options.models) {
+                        var datas = Hap.prepareSubmitParameter(options, type)
+                        return kendo.stringify(datas);
+                    } else if (type === "read") {
+                        return Hap.prepareQueryParameter(viewModel.model.toJSON(), options)
+                    }
+                }
+            },
+            batch: true,
+            serverPaging: true,
+            pageSize: 10,
+            requestEnd: function (e) {
+                if (!e.response.success) {
+                    return
+                }
+                if (e.type === 'read') {
+                    if (e.response.rows.length !== 0) {
+                        viewModel.model.set('totalBalance', e.response.rows[0].totalBalance);
+                    } else {
+                        viewModel.model.set('totalBalance', '');
+                    }
+                    if(viewModel.model.get('serialNumber')!=null&&viewModel.model.get('serialNumber')!=('')
+                        &&viewModel.model.get('serialNumber')!=undefined){
+                        $.ajax({
+                            type : "POST",
+                            url: "${base.contextPath}/hcux/sys/entrust/party/total/without/user/query",
+                            async:false,
+                            data: {
+                                serialNumber:viewModel.model.get('serialNumber')
+                            },
+                            success: function(json) {
+                                if (json.success) {
+                                    if(json.rows.length>0&&json.rows[0]!=null){
+                                        $("#balance1").show();
+                                        $("#balance2").show();
+                                        viewModel.model.set('totalMinAgencyFee',json.rows[0].totalMinAgencyFee);
+                                        if(viewModel.model.get('totalBalance')!=null&&viewModel.model.get('totalBalance')!=('')){
+                                            viewModel.model.set('finalBalance',(json.rows[0].totalMinAgencyFee+viewModel.model.get('totalBalance')).toFixed(2));
+                                        }else{
+                                            viewModel.model.set('finalBalance',(json.rows[0].totalMinAgencyFee));
+                                        }
+                                    }else{
+                                        $("#balance1").hide();
+                                        $("#balance2").hide();
+                                        viewModel.model.set('totalMinAgencyFee','');
+                                        viewModel.model.set('finalBalance',viewModel.model.get('totalBalance'));
+                                    }
+                                }
+                            }
+                        });
+                    }else{
+                        $("#balance1").hide();
+                        $("#balance2").hide();
+                        viewModel.model.set('finalBalance',viewModel.model.get('totalBalance'));
+                    }
+                }
+            },
+            schema: {
+                data: 'rows',
+                total: 'total',
+                model: {
+                    id: "projectNum",
+                    fields: {
+                    }
+                }
+            }
+        });
+
+        $("#grid").kendoGrid({
+            dataSource: dataSource,
+            resizable: true,
+            scrollable: true,
+            navigatable: false,
+            // selectable: 'multiple, rowbox',
+            dataBound: function () {
+                if (parent.autoResizeIframe) {
+                    parent.autoResizeIframe('${RequestParameters.functionCode!}')
+                }
+            },
+            pageable: {
+                pageSizes: [5, 10, 20, 50],
+                refresh: true,
+                buttonCount: 5
+            },
+            columns: [
+                {
+                    field: "projectNum",
+                    title: '发票号',
+                    locked:true,
+                    width: 160
+                },
+                {
+                    field: "customsAmount",
+                    title: '报关金额',
+                    width: 95,
+                    template: function (dataItem) {
+                        var customsAmount=dataItem.customsAmount||'';
+                        var html = '<a href="javascript:void(0)" onclick="viewCustomsAmount(\'' + dataItem.uid + '\')" style="text-decoration: none; color: blue; cursor: pointer; margin-right: 10px;">'+customsAmount+'</a>';
+                        return html;
+                    }
+                },
+                {
+                    field: "specifiedAmount",
+                    title: '收汇金额',
+                    width: 95,
+                    template: function (dataItem) {
+                        var specifiedAmount=dataItem.specifiedAmount||'';
+                        var html = '<a href="javascript:void(0)" onclick="viewSpecifiedAmount(\'' + dataItem.uid + '\')" style="text-decoration: none; color: blue; cursor: pointer; margin-right: 10px;">'+specifiedAmount+'</a>';
+                        return html;
+                    }
+                },
+                {
+                    field: "receiptCny",
+                    title: '人民币收款',
+                    width: 95,
+                    template: function (dataItem) {
+                        var receiptCny=dataItem.receiptCny||'';
+                        var html = '<a href="javascript:void(0)" onclick="viewSpecifiedAmount(\'' + dataItem.uid + '\')" style="text-decoration: none; color: blue; cursor: pointer; margin-right: 10px;">'+receiptCny+'</a>';
+                        return html;
+                    }
+                },
+                {
+                    field: "averageRates",
+                    title: '平均汇率',
+                    width: 70
+                },
+                {
+                    field: "equivalentAmount",
+                    title: '等值金额',
+                    width: 95,
+                    template: function (dataItem) {
+                        var equivalentAmount=dataItem.equivalentAmount||'';
+                        var html = '<a href="javascript:void(0)" onclick="viewSpecifiedAmount(\'' + dataItem.uid + '\')" style="text-decoration: none; color: blue; cursor: pointer; margin-right: 10px;">'+equivalentAmount+'</a>';
+                        return html;
+                    }
+                },
+                {
+                    field: "hasPayment",
+                    title: '已付货款',
+                    width: 95,
+                    template: function (dataItem) {
+                        var hasPayment=dataItem.hasPayment||'';
+                        var html = '<a href="javascript:void(0)" onclick="viewHasPayment(\'' + dataItem.uid + '\')" style="text-decoration: none; color: blue; cursor: pointer; margin-right: 10px;">'+hasPayment+'</a>';
+                        return html;
+                    }
+                },
+                {
+                    field: "unPayment",
+                    title: '未付货款',
+                    width: 95,
+                    template: function (dataItem) {
+                        var unPayment=dataItem.unPayment||'';
+                        var html = '<a href="javascript:void(0)" onclick="viewUnPayment(\'' + dataItem.uid + '\')" style="text-decoration: none; color: blue; cursor: pointer; margin-right: 10px;">'+unPayment+'</a>';
+                        return html;
+                    }
+                },
+                {
+                    field: "taxRefunds",
+                    title: '退税款',
+                    width: 95
+                },
+                {
+                    field: "domesticFreight",
+                    title: '国内运费',
+                    width: 95,
+                    template: function (dataItem) {
+                        var domesticFreight=dataItem.domesticFreight||'';
+                        var html = '<a href="javascript:void(0)" onclick="viewHasPayment(\'' + dataItem.uid + '\')" style="text-decoration: none; color: blue; cursor: pointer; margin-right: 10px;">'+domesticFreight+'</a>';
+                        return html;
+                    }
+                },
+                {
+                    field: "otherExportExpenses",
+                    title: '其他出口费用',
+                    width: 100
+                },
+                {
+                    field: "agencyFee",
+                    title: '代理费',
+                    width: 95
+                },
+                {
+                    field: "incomeExpenses",
+                    title: '营业外收入/支出',
+                    width: 110
+                },
+                {
+                    field: "financialCost",
+                    title: '财务费',
+                    width: 95
+                },
+                {
+                    field: "reimbursement",
+                    title: '报销款',
+                    width: 95
+                },
+                {
+                    field: "exportAdjustment",
+                    title: '出口调整项',
+                    width: 95
+                },
+                {
+                    field: "balance",
+                    title: '余额',
+                    width: 95
+                },
+                {
+                    field: "remark",
+                    title: '备注',
+                    width: 105
+                },
+            ],
+            editable: false
+        });
+        function viewCustomsAmount(uid) {
+            var data=dataSource.getByUid(uid);
+            var url='${base.contextPath}/eps/eps_customs_detail.html?projectNum='+ data.projectNum;
+            var dialog = $("#newsWindow").kendoWindow({
+                actions: ["Close"],
+                title: '报关明细',
+                content: url,
+                iframe: true,
+                visible: false,
+                resizable: false,
+                modal: true,
+                close: function () {
+                    $('#grid').data('kendoGrid').dataSource.page(1);
+                }
+            }).data("kendoWindow");
+            dialog.maximize().open();
+        }
+        function viewSpecifiedAmount(uid){
+            var data=dataSource.getByUid(uid);
+            var url='${base.contextPath}/eps/eps_receipt_detail.html?projectNum='+ data.projectNum;
+            var dialog = $("#newsWindow1").kendoWindow({
+                actions: ["Close"],
+                title: '收款明细',
+                content: url,
+                iframe: true,
+                visible: false,
+                resizable: false,
+                modal: true,
+                close: function () {
+                    $('#grid').data('kendoGrid').dataSource.page(1);
+                }
+            }).data("kendoWindow");
+            dialog.maximize().open();
+        }
+        function viewHasPayment(uid){
+            var data=dataSource.getByUid(uid);
+            var url='${base.contextPath}/eps/eps_payment_detail.html?projectNum='+ data.projectNum;
+            var dialog = $("#newsWindow2").kendoWindow({
+                actions: ["Close"],
+                title: '付款明细',
+                content: url,
+                iframe: true,
+                visible: false,
+                resizable: false,
+                modal: true,
+                close: function () {
+                    $('#grid').data('kendoGrid').dataSource.page(1);
+                }
+            }).data("kendoWindow");
+            dialog.maximize().open();
+        }
+        function viewUnPayment(uid){
+            var data=dataSource.getByUid(uid);
+            var url='${base.contextPath}/eps/eps_bill.html?projectNum='+ data.projectNum;
+            var dialog = $("#newsWindow3").kendoWindow({
+                actions: ["Close"],
+                title: '挂账查询',
+                content: url,
+                iframe: true,
+                visible: false,
+                resizable: false,
+                modal: true,
+                close: function () {
+                    $('#grid').data('kendoGrid').dataSource.page(1);
+                }
+            }).data("kendoWindow");
+            dialog.maximize().open();
+        }
+    </script>
+    </body>
+    </html>

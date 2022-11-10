@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsOutboundOrderFullMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsOutboundOrderFull"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="ORDER_ALL_ID" property="orderAllId" jdbcType="DECIMAL" />
+        <result column="INVOICE_ID" property="invoiceId" jdbcType="DECIMAL" />
+        <result column="ORDER_TYPE_DESC" property="orderTypeDesc" jdbcType="VARCHAR" />
+        <result column="SOURCE_SUBINV" property="sourceSubinv" jdbcType="VARCHAR" />
+        <result column="TOTAL_INV" property="totalInv" jdbcType="VARCHAR" />
+        <result column="INV_PRINT" property="invPrint" jdbcType="VARCHAR" />
+        <result column="CUSTOMER_NAME" property="customerName" jdbcType="VARCHAR" />
+        <result column="PARTY_NAME" property="partyName" jdbcType="VARCHAR" />
+        <result column="INVOICE_NO" property="invoiceNo" jdbcType="VARCHAR" />
+        <result column="OUTBOUND_TYPE" property="outboundType" jdbcType="VARCHAR" />
+        <result column="EXPECTED_DEPOT_DATE" property="expectedDepotDate" jdbcType="DATE" />
+        <result column="EFFECTIVE_DATE" property="effectiveDate" jdbcType="DATE" />
+        <result column="PO_PROJECT_NUMBER" property="poProjectNumber" jdbcType="VARCHAR" />
+        <result column="RECEIPT_CODE" property="receiptCode" jdbcType="VARCHAR" />
+        <result column="RECEIPT_NAME" property="receiptName" jdbcType="VARCHAR" />
+        <result column="WEB_LOCATION" property="webLocation" jdbcType="VARCHAR" />
+        <result column="COMPANY" property="company" jdbcType="VARCHAR" />
+        <result column="GROUP_NAME" property="groupName" jdbcType="VARCHAR" />
+        <result column="ITEM_No" property="itemNo" jdbcType="VARCHAR" />
+        <result column="ITEM_DESC" property="itemDesc" jdbcType="VARCHAR" />
+        <result column="EXCHANGE_QTY" property="exchangeQty" jdbcType="DECIMAL" />
+        <result column="OUTBOUND_QTY" property="outboundQty" jdbcType="DECIMAL" />
+        <result column="QUANTITY_PCS" property="quantityPcs" jdbcType="DECIMAL" />
+        <result column="ACT_INV_QTY" property="actInvQty" jdbcType="DECIMAL" />
+        <result column="ORG_NAME" property="orgName" jdbcType="VARCHAR" />
+        <result column="DEPT_CODE" property="deptCode" jdbcType="VARCHAR" />
+        <result column="ACCOUNT_NUMBER" property="accountNumber" jdbcType="VARCHAR" />
+        <result column="INV_STATUS" property="invStatus" jdbcType="VARCHAR" />
+        <result column="CREATE_PERSON" property="createPerson" jdbcType="VARCHAR" />
+        <result column="CONFIRM_RECEIPT" property="confirmReceipt" jdbcType="VARCHAR" />
+        <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+        <result column="OE_HEADER_ID" property="oeHeaderId" jdbcType="DECIMAL" />
+        <result column="UOM_CODE" property="uomCode" jdbcType="VARCHAR" />
+        <result column="UNIT_OF_MEASURE" property="unitOfMeasure" jdbcType="VARCHAR" />
+        <result column="ACTUAL_CONTRACT_NO" property="actualContractNo" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <select id="selectCsOutboundFullFromEbs" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundOrderFull">
+        SELECT
+        INVOICE_ID,
+        ORG_NAME,
+        DEPT_CODE,
+        ACCOUNT_NUMBER,
+        ORDER_TYPE_DESC,
+        SOURCE_SUBINV,
+        TOTAL_INV,
+        INV_PRINT,
+        PARTY_NAME,
+        CUSTOMER_NAME,
+        INVOICE_NO,
+        OUTBOUND_TYPE,
+        EXPECTED_DEPOT_DATE,
+        EFFECTIVE_DATE,
+        GROUP_NAME,
+        RECEIPT_CODE,
+        RECEIPT_NAME,
+--         PO_PROJECT_NUMBER,
+        WEB_LOCATION,
+        COMPANY,
+        FULL_NAME CREATE_PERSON,
+	    null REQUEST_ID,
+        null PROGRAM_ID,
+        null OBJECT_VERSION_NUMBER,
+        null CREATED_BY,
+        null CREATION_DATE,
+        null LAST_UPDATED_BY,
+        LAST_UPDATE_DATE,
+        OE_HEADER_ID,
+        null LAST_UPDATE_LOGIN
+        FROM cux_outbound_header_v@ebs_db
+        WHERE LAST_UPDATE_DATE >=  TO_DATE(TO_CHAR(#{lastUpdateDate},'yyyy-MM-dd HH24:mi:ss'),'yyyy-MM-dd HH24:mi:ss')
+    </select>
+
+    <select id="selectCsOutboundFullFromHap" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundOrderFull">
+        SELECT ORDER_ALL_ID,
+        INVOICE_ID,
+        ORG_NAME,
+        DEPT_CODE,
+        ACCOUNT_NUMBER,
+        ORDER_TYPE_DESC,
+        SOURCE_SUBINV,
+        TOTAL_INV,
+        INV_PRINT,
+        PARTY_NAME,
+        CUSTOMER_NAME,
+        INVOICE_NO,
+        OUTBOUND_TYPE,
+        EXPECTED_DEPOT_DATE,
+        EFFECTIVE_DATE,
+        GROUP_NAME,
+        RECEIPT_CODE,
+        RECEIPT_NAME,
+        PO_PROJECT_NUMBER,
+        WEB_LOCATION,
+        COMPANY,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCOOF"/>
+        </include>
+        FROM HCUX_CS_OUTBOUND_ORDER_FULL HCOOF
+        WHERE HCOOF.INVOICE_ID = #{invoiceId}
+    </select>
+
+    <select id="selectData" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundOrderFull">
+        SELECT
+        HCOOF.ORDER_ALL_ID,
+        HCOOF.INVOICE_ID,
+        HCOOF.ORDER_TYPE_DESC,
+        HCOOF.SOURCE_SUBINV,
+        HCOOF.TOTAL_INV,
+        HCOOF.INV_PRINT,
+        HCOOF.PARTY_NAME,
+        HCOOF.CUSTOMER_NAME,
+        HCOOF.INVOICE_NO,
+        HCOOF.OUTBOUND_TYPE,
+        HCOOF.EXPECTED_DEPOT_DATE,
+        HCOOF.EFFECTIVE_DATE,
+        HCOOF.PO_PROJECT_NUMBER,
+        HCOOF.RECEIPT_CODE,
+        HCOOF.RECEIPT_NAME,
+        HCOOF.WEB_LOCATION,
+        HCOOF.COMPANY,
+        HCOOF.GROUP_NAME,
+        HCOOF.ORG_NAME,
+        HCOOF.DEPT_CODE,
+        HCOOF.ACCOUNT_NUMBER,
+        HCOOF.CREATE_PERSON,
+        HCOOF.CONFIRM_RECEIPT,
+        HCOOF.REMARK,
+        HCOIF.ITEM_NO,
+        HCOIF.ITEM_DESC,
+        HCOIF.UNIT_OF_MEASURE,
+        HCOIF.OUTBOUND_QTY,
+        HCOIF.QUANTITY_PCS,
+        HCOTT.ACT_INV_QTY,
+        HCOO.INV_STATUS,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCOOF"/>
+        </include>
+        FROM HCUX_CS_OUTBOUND_ORDER_FULL HCOOF
+        LEFT JOIN (
+            SELECT INVOICE_ID,ITEM_NO,ITEM_DESC,UNIT_OF_MEASURE,SUM(OUTBOUND_QTY) OUTBOUND_QTY,
+            SUM(QUANTITY_PCS) QUANTITY_PCS
+            FROM HCUX_CS_OUTBOUND_ITEM_FULL
+            GROUP BY INVOICE_ID,ITEM_NO,ITEM_DESC,UNIT_OF_MEASURE
+        ) HCOIF
+        ON HCOOF.INVOICE_ID = HCOIF.INVOICE_ID
+        LEFT JOIN (
+        SELECT ORDER_ID,
+               ITEM_CODE,
+        SUM(ACT_INV_QTY) ACT_INV_QTY
+        FROM HCUX_CS_OUTBOUND_TRANS
+        GROUP BY ORDER_ID,ITEM_CODE
+        ) HCOTT ON HCOTT.ITEM_CODE = HCOIF.ITEM_NO AND HCOIF.INVOICE_ID = HCOTT.ORDER_ID
+        LEFT JOIN HCUX_CS_OUTBOUND_ORDER HCOO ON HCOOF.INVOICE_ID = HCOO.ORDER_ID
+        <where>
+        <if test='queryType == "PORTAL"'>
+            <include refid="hcux.core.mapper.DataMaskingMapper.nhPortalSql01">
+                <property name="customerCode" value="HCOOF.ACCOUNT_NUMBER"/>
+                <property name="orgName" value="HCOOF.ORG_NAME"/>
+                <property name="deptCode" value="HCOOF.DEPT_CODE"/>
+            </include>
+        </if>
+        <if test='queryType == "HAP"'>
+            <include refid="hcux.core.mapper.DataMaskingMapper.nhHapSql01">
+                <property name="orgName" value="HCOOF.ORG_NAME"/>
+                <property name="deptCode" value="HCOOF.DEPT_CODE"/>
+            </include>
+        </if>
+        <if test="invoiceId != null">
+            AND HCOOF.INVOICE_ID = #{invoiceId, jdbcType=DECIMAL}
+        </if>
+        <if test="customerName != null">
+            AND HCOOF.CUSTOMER_NAME LIKE CONCAT('%',CONCAT(#{customerName,jdbcType=VARCHAR},'%'))
+        </if>
+        <if test="partyName != null">
+            AND HCOOF.PARTY_NAME LIKE CONCAT('%',CONCAT(#{partyName,jdbcType=VARCHAR},'%'))
+        </if>
+        <if test="invoiceNo != null">
+            AND UPPER(HCOOF.INVOICE_NO) LIKE CONCAT('%', CONCAT(UPPER(#{invoiceNo,jdbcType=VARCHAR}),'%'))
+        </if>
+        <if test="expectedDepotDateFrom != null">
+            AND HCOOF.EXPECTED_DEPOT_DATE >= #{expectedDepotDateFrom,jdbcType=TIMESTAMP}
+        </if>
+        <if test="expectedDepotDateTo != null">
+            AND HCOOF.EXPECTED_DEPOT_DATE &lt;= #{expectedDepotDateTo,jdbcType=TIMESTAMP}
+        </if>
+        <if test="itemDesc != null">
+            AND HCOIF.ITEM_DESC LIKE CONCAT('%', CONCAT(#{itemDesc,jdbcType=VARCHAR},'%'))
+        </if>
+        <if test="sourceSubinv != null">
+            AND HCOOF.SOURCE_SUBINV LIKE CONCAT('%',CONCAT(#{sourceSubinv,jdbcType=VARCHAR},'%'))
+        </if>
+        <if test="confirmReceipt != null">
+            AND HCOOF.CONFIRM_RECEIPT = #{confirmReceipt,jdbcType=VARCHAR}
+        </if>
+        </where>
+        ORDER BY HCOOF.EFFECTIVE_DATE DESC
+    </select>
+
+    <select id="selectPrintData" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundOrderFull">
+        SELECT
+            HCOOF.INVOICE_ID,
+            HCOOF.INVOICE_NO,
+            HCOOF.PARTY_NAME,
+            HCOIF.ITEM_NO,
+            HCOIF.ITEM_DESC,
+            HCOIF.UNIT_OF_MEASURE,
+            HCOIF.OUTBOUND_QTY,
+            HCC.ACTUAL_CONTRACT_NO
+        FROM
+            HCUX_CS_OUTBOUND_ORDER_FULL HCOOF
+            LEFT JOIN (
+            SELECT
+                INVOICE_ID,
+                ITEM_NO,
+                ITEM_DESC,
+                UNIT_OF_MEASURE,
+                SUM( OUTBOUND_QTY ) OUTBOUND_QTY,
+                SUM( QUANTITY_PCS ) QUANTITY_PCS
+            FROM
+                HCUX_CS_OUTBOUND_ITEM_FULL
+            GROUP BY
+                INVOICE_ID,
+                ITEM_NO,
+                ITEM_DESC,
+                UNIT_OF_MEASURE
+            ) HCOIF ON HCOOF.INVOICE_ID = HCOIF.INVOICE_ID
+            LEFT JOIN ( SELECT DISTINCT ACTUAL_CONTRACT_NO, HEADER_ID FROM HCUX_CS_CONTRACT T ) HCC ON HCOOF.OE_HEADER_ID = HCC.HEADER_ID
+        <where>
+            <if test="invoiceId != null">
+                AND HCOOF.INVOICE_ID = #{invoiceId, jdbcType=DECIMAL}
+            </if>
+        </where>
+    </select>
+</mapper>

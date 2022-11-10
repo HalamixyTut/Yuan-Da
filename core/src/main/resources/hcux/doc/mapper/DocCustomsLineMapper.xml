@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.doc.mapper.DocCustomsLineMapper">
+    <resultMap id="BaseResultMap" type="hcux.doc.dto.DocCustomsLine"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="CUSTOMS_LINE_ID" property="customsLineId" jdbcType="DECIMAL"/>
+        <result column="CUSTOMS_ID" property="customsId" jdbcType="DECIMAL"/>
+        <result column="GOODS_NUMBER" property="goodsNumber" jdbcType="VARCHAR"/>
+        <result column="PRODUCT_NAME_CN" property="productNameCn" jdbcType="VARCHAR"/>
+        <result column="PRODUCT_NAME_EN" property="productNameEn" jdbcType="VARCHAR"/>
+        <result column="CUSTOMS_AMOUNT_ONE" property="customsAmountOne" jdbcType="DECIMAL"/>
+        <result column="CUSTOMS_UNIT_ONE" property="customsUnitOne" jdbcType="VARCHAR"/>
+        <result column="CUSTOMS_AMOUNT_TWO" property="customsAmountTwo" jdbcType="DECIMAL"/>
+        <result column="CUSTOMS_UNIT_TWO" property="customsUnitTwo" jdbcType="VARCHAR"/>
+        <result column="CUSTOMS_AMOUNT_THREE" property="customsAmountThree" jdbcType="DECIMAL"/>
+        <result column="CUSTOMS_UNIT_THREE" property="customsUnitThree" jdbcType="VARCHAR"/>
+        <result column="PACKAGE_NUMBER" property="packageNumber" jdbcType="DECIMAL"/>
+        <result column="PACKAGE_NUMBER_UNIT" property="packageNumberUnit" jdbcType="VARCHAR"/>
+        <result column="VALUATION_AMOUNT" property="valuationAmount" jdbcType="DECIMAL"/>
+        <result column="UNIT_PRICE" property="unitPrice" jdbcType="DECIMAL"/>
+        <result column="TOTAL_PRICE" property="totalPrice" jdbcType="DECIMAL"/>
+        <result column="GROSS_WEIGHT" property="grossWeight" jdbcType="DECIMAL"/>
+        <result column="NET_WEIGHT" property="netWeight" jdbcType="DECIMAL"/>
+        <result column="VOLUME" property="volume" jdbcType="DECIMAL"/>
+        <result column="ORIGIN_COUNTRY" property="originCountry" jdbcType="VARCHAR"/>
+        <result column="DESTINATION_COUNTRY" property="destinationCountry" jdbcType="VARCHAR"/>
+        <result column="ORIGIN_PLACE" property="originPlace" jdbcType="VARCHAR"/>
+        <result column="EXEMPTION_WAY" property="exemptionWay" jdbcType="VARCHAR"/>
+        <result column="DECLARATION_ELEMENT" property="declarationElement" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="FACTORY_NAME" property="factoryName" jdbcType="VARCHAR"/>
+        <result column="PAYMENT_AMOUNT" property="paymentAmount" jdbcType="DECIMAL"/>
+        <result column="TAX_REBATE_RATE" property="taxRebateRate" jdbcType="DECIMAL"/>
+        <result column="EXCHANGE_RATE" property="exchangeRate" jdbcType="DECIMAL"/>
+        <result column="EXCHANGE_RATE" property="exchangeRate" jdbcType="DECIMAL"/>
+
+        <result column="INVOICE_NUMBER" property="invoiceNumber" jdbcType="VARCHAR"/>
+        <result column="PACKAGE_NUMBER_UNIT_MEANING" property="packageNumberUnitMeaning" jdbcType="VARCHAR"/>
+
+        <result column="CURRENCY_SYSTEM" property="currencySystem" jdbcType="VARCHAR"/>
+        <result column="DEPARTURE_PORT" property="departurePort" jdbcType="VARCHAR"/>
+        <result column="DISCHARGE_PORT" property="dischargePort" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE" property="consignee" jdbcType="VARCHAR"/>
+        <result column="SHIPPING_MARK" property="shippingMark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="querySum" resultMap="BaseResultMap" parameterType="long">
+        SELECT SUM(PACKAGE_NUMBER) PACKAGE_NUMBER,
+               SUM(GROSS_WEIGHT)   GROSS_WEIGHT,
+               SUM(NET_WEIGHT)     NET_WEIGHT,
+               SUM(VOLUME)     VOLUME,
+               SUM(TOTAL_PRICE)     TOTAL_PRICE
+        FROM HCUX_DOC_CUSTOMS_LINE
+        WHERE CUSTOMS_ID = #{customsId}
+    </select>
+
+    <select id="queryPackageNumberUnit" resultMap="BaseResultMap" parameterType="long">
+        SELECT
+            HDCL.PACKAGE_NUMBER_UNIT,
+            HCVV.MEANING PACKAGE_NUMBER_UNIT_MEANING,
+            SUM(HDCL.PACKAGE_NUMBER) PACKAGE_NUMBER
+        FROM
+            HCUX_DOC_CUSTOMS_LINE HDCL
+                LEFT JOIN HCUX_CODE_VALUE_V HCVV
+                          ON HCVV.VALUE = HDCL.PACKAGE_NUMBER_UNIT AND HCVV.CODE = 'HCUX_DOC_PACKAGE_NUMBER_UNIT'
+        WHERE
+            CUSTOMS_ID = #{customsId}
+          AND HDCL.PACKAGE_NUMBER_UNIT IS NOT NULL
+        GROUP BY
+            HDCL.PACKAGE_NUMBER_UNIT,
+            HCVV.MEANING
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap"
+            parameterType="hcux.doc.dto.DocCustomsLine">
+        SELECT
+        HDCL.CUSTOMS_LINE_ID,
+        HDCL.CUSTOMS_ID,
+        HDCL.GOODS_NUMBER,
+        HDCL.PRODUCT_NAME_CN,
+        HDCL.PRODUCT_NAME_EN,
+        HDCL.CUSTOMS_AMOUNT_ONE,
+        HDCL.CUSTOMS_UNIT_ONE,
+        HDCL.CUSTOMS_AMOUNT_TWO,
+        HDCL.CUSTOMS_UNIT_TWO,
+        HDCL.CUSTOMS_AMOUNT_THREE,
+        HDCL.CUSTOMS_UNIT_THREE,
+        HDCL.PACKAGE_NUMBER,
+        HDCL.PACKAGE_NUMBER_UNIT,
+        HDCL.VALUATION_AMOUNT,
+        HDCL.UNIT_PRICE,
+        HDCL.TOTAL_PRICE,
+        HDCL.GROSS_WEIGHT,
+        HDCL.NET_WEIGHT,
+        HDCL.VOLUME,
+        HDCL.ORIGIN_COUNTRY,
+        HDCL.DESTINATION_COUNTRY,
+        HDCL.ORIGIN_PLACE,
+        HDCL.EXEMPTION_WAY,
+        HDCL.DECLARATION_ELEMENT,
+        HDCL.DELETE_FLAG,
+        HDCL.FACTORY_NAME,
+        HDCL.PAYMENT_AMOUNT,
+        HDCL.TAX_REBATE_RATE,
+        HDCL.EXCHANGE_RATE,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HDCL"/>
+        </include>
+        FROM HCUX_DOC_CUSTOMS_LINE HDCL
+        WHERE CUSTOMS_ID = #{customsId}
+        ORDER BY CUSTOMS_LINE_ID ASC
+    </select>
+    <select id="queryList" resultMap="BaseResultMap"
+            parameterType="hcux.doc.dto.DocCustomsLine">
+       select *
+       from
+       (
+        SELECT
+        HDCL.CUSTOMS_LINE_ID,
+        HDCL.CUSTOMS_ID,
+        HDCL.GOODS_NUMBER,
+        HDCL.PRODUCT_NAME_CN,
+        HDCL.PRODUCT_NAME_EN,
+        HDCL.CUSTOMS_UNIT_ONE,
+        HDCL.CUSTOMS_UNIT_THREE,
+        HDCL.ORIGIN_PLACE,
+        HDCL.DECLARATION_ELEMENT,
+        HDCH.INVOICE_NUMBER,
+        ROW_NUMBER () over(partition by HDCL.GOODS_NUMBER,HDCL.PRODUCT_NAME_CN,HDCL.PRODUCT_NAME_EN,HDCL.CUSTOMS_UNIT_ONE,HDCL.CUSTOMS_UNIT_THREE,HDCL.ORIGIN_PLACE,HDCL.DECLARATION_ELEMENT ORDER BY HDCH.INVOICE_NUMBER) CN,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HDCL"/>
+        </include>
+        FROM HCUX_DOC_CUSTOMS_LINE HDCL
+        join HCUX_DOC_CUSTOMS_HEADER HDCH on HDCH.CUSTOMS_ID=HDCL.CUSTOMS_ID
+        <where>
+            <if test="invoiceNumber != null">
+                and LOWER(HDCH.INVOICE_NUMBER) like '%'|| LOWER(#{invoiceNumber}) ||'%'
+            </if>
+            <if test="productNameCn != null">
+                and (LOWER(HDCL.PRODUCT_NAME_CN) like '%'|| LOWER(#{productNameCn}) ||'%'
+                or LOWER(HDCL.PRODUCT_NAME_EN) like '%'|| LOWER(#{productNameCn}) ||'%')
+            </if>
+            <if test="declarationElement != null">
+                and LOWER(HDCL.DECLARATION_ELEMENT) like '%'|| LOWER(#{declarationElement}) ||'%'
+            </if>
+        </where>
+        order by CREATION_DATE desc
+       )
+       where CN = 1
+    </select>
+
+    <select id="queryHeaderAndLine" resultMap="BaseResultMap" parameterType="hcux.doc.dto.DocCustomsHeader">
+        SELECT
+            HDCH.INVOICE_NUMBER,
+            HDCH.CONSIGNEE,
+            HDCH.DISCHARGE_PORT,
+            HDCH.DEPARTURE_PORT,
+            HDCH.SHIPPING_MARK,
+            HDCH.CURRENCY_SYSTEM,
+            HDCL.GOODS_NUMBER,
+            HDCL.PRODUCT_NAME_CN,
+            HDCL.PRODUCT_NAME_EN,
+            HDCL.CUSTOMS_AMOUNT_ONE,
+            HDCL.CUSTOMS_UNIT_ONE,
+            HDCL.CUSTOMS_AMOUNT_TWO,
+            HDCL.CUSTOMS_UNIT_TWO,
+            HDCL.CUSTOMS_AMOUNT_THREE,
+            HDCL.CUSTOMS_UNIT_THREE,
+            HDCL.PACKAGE_NUMBER,
+            HDCL.PACKAGE_NUMBER_UNIT,
+            HDCL.VALUATION_AMOUNT,
+            HDCL.UNIT_PRICE,
+            HDCL.TOTAL_PRICE,
+            HDCL.GROSS_WEIGHT,
+            HDCL.NET_WEIGHT,
+            HDCL.VOLUME,
+            HDCL.ORIGIN_COUNTRY,
+            HDCL.DESTINATION_COUNTRY,
+            HDCL.ORIGIN_PLACE,
+            HDCL.EXEMPTION_WAY,
+            HDCL.DECLARATION_ELEMENT,
+            HDCL.DELETE_FLAG,
+            HDCL.FACTORY_NAME,
+            HDCL.PAYMENT_AMOUNT,
+            HDCL.TAX_REBATE_RATE,
+            HDCL.EXCHANGE_RATE
+        FROM
+            HCUX_DOC_CUSTOMS_HEADER HDCH
+            LEFT JOIN HR_EMPLOYEE HE ON HDCH.DOCUMENT_ID = HE.EMPLOYEE_ID
+            LEFT JOIN HR_EMPLOYEE HE_APPROVAL ON HDCH.APPROVAL_ID = HE_APPROVAL.EMPLOYEE_ID
+            LEFT JOIN HCUX_DOC_CUSTOMS_LINE HDCL ON HDCH.CUSTOMS_ID = HDCL.CUSTOMS_ID
+            LEFT JOIN (
+                SELECT *
+                FROM
+                (
+                SELECT
+                CUSTOMS_ID,
+                PRODUCT_NAME_CN,
+                ROW_NUMBER () OVER ( PARTITION BY CUSTOMS_ID ORDER BY CUSTOMS_LINE_ID ) AS RN
+                FROM HCUX_DOC_CUSTOMS_LINE
+                )
+                WHERE RN = 1
+            ) HDCL_1 ON HDCH.CUSTOMS_ID = HDCL_1.CUSTOMS_ID
+        <where>
+            <if test="invoiceNumber != null">
+                AND LOWER(HDCH.INVOICE_NUMBER) LIKE CONCAT('%',CONCAT(LOWER(#{invoiceNumber,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="consignee != null">
+                AND LOWER(HDCH.CONSIGNEE) LIKE CONCAT('%',CONCAT(LOWER(#{consignee,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="departurePort != null">
+                AND LOWER(HDCH.DEPARTURE_PORT) LIKE CONCAT('%',CONCAT(LOWER(#{departurePort,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="dischargePort != null">
+                AND LOWER(HDCH.DISCHARGE_PORT) LIKE CONCAT('%',CONCAT(LOWER(#{dischargePort,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="productName != null">
+                AND LOWER(HDCL_1.PRODUCT_NAME_CN) LIKE CONCAT('%',CONCAT(LOWER(#{productName,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="invoiceDateFrom != null">
+                AND TO_CHAR(HDCH.INVOICE_DATE,'yyyy-MM-dd') &gt;=
+                TO_CHAR(#{invoiceDateFrom,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+
+            <if test="invoiceDateTo != null">
+                AND TO_CHAR(HDCH.INVOICE_DATE,'yyyy-MM-dd') &lt;=
+                TO_CHAR(#{invoiceDateTo,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+
+            <if test="statusList != null and statusList.size > 0">
+                AND HDCH.STATUS in
+                <foreach collection="statusList" open="(" separator="," close=")" item="status">
+                    #{status,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+
+            <if test='currentUserName != null and currentUserName != ""'>
+                AND (LOWER(HE.NAME) LIKE CONCAT('%',CONCAT(LOWER(#{currentUserName,jdbcType=VARCHAR}),'%'))
+                OR LOWER(HE_APPROVAL.NAME) LIKE CONCAT('%',CONCAT(LOWER(#{currentUserName,jdbcType=VARCHAR}),'%')))
+            </if>
+        </where>
+        ORDER BY HDCH.INVOICE_DATE DESC, HDCL.CUSTOMS_LINE_ID ASC
+    </select>
+</mapper>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.pm.mapper.PmHelpFileMapper">
+    <resultMap id="BaseResultMap" type="hcux.pm.dto.PmHelpFile"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="HELP_FILE_ID" property="helpFileId" jdbcType="DECIMAL" />
+        <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+        <result column="HELP_ID" property="helpId" jdbcType="DECIMAL" />
+        <result column="FILE_NAME" property="fileName" jdbcType="VARCHAR" />
+        <result column="FILE_ID" property="fileId" jdbcType="DECIMAL" />
+    </resultMap>
+
+    <select id="selectLists" resultMap="BaseResultMap" parameterType="hcux.pm.dto.PmHelpFile">
+        SELECT
+        HPHF.HELP_FILE_ID,
+        HPHF.HELP_ID,
+        HPHF.REMARK,
+        SF.FILE_NAME,
+        SF.FILE_ID,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HPHF"/>
+        </include>
+        FROM
+        HCUX_PM_HELP_FILE HPHF
+        LEFT JOIN SYS_ATTACHMENT SA ON to_char( HPHF.HELP_FILE_ID ) = SA.SOURCE_KEY
+        AND SA.SOURCE_TYPE = 'PM_HELP_FILE'
+        LEFT JOIN SYS_FILE SF ON SA.ATTACHMENT_ID = SF.ATTACHMENT_ID
+        <where>
+            <if test="helpId != null">
+                AND HPHF.HELP_ID = #{helpId, jdbcType=DECIMAL}
+            </if>
+            <if test="fileName != null">
+                AND SF.FILE_NAME LIKE '%' || #{fileName, jdbcType=VARCHAR} || '%'
+            </if>
+        </where>
+    </select>
+</mapper>

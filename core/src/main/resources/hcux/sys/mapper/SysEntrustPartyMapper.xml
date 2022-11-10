@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.sys.mapper.SysEntrustPartyMapper">
+    <resultMap id="BaseResultMap" type="hcux.sys.dto.SysEntrustParty"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="ENTRUST_ID" property="entrustId" jdbcType="DECIMAL"/>
+        <result column="ENTRUST_CODE" property="entrustCode" jdbcType="VARCHAR"/>
+        <result column="ENTRUST_NAME" property="entrustName" jdbcType="VARCHAR"/>
+        <result column="SERIAL_NUMBER" property="serialNumber" jdbcType="VARCHAR"/>
+        <result column="PRICE_DECIMAL" property="priceDecimal" jdbcType="VARCHAR"/>
+        <result column="MIN_AGENCY_FEE" property="minAgencyFee" jdbcType="DECIMAL"/>
+        <result column="SALESMAN_ID" property="salesmanId" jdbcType="DECIMAL"/>
+        <result column="SALESMAN_NAME" property="salesmanName" jdbcType="DECIMAL"/>
+        <result column="STATEMENT_FLAG" property="statementFlag" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="TOTAL_MIN_AGENCY_FEE" property="totalMinAgencyFee" jdbcType="DECIMAL"/>
+        <result column="EMPLOYEE_ID" property="employeeId" jdbcType="DECIMAL"/>
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysEntrustParty">
+        SELECT
+        HSEP.ENTRUST_ID,
+        HSEP.ENTRUST_CODE,
+        HSEP.ENTRUST_NAME,
+        HSEP.SERIAL_NUMBER,
+        HSEP.PRICE_DECIMAL,
+        HSEP.MIN_AGENCY_FEE,
+        HSEP.SALESMAN_ID,
+        HSEP.STATEMENT_FLAG,
+        HE.NAME SALESMAN_NAME,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HSEP"/>
+        </include>
+        FROM HCUX_SYS_ENTRUST_PARTY HSEP
+        LEFT JOIN HR_EMPLOYEE HE ON HSEP.SALESMAN_ID = HE.EMPLOYEE_ID
+        WHERE DELETE_FLAG = 'N'
+        <if test="entrustId != null">
+            AND HSEP.ENTRUST_ID = #{entrustId}
+        </if>
+        <if test="entrustCode != null">
+            AND HSEP.ENTRUST_CODE like '%'||#{entrustCode}||'%'
+        </if>
+        <if test="entrustName != null">
+            AND HSEP.ENTRUST_NAME like '%'||#{entrustName}||'%'
+        </if>
+        <if test="serialNumber != null">
+            AND HSEP.SERIAL_NUMBER like '%'||#{serialNumber}||'%'
+        </if>
+        ORDER BY HSEP.ENTRUST_ID DESC
+    </select>
+
+    <select id="queryForLov" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysEntrustParty">
+        SELECT
+        HSEP.ENTRUST_ID,
+        HSEP.ENTRUST_CODE,
+        HSEP.ENTRUST_NAME,
+        HSEP.SERIAL_NUMBER,
+        HSEP.PRICE_DECIMAL,
+        HSEP.MIN_AGENCY_FEE,
+        HSEP.SALESMAN_ID
+        FROM HCUX_SYS_ENTRUST_PARTY HSEP
+        <where>
+            <if test="entrustCode != null">
+                AND UPPER(HSEP.ENTRUST_CODE) like '%'|| UPPER(#{entrustCode}) ||'%'
+            </if>
+            <if test="entrustName != null">
+                AND UPPER(HSEP.ENTRUST_NAME) like '%'|| UPPER(#{entrustName}) ||'%'
+            </if>
+            <if test="serialNumber != null">
+                AND UPPER(HSEP.SERIAL_NUMBER) like '%'|| UPPER(#{serialNumber})||'%'
+            </if>
+        </where>
+    </select>
+
+    <!--内部用户名查找系列号-->
+    <select id="selectSerialNumber" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysEntrustParty">
+        SELECT
+        HSEP.SERIAL_NUMBER
+        FROM HCUX_SYS_ENTRUST_PARTY HSEP
+         JOIN HR_EMPLOYEE HE ON HSEP.SALESMAN_ID = HE.EMPLOYEE_ID
+        join SYS_USER SU on SU.EMPLOYEE_ID=HE.EMPLOYEE_ID
+        where SU.USER_ID=#{userId}
+        <if test="serialNumber != null">
+            AND lower(HSEP.SERIAL_NUMBER) like '%'||lower(#{serialNumber})||'%'
+        </if>
+    </select>
+    <!--内部员工查询期初余额-->
+    <select id="selectTotalMinAgencyFee" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysEntrustParty">
+        SELECT
+        round(sum(HSEP.MIN_AGENCY_FEE),2)TOTAL_MIN_AGENCY_FEE
+        FROM HCUX_SYS_ENTRUST_PARTY HSEP
+        JOIN HR_EMPLOYEE HE ON HSEP.SALESMAN_ID = HE.EMPLOYEE_ID
+        join SYS_USER SU on SU.EMPLOYEE_ID=HE.EMPLOYEE_ID
+        where SU.USER_ID=#{userId}
+        <if test="serialNumber != null">
+            AND lower(HSEP.SERIAL_NUMBER) like '%'||lower(#{serialNumber})||'%'
+        </if>
+    </select>
+    <!--不带用户名查找系列号-->
+    <select id="selectSerialNumberWithoutUser" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysEntrustParty">
+        SELECT
+        HSEP.SERIAL_NUMBER
+        FROM HCUX_SYS_ENTRUST_PARTY HSEP
+        where 1=1
+        <if test="serialNumber != null">
+            AND lower(HSEP.SERIAL_NUMBER) like '%'||lower(#{serialNumber})||'%'
+        </if>
+    </select>
+    <!--不带用户名的查询期初余额-->
+    <select id="selectTotalWithOutUser" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysEntrustParty">
+        SELECT
+        round(sum(HSEP.MIN_AGENCY_FEE),2)TOTAL_MIN_AGENCY_FEE
+        FROM HCUX_SYS_ENTRUST_PARTY HSEP
+        where 1=1
+        <if test="serialNumber != null">
+            AND lower(HSEP.SERIAL_NUMBER) like '%'||lower(#{serialNumber})||'%'
+        </if>
+    </select>
+    <select id="selectPriceDecimal" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysEntrustParty">
+        SELECT
+        price_Decimal
+        FROM HCUX_SYS_ENTRUST_PARTY HSEP
+        where
+        lower(HSEP.SERIAL_NUMBER) =lower(#{serialNumber})
+    </select>
+    <!--查询用户是内部员工还是外部人员-->
+    <select id="selectEmployee" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysEntrustParty">
+        SELECT
+        EMPLOYEE_ID
+        FROM SYS_USER SU
+        where SU.USER_ID=#{userId}
+    </select>
+    <!--外部部员工查询期初余额-->
+    <select id="selectTotalMinAgencyFeeOuter" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysEntrustParty">
+        SELECT
+        sum(HSEP.MIN_AGENCY_FEE)TOTAL_MIN_AGENCY_FEE
+        FROM HCUX_SYS_ENTRUST_PARTY HSEP
+        join SYS_USER SU on lower(SU.user_name)=lower(HSEP.ENTRUST_CODE)
+        <where>
+            <if test="userId != null">
+                SU.USER_ID=#{userId}
+            </if>
+            <if test="userName != null">
+                lower(SU.USER_Name)=lower(#{userName})
+            </if>
+        </where>
+    </select>
+    <!--内部用户名查找系列号-->
+    <select id="selectSerialNumberOuter" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysEntrustParty">
+        SELECT
+        HSEP.SERIAL_NUMBER,
+        HSEP.STATEMENT_FLAG
+        FROM HCUX_SYS_ENTRUST_PARTY HSEP
+        join SYS_USER SU on lower(SU.user_name)=lower(HSEP.ENTRUST_CODE)
+       <where>
+           <if test="userId != null">
+               SU.USER_ID=#{userId}
+           </if>
+           <if test="userName != null">
+               lower(SU.USER_Name)=lower(#{userName})
+           </if>
+       </where>
+    </select>
+</mapper>

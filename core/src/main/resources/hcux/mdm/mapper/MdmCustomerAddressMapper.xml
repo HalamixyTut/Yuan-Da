@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.mdm.mapper.MdmCustomerAddressMapper">
+    <resultMap id="BaseResultMap" type="hcux.mdm.dto.MdmCustomerAddress"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="ADDRESS_ID" property="addressId" jdbcType="DECIMAL"/>
+        <result column="PLATE" property="plate" jdbcType="VARCHAR"/>
+        <result column="CUSTOMER_CODE" property="customerCode" jdbcType="VARCHAR"/>
+        <result column="CUSTOMER_NAME" property="customerName" jdbcType="VARCHAR"/>
+        <result column="RECEIVER" property="receiver" jdbcType="VARCHAR"/>
+        <result column="MOBILE" property="mobile" jdbcType="VARCHAR"/>
+        <result column="ADDRESS" property="address" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="TELEPHONE" property="telephone" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <select id="selectData" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmCustomerAddress">
+        SELECT
+        HMCA.ADDRESS_ID,
+        HMCA.PLATE,
+        HMCA.CUSTOMER_CODE,
+        HMCA.CUSTOMER_NAME,
+        HMCA.RECEIVER,
+        HMCA.MOBILE,
+        HMCA.ADDRESS,
+        HMCA.TELEPHONE,
+        HMCA.DELETE_FLAG,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HMCA"/>
+        </include>
+        FROM HCUX_MDM_CUSTOMER_ADDRESS HMCA
+        <where>
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.nhPortalSql02">
+                </include>
+            </if>
+
+            <if test='queryType == "HAP"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.nhHapSql02">
+                </include>
+            </if>
+
+            <if test="plate != null">
+                AND HMCA.PLATE = #{plate,jdbcType=DECIMAL}
+            </if>
+
+            <if test="customerName != null">
+                AND HMCA.CUSTOMER_NAME LIKE CONCAT('%',CONCAT(#{customerName,jdbcType=VARCHAR},'%'))
+            </if>
+        </where>
+        ORDER BY ADDRESS_ID ASC
+    </select>
+</mapper>

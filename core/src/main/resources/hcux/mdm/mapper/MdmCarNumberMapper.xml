@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.mdm.mapper.MdmCarNumberMapper">
+    <resultMap id="BaseResultMap" type="hcux.mdm.dto.MdmCarNumber"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="CAR_NUMBER" property="carNumber" jdbcType="VARCHAR"/>
+        <result column="DRAW_GOODS_DATE" property="drawGoodsDate" jdbcType="DATE"/>
+        <result column="CARRIER" property="carrier" jdbcType="VARCHAR"/>
+        <result column="GOODS_NAME" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="TRANSPORT_STATUS" property="transportStatus" jdbcType="VARCHAR"/>
+        <result column="TOTAL_CAR_NUM" property="totalCarNum" jdbcType="DECIMAL"/>
+        <result column="VEHICLE_SOURCE" property="vehicleSource" jdbcType="VARCHAR"/>
+        <result column="AMOUNT" property="amount" jdbcType="DECIMAL"/>
+
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmCarNumber">
+        select
+        hlt.CAR_NUMBER,
+        hlt.DRAW_GOODS_DATE,
+        hloh.CARRIER,
+        hlt.GOODS_NAME,
+        hlt.TRANSPORT_STATUS,
+        NVL(hlt.DRAW_GOODS_AMOUNT,hlt.DISPATCH_AMOUNT) AMOUNT,
+        hlt.VEHICLE_SOURCE
+        from HCUX_LM_TRANSPORT hlt join HCUX_LM_ORDER_HEADER hloh
+        on hlt.ORDER_ID=hloh.ORDER_ID
+        <where>
+
+            hlt.TRANSPORT_STATUS IN (
+            select SCVB.value from SYS_CODE_VALUE_B SCVB
+            where SCVB.code_id = (select SCB.code_id from SYS_CODE_B SCB where SCB.Code = 'HCUX_LM_TRANSPORT_STATUS')
+            and SCVB.tag = 'Y')
+
+            <if test='drawGoodsDateFrom != null'>
+                and hlt.DRAW_GOODS_DATE >= #{drawGoodsDateFrom}
+            </if>
+
+            <if test='drawGoodsDateTo != null'>
+                and hlt.DRAW_GOODS_DATE &lt;= #{drawGoodsDateTo}
+            </if>
+
+            <if test='carrier != null'>
+                and hloh.CARRIER like '%'|| #{carrier} ||'%'
+            </if>
+
+            <if test='goodsName != null'>
+                and hlt.GOODS_NAME like '%'|| #{goodsName} ||'%'
+            </if>
+
+            <if test='transportStatus != null'>
+                and hlt.TRANSPORT_STATUS=#{transportStatus}
+            </if>
+
+            <if test='vehicleSource != null'>
+                and hlt.VEHICLE_SOURCE=#{vehicleSource}
+            </if>
+        </where>
+        ORDER BY hlt.DRAW_GOODS_DATE DESC
+    </select>
+
+    <select id="totalCarNum" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmCarNumber">
+        select count(distinct CAR_NUMBER) AS TOTAL_CAR_NUM from (
+        select
+        hlt.CAR_NUMBER,
+        hlt.DRAW_GOODS_DATE,
+        hloh.CARRIER,
+        hlt.GOODS_NAME,
+        hlt.TRANSPORT_STATUS,
+        hlt.VEHICLE_SOURCE
+        from HCUX_LM_TRANSPORT hlt join HCUX_LM_ORDER_HEADER hloh
+        on hlt.ORDER_ID=hloh.ORDER_ID
+        <where>
+
+            hlt.TRANSPORT_STATUS IN (
+            select SCVB.value from SYS_CODE_VALUE_B SCVB
+            where SCVB.code_id = (select SCB.code_id from SYS_CODE_B SCB where SCB.Code = 'HCUX_LM_TRANSPORT_STATUS')
+            and SCVB.tag = 'Y')
+
+            <if test='drawGoodsDateFrom != null'>
+                and hlt.DRAW_GOODS_DATE >= #{drawGoodsDateFrom}
+            </if>
+
+            <if test='drawGoodsDateTo != null'>
+                and hlt.DRAW_GOODS_DATE &lt;= #{drawGoodsDateTo}
+            </if>
+
+            <if test='carrier != null'>
+                and hloh.CARRIER like '%'|| #{carrier} ||'%'
+            </if>
+
+            <if test='goodsName != null'>
+                and hlt.GOODS_NAME like '%'|| #{goodsName} ||'%'
+            </if>
+
+            <if test='transportStatus != null'>
+                and hlt.TRANSPORT_STATUS=#{transportStatus}
+            </if>
+
+            <if test='vehicleSource != null'>
+                and hlt.VEHICLE_SOURCE=#{vehicleSource}
+            </if>
+        </where>
+        )
+    </select>
+</mapper>

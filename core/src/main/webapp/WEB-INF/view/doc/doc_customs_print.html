@@ -1,0 +1,266 @@
+<#--
+* description: 报关单打印选择模板界面
+* version: 1.0
+* author: feng.liu01@hand-china.com
+-->
+
+<#include "../include/header.html">
+<script type="text/javascript">
+
+    var customsId = '${RequestParameters.customsId!}';
+
+    var viewModel = Hap.createGridViewModel("#grid", {
+        model: {
+            customsId: customsId,
+            order: 'N',
+            customsDeclaration: 'Y',
+            invoice: 'Y',
+            pack: 'Y',
+            contract: 'Y',
+            sign: 'Y',
+            all:'N'
+        },
+        confirm: function () {
+            if (viewModel.model.order === 'N'
+                && viewModel.model.customsDeclaration === 'N'
+                && viewModel.model.invoice === 'N'
+                && viewModel.model.pack === 'N'
+                && viewModel.model.contract === 'N') {
+                Hap.showToast({
+                    type: 'warning',
+                    message: '请至少选择一个模板！'
+                });
+                return
+            }
+
+
+            window.open('${base.contextPath}/hcux/doc/customs/header/pdfPrint' +
+                '?customsId=' + customsId
+                + "&order=" + viewModel.model.order
+                + "&customsDeclaration=" + viewModel.model.customsDeclaration
+                + "&invoice=" + viewModel.model.invoice
+                + "&pack=" + viewModel.model.pack
+                + "&contract=" + viewModel.model.contract
+                + "&sign=" + viewModel.model.sign
+            );
+            viewModel.cancel();
+        },
+
+        cancel: function () {
+            window.parent.$("#printWindow").data("kendoWindow").close();
+        }
+    });
+    //add yexiang.ren 19200 start
+    viewModel.model.bind('change', function (e) {
+        if(e.field=='all'){
+            if(e.sender.all=='Y'){
+                viewModel.model.set('order','Y');
+                viewModel.model.set('customsDeclaration','Y');
+                viewModel.model.set('invoice','Y');
+                viewModel.model.set('pack','Y');
+                viewModel.model.set('contract','Y');
+                viewModel.model.set('sign','Y');
+            }
+            if(e.sender.all=='N') {
+                viewModel.model.set('order', 'N');
+                viewModel.model.set('customsDeclaration', 'N');
+                viewModel.model.set('invoice', 'N');
+                viewModel.model.set('pack', 'N');
+                viewModel.model.set('contract', 'N');
+                viewModel.model.set('sign', 'N');
+            }
+        }
+    });
+    window.onload = function () {
+        $.ajax({
+            type: 'POST',
+            url: '${base.contextPath}/hcux/doc/customs/header/queryCopy',
+            datatype: "json",
+            async: false,
+            data: {customsId: customsId},
+            success: function (data) {
+                if (data.success) {
+                var row=data.rows[0];
+                var content='电子委托信息：'+'\n';
+                content+=(row.invoiceNumber|| '')+'\n';
+                content+=(row.declareCustomLine|| '')+'\n';
+                content+=((row.productNameCn+' '+row.goodsNumber)|| '')+'\n';
+                content+=((row.currencySystem+row.totalAmount)|| '')+'\n';
+                content+=row.billNumber|| '';
+                viewModel.model.set('content',content);
+                }
+            }
+        });
+    }
+    //add yexiang.ren 19200 end
+</script>
+<body>
+<div id="page-content">
+
+    <form class="form-horizontal" id="query-form" style="">
+
+        <div class="row">
+            <div class="col-xs-4">
+                <input data-bind="value:model.all" id="selectAll"
+                       style="float: right;margin-top: 2px"
+                       type="text"/>
+                <script>
+                    $("#selectAll").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'Y'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-8" style="font-size: 16px;">
+                全选
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 10px">
+            <div class="col-xs-4">
+                <input data-bind="value:model.order" id="orderInput"
+                       style="float: right;margin-top: 2px"
+                       type="text"/>
+                <script>
+                    $("#orderInput").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'Y'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-8" style="font-size: 16px;">
+                报关委托书
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 10px">
+            <div class="col-xs-4">
+                <input data-bind="value:model.customsDeclaration" id="customsDeclarationInput"
+                       style="float: right;margin-top: 2px"
+                       type="text"/>
+                <script>
+                    $("#customsDeclarationInput").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'Y'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-8" style="font-size: 16px;">
+                报关单
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 10px">
+            <div class="col-xs-4">
+                <input data-bind="value:model.invoice" id="invoiceInput"
+                       style="float: right;margin-top: 2px"
+                       type="text"/>
+                <script>
+                    $("#invoiceInput").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'Y'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-8" style="font-size: 16px;">
+                报发
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 10px">
+            <div class="col-xs-4">
+                <input data-bind="value:model.pack" id="packInput"
+                       style="float: right;margin-top: 2px"
+                       type="text"/>
+                <script>
+                    $("#packInput").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'Y'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-8" style="font-size: 16px;">
+                报装
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 10px">
+            <div class="col-xs-4">
+                <input data-bind="value:model.contract" id="contractInput"
+                       style="float: right;margin-top: 2px"
+                       type="text"/>
+                <script>
+                    $("#contractInput").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'Y'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-8" style="font-size: 16px;">
+                合同
+            </div>
+        </div>
+
+
+        <div class="row" style="margin-top: 10px">
+            <div class="col-xs-4">
+                <input data-bind="value:model.sign" id="signInput"
+                       style="float: right;margin-top: 2px"
+                       type="text"/>
+                <script>
+                    $("#signInput").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'Y'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-8" style="font-size: 16px;">
+                是否签章
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 20px">
+            <div class="col-xs-3">
+                <span class="btn btn-success" data-bind="click:confirm" style="float:left;width:70px">
+                    <@spring.message "确认"/></span>
+
+            </div>
+
+            <div class="col-xs-offset-6 col-xs-3">
+                <span class="btn btn-danger" data-bind="click:cancel" style="float:right;width:70px">
+                    <@spring.message "取消"/></span>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 10px">
+            <div class="col-xs-12">
+                <textarea data-bind="value:model.content"  id="content"
+                          style="width:100%; height:120px!important;"
+                          class="k-textbox">
+
+                </textarea>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        kendo.bind($('#query-form'), viewModel);
+    </script>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsWarehouseLinkMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsWarehouseLink">
+        <result column="warehouse_link_id" property="warehouseLinkId" jdbcType="DECIMAL"/>
+        <result column="warehouse_name" property="warehouseName" jdbcType="VARCHAR"/>
+        <result column="warehouse_link" property="warehouseLink" jdbcType="VARCHAR"/>
+
+    </resultMap>
+    <select id="selectList" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsWarehouseLink">
+        select HCWL.WAREHOUSE_LINK_ID,
+               HCWL.WAREHOUSE_NAME,
+               HCWL.WAREHOUSE_LINK
+        from HCUX_CS_WAREHOUSE_LINK HCWL
+        ORDER BY NLSSORT(WAREHOUSE_NAME,'NLS_SORT=SCHINESE_PINYIN_M')
+    </select>
+</mapper>

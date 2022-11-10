@@ -1,0 +1,103 @@
+<#--
+* description: 系统消息dashboard
+* version: 1.0
+* author: feng.liu01@hand-china.com
+-->
+
+<!--<style>-->
+<!--    .desc {-->
+<!--        white-space: nowrap;-->
+<!--        text-overflow: ellipsis;-->
+<!--    }-->
+<!--</style>-->
+<script>
+
+    function refresh() {
+        $.ajax({
+            url: '${base.contextPath}/hcux/sys/message/queryByUser',
+            dataType: "json",
+            contentType: 'application/json',
+            success: function (data) {
+                data.rows.forEach(function (obj) {
+                    // var $li = $("<li>").addClass("col1");
+                    // var $a = $("<a>").attr("href", "javascript:void(0)");
+                    // var $div1 = $("<div>").addClass("col1").attr("title", obj.content);
+                    // var $div2 = $("<div>").addClass("cont").css("width", "100%");
+                    // $div2.append("<div class=\"cont-col1\"><div class=\"label label-sm label-success\"><i class=\"fa fa-bell-o\"></i></div></div>");
+                    // $div2.append("<div class=\"cont-col2\"><div class=\"desc\">" + obj.content + "</div></div>");
+                    //
+                    // $div1.append($div2);
+                    // $a.append($div1);
+                    // $li.append($a);
+                    // $('#sys_message_ul').append($li)
+
+                    var $div1 = $("<div>").addClass("item").attr("id", obj.messageId);
+                    var $div2 = $("<div>").addClass("item-head");
+                    var $div2_div = $("<div>").addClass("item-details");
+                    var $a = $("<a>").attr("href", "javascript:handleClick(" + obj.messageId + ",'" + obj.attribute1 + "','" + obj.sourceType + "')").text(obj.attribute1);
+                    var $div3 = $("<div>").addClass("item-body").text(obj.content);
+
+                    $div2_div.append($a);
+                    $div2.append($div2_div);
+                    $div1.append($div2).append($div3);
+                    $('#sys_message_ul').append($div1);
+                })
+            }
+        });
+    }
+
+    refresh();
+
+    function handleClick(messageId, attribute1, sourceType) {
+        $.ajax({
+            type: 'POST',
+            url: '${base.contextPath}/hcux/sys/message/updateReadFlag?${_csrf.parameterName}=${_csrf.token}&messageId=' + messageId,
+            datatype: "json",
+            contentType: "application/json",
+            success: function (data) {
+                if (data.success)
+                    $('#' + messageId).remove();
+
+                if (sourceType === 'HCUX_CS_CONTRACT_TRANS') {
+                    window.top.openTab('CS_CONTRACT_TRANS' + messageId, '合同执行情况查询', '${base.contextPath}/cs/cs_contract.html?custPoNumber=' + attribute1 + '&flag=1')
+                } else if (sourceType === 'HCUX_CS_CONFIRM_RECEIPT'){
+                    window.top.openTab('CS_CONFIRM_RECEIPT' + messageId, '出库物流', '${base.contextPath}/cs/cs_outbound_order_full.html?invoiceNo=' + attribute1 + '&flag=1')
+                } else {
+                    window.top.openTab('LM_ORDER_HEADER' + messageId, '委托单', '${base.contextPath}/lm/lm_order_header.html?orderNumber=' + attribute1)
+                }
+            }
+        });
+    }
+</script>
+
+<div class="scroller" id="test123456" style="height: 338px;" data-always-visible="1" data-rail-visible1="0"
+     data-handle-color="#D7DCE2">
+    <div class="general-item-list" id="sys_message_ul">
+    </div>
+</div>
+
+<!--<div class="scroller" style="height: 339px;" data-always-visible="1" data-rail-visible="0">-->
+<!--    <ul class="feeds" id="sys_message_ul">-->
+
+<!--        <li>-->
+<!--            <a href="javascript:;">-->
+<!--                <div class="col1">-->
+<!--                    <div class="cont">-->
+<!--                        <div class="cont-col1">-->
+<!--                            <div class="label label-sm label-success">-->
+<!--                                <i class="fa fa-bell-o"></i>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                        <div class="cont-col2">-->
+<!--                            <div class="desc"> New version v1.4 just lunched!</div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <div class="col2">-->
+<!--                    <div class="date"> 20 mins</div>-->
+<!--                </div>-->
+<!--            </a>-->
+<!--        </li>-->
+
+<!--    </ul>-->
+<!--</div>-->

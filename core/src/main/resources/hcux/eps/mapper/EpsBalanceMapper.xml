@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsBalanceMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsBalance">
+        <result column="org_id" property="orgId" jdbcType="VARCHAR" />
+        <result column="org_name" property="orgName" jdbcType="VARCHAR" />
+        <result column="agm_number" property="agmNumber" jdbcType="VARCHAR" />
+        <result column="agent_type_code" property="agentTypeCode" jdbcType="VARCHAR" />
+        <result column="agent_amount" property="agentAmount" jdbcType="DECIMAL" />
+        <result column="ratio_rate" property="ratioRate" jdbcType="DECIMAL" />
+        <result column="vat" property="vat" jdbcType="DECIMAL" />
+        <result column="rebate_rate" property="rebateRate" jdbcType="DECIMAL" />
+        <result column="retio" property="retio" jdbcType="DECIMAL" />
+        <result column="AGENT_TYPE" property="agentType" jdbcType="VARCHAR" />
+        <result column="min_agent_amount" property="minAgentAmount" jdbcType="DECIMAL" />
+    </resultMap>
+    <resultMap id="UserResultMap" type="com.hand.hap.account.dto.User">
+        <result column="EMAIL" property="email" jdbcType="VARCHAR" />
+    </resultMap>
+    <resultMap id="JobDetailResultMap" type="com.hand.hap.job.dto.JobDetailDto">
+        <result column="JOB_NAME" property="jobName" jdbcType="VARCHAR" />
+    </resultMap>
+    <select id="selectEpsBalanceFromEbs" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsBalance">
+      SELECT
+       org_id, --业务实体ID
+       org_name, --业务实体
+       agm_number, --协议编号
+       agent_type_code, --代理费
+       agent_amount, --代理费值
+       ratio_rate, --基础汇率
+       vat, --增值税率
+       rebate_rate, --退税率
+       retio ,--结汇比
+       AGENT_TYPE,
+       min_agent_amount --最低代理费
+       FROM cux_0_hap_bal_v@ebs_db
+       where agm_number=#{agmNumber}
+    </select>
+    <!--查询admin角色下的所有用户的邮件-->
+    <select id="selectEmails" resultMap="UserResultMap">
+        SELECT
+        su.email
+        FROM sys_user su join sys_user_role sur
+        on su.user_id=sur.user_id
+        join sys_role_b srb
+        on srb.role_id=sur.role_id
+        where srb.ROLE_CODE='ADMIN'
+    </select>
+    <select id="selectJobName" resultMap="JobDetailResultMap" parameterType="com.hand.hap.job.dto.JobDetailDto">
+        SELECT
+        JOB_NAME
+        FROM qrtz_job_details
+        where JOB_CLASS_NAME=#{jobClassName}
+    </select>
+</mapper>

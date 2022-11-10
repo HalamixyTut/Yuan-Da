@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsCreditMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsCredit">
+        <result column="trade_type" property="tradeType" jdbcType="VARCHAR"/>
+        <result column="header_name" property="headerName" jdbcType="VARCHAR"/>
+        <result column="occupy_amount" property="occupyAmount" jdbcType="DECIMAL"/>
+
+    </resultMap>
+    <select id="selectCsCreditFromEbs" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsCredit">
+        select trade_type,
+               header_name,
+               header_code,
+               occupy_amount
+        from cux_credit_v@ebs_db
+        where header_code = #{headerName}
+    </select>
+</mapper>

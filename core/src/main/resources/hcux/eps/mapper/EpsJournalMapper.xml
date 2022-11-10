@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsJournalMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsJournal"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="NAME" property="name" jdbcType="VARCHAR"/>
+        <result column="PERIOD_NAME" property="periodName" jdbcType="VARCHAR"/>
+        <result column="CURRENCY_CODE" property="currencyCode" jdbcType="VARCHAR"/>
+        <result column="CATEGORY_NAME" property="categoryName" jdbcType="VARCHAR"/>
+        <result column="ACCOUNT" property="account" jdbcType="VARCHAR"/>
+        <result column="PROJECT_NUMBER" property="projectNumber" jdbcType="VARCHAR"/>
+        <result column="loss_Compensation_Income" property="lossCompensationIncome" jdbcType="DECIMAL"/>
+        <result column="unable_Pay" property="unablePay" jdbcType="DECIMAL"/>
+        <result column="other" property="other" jdbcType="DECIMAL"/>
+        <result column="impairment_Loss" property="impairmentLoss" jdbcType="DECIMAL"/>
+        <result column="interest_Payments" property="interestPayments" jdbcType="DECIMAL"/>
+        <result column="poundage" property="poundage" jdbcType="DECIMAL"/>
+        <result column="city_Construction_Tax" property="cityMaintenanceConstructionTax" jdbcType="DECIMAL"/>
+        <result column="education_Attached" property="educationAttached" jdbcType="DECIMAL"/>
+        <result column="tail_Adjustment" property="tailAdjustment" jdbcType="DECIMAL"/>
+        <result column="office" property="office" jdbcType="DECIMAL"/>
+        <result column="storage_Charges" property="storageCharges" jdbcType="DECIMAL"/>
+        <result column="travel_Expenses" property="travelExpenses" jdbcType="DECIMAL"/>
+        <result column="vehicle_Fee" property="vehicleFee" jdbcType="DECIMAL"/>
+        <result column="welfare_Funds" property="welfareFunds" jdbcType="DECIMAL"/>
+        <result column="inspection_Fee" property="inspectionFee" jdbcType="DECIMAL"/>
+        <result column="courier_Fee" property="courierFee" jdbcType="DECIMAL"/>
+        <result column="training" property="training" jdbcType="DECIMAL"/>
+        <result column="sample_Charge" property="sampleCharge" jdbcType="DECIMAL"/>
+        <result column="business_Publicity" property="businessPublicity" jdbcType="DECIMAL"/>
+        <result column="business_Entertainment" property="businessEntertainment" jdbcType="DECIMAL"/>
+        <result column="postal_Charges" property="postalCharges" jdbcType="DECIMAL"/>
+        <result column="transportation_Charges" property="transportationCharges" jdbcType="DECIMAL"/>
+        <result column="mail_Exhibition_Fee" property="mailExhibitionFee" jdbcType="DECIMAL"/>
+    </resultMap>
+
+    <select id="selectEpsJournal" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsJournal">
+        select
+        unable_Pay,
+        other,
+        impairment_Loss,
+        interest_Payments,
+        poundage,
+        city_Construction_Tax,
+        education_Attached,
+        tail_Adjustment,
+        office,
+        storage_Charges,
+        travel_Expenses,
+        vehicle_Fee,
+        welfare_Funds,
+        inspection_Fee,
+        courier_Fee,
+        training,
+        sample_Charge,
+        business_Publicity,
+        business_Entertainment,
+        postal_Charges,
+        transportation_Charges,
+        mail_Exhibition_Fee,
+        loss_Compensation_Income
+        from
+        (
+         select
+        sum(entered_dr)unable_Pay
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.57104'
+        ),--营业外收入-无法支付应付款项
+         (
+         select
+        sum(entered_dr)other
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.57598'
+        ),--营业外支出-其他
+         (
+         select
+        sum(entered_dr)impairment_Loss
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.56100'
+        ),--资产减值损失
+         (
+         select
+        sum(entered_dr)interest_Payments
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.55502'
+        ),--财务费用-利息支出
+         (
+         select
+        sum(entered_dr)poundage
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.55503'
+        ),--财务费用-手续费
+         (
+         select
+        sum(entered_dr)city_Construction_Tax
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.52101'
+        ),--税金及附加-城市维护建设税
+         (
+         select
+        sum(entered_dr)education_Attached
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.52103'
+        ),--税金及附加-教育费附加
+         (
+         select
+        sum(entered_dr)tail_Adjustment
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51732'
+        ),--营业费用-尾差调整
+         (
+         select
+        sum(entered_dr)office
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51712'
+        ),--营业费用-办公费
+         (
+         select
+        sum(entered_dr)storage_Charges
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51716'
+        ),--营业费用-仓储费
+         (
+         select
+        sum(entered_dr)travel_Expenses
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51704'
+        ),--营业费用-差旅费
+         (
+         select
+        sum(entered_dr)vehicle_Fee
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51713'
+        ),--营业费用-车辆费
+         (
+         select
+        sum(entered_dr)welfare_Funds
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51702'
+        ),--营业费用-福利费
+         (
+         select
+        sum(entered_dr)inspection_Fee
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51709'
+        ),--营业费用-检验费
+         (
+         select
+        sum(entered_dr)courier_Fee
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51710'
+        ),--营业费用-快件费
+         (
+         select
+        sum(entered_dr)training
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51731'
+        )training,--营业费用-培训费
+         (
+         select
+        sum(entered_dr)sample_Charge
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51715'
+        ),--营业费用-样品费
+         (
+         select
+        sum(entered_dr)business_Publicity
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51724'
+        ),--营业费用-业务宣传费
+         (
+         select
+        sum(entered_dr)business_Entertainment
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51705'
+        ),--营业费用-业务招待费
+         (
+         select
+        sum(entered_dr)postal_Charges
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51707'
+        ),--营业费用-邮电通讯费
+         (
+         select
+        sum(entered_dr)transportation_Charges
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51708'
+        ),--营业费用-运输装卸费
+        (
+         select
+        sum(entered_dr)mail_Exhibition_Fee
+        from HCUX_EPS_GENERAL_LEDGER
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.51711'
+        ),--营业费用-邮展览费
+        (
+        SELECT
+        sum(CHJV.entered_dr) loss_Compensation_Income--营业外收入-损失赔偿收入
+        from HCUX_EPS_GENERAL_LEDGER CHJV
+        where project_number=#{projectNumber}
+        AND substr(ACCOUNT,0,9)='050.57105'
+        )
+    </select>
+</mapper>

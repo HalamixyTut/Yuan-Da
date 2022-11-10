@@ -1,0 +1,323 @@
+<#include "../include/header.html">
+<script type="text/javascript">
+    var initorderedDateFrom = new Date();
+    initorderedDateFrom.setDate(initorderedDateFrom.getDate() - 10);
+
+    var viewModel = Hap.createGridViewModel("#grid",{
+        model:{
+            unOutQuantity:5,
+            orderedDateFrom:initorderedDateFrom,
+            orderedDateTo:new Date(),
+        }
+    });
+
+    var custPoNumber = '${RequestParameters.custPoNumber!}';
+    if (!$.isEmpty(custPoNumber)){
+        viewModel.model.set('custPoNumber', custPoNumber);
+    }
+    var flag = '${RequestParameters.flag!}';
+    if (flag == 1){
+        viewModel.model.set('unOutQuantity', null);
+        viewModel.model.set('orderedDateFrom', null);
+        viewModel.model.set('orderedDateTo', null);
+    }
+</script>
+<body>
+<div id="page-content">
+    <div class="panel" id="query-form1" style="...">
+        <form class="form-horizontal" id="myForm">
+            <div class="panel-body" id="panel">
+                <div>
+                    <div id="searchConditions">
+                        <div class="row">
+                            <!--<div class="col-xs-4">-->
+                                <!--<div class="form-group">-->
+                                    <!--<label class="col-xs-4 control-label">公司名称</label>-->
+                                    <!--<div class="col-xs-8">-->
+                                        <!--<input class="k-textbox" data-bind="value:model.chineseOrgName"-->
+                                               <!--data-role="maskedtextbox"-->
+                                               <!--id="chineseOrgNameInput" style="width:200px;margin-right:5px;"-->
+                                               <!--type="text">-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                            <!--</div>-->
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label class="col-xs-4 control-label">销售合同编号</label>
+                                    <div class="col-xs-8">
+                                        <input class="k-textbox" data-bind="value:model.custPoNumber"
+                                               data-role="maskedtextbox"
+                                               id="custPoNumberInput" style="width:200px;margin-right:5px;"
+                                               type="text">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label class="col-xs-4 control-label">未出库数量大于</label>
+                                    <div class="col-xs-8">
+                                        <input class="k-textbox" data-bind="value:model.unOutQuantity"
+                                               data-role="maskedtextbox"
+                                               id="unOutQuantityInput" style="width:200px;margin-right:5px;"
+                                               type="text">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label class="col-xs-4 control-label">品名规格</label>
+                                    <div class="col-xs-8">
+                                        <input data-bind="value:model.itemName" class="k-textbox"
+                                               id="itemNameInput" data-role="maskedtextbox" style="width:200px;margin-right:5px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label class="col-xs-4 control-label">合同日期从</label>
+                                    <div class="col-xs-8">
+                                        <input data-bind="value:model.orderedDateFrom"
+                                               id="orderedDateFromInput" style="width:200px;margin-right:5px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label class="col-xs-4 control-label">合同日期至</label>
+                                    <div class="col-xs-8">
+                                        <input data-bind="value:model.orderedDateTo"
+                                               id="orderedDateToInput" style="width:200px;margin-right:5px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label class="col-xs-4 control-label">客户名称</label>
+                                    <div class="col-xs-8">
+                                        <input data-bind="value:model.customerName" class="k-textbox"
+                                               id="customerNameInput" data-role="maskedtextbox"
+                                               style="width:200px;margin-right:5px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--<div class="row">
+                            <div class="col-xs-4">
+                                <div class="form-group">
+                                    <label class="col-xs-4 control-label">品名规格</label>
+                                    <div class="col-xs-8">
+                                        <input data-bind="value:model.itemName" class="k-textbox"
+                                               id="itemNameInput" data-role="maskedtextbox" style="width:200px;margin-right:5px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>-->
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>kendo.bind($('#query-form1'), viewModel);</script>
+    <div class="pull-right" id="query-form" style="padding-bottom:10px;">
+
+        <span class="btn btn-primary" style="width:70px" data-bind="click:query" type="submit"><@spring.message "hap.query"/></span>
+        <span class="btn btn-default" data-bind="click:reset" style="width:70px;" type="button"> <@spring.message "hap.reset"/></span>
+
+        <div style="clear:both"></div>
+    </div>
+    <script>
+        kendo.bind($('#query-form'), viewModel);
+        var datetimepicker1= $("#orderedDateFromInput").kendoDatePicker({
+            format: "{0:yyyy-MM-dd}",
+            change: function () {
+                datetimepicker2.min($("#orderedDateFromInput").val());
+            },
+        }).data("kendoDatePicker");
+
+        var datetimepicker2 = $("#orderedDateToInput").kendoDatePicker({
+            format: "{0:yyyy-MM-dd}",
+            change: function () {
+                datetimepicker1.max($("#orderedDateToInput").val());
+            },
+        }).data("kendoDatePicker");
+    </script>
+    <div style="clear:both">
+        <div id="grid"></div>
+    </div>
+</div>
+<div id="createItemCodeWindow"></div>
+<script type="text/javascript">
+    Hap.initEnterQuery('#query-form1', viewModel.query);
+    var BaseUrl = _basePath;
+    dataSource = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: BaseUrl + "/hcux/cs/contract/query",
+                type: "POST",
+                dataType: "json"
+            },
+            update: {
+                url: BaseUrl + "/hcux/cs/contract/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            destroy: {
+                url: BaseUrl + "/hcux/cs/contract/remove",
+                type: "POST",
+                contentType: "application/json"
+            },
+            create: {
+                url: BaseUrl + "/hcux/cs/contract/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            parameterMap: function (options, type) {
+                if (type !== "read" && options.models) {
+                    var datas = Hap.prepareSubmitParameter(options, type)
+                    return kendo.stringify(datas);
+                } else if (type === "read") {
+                    return Hap.prepareQueryParameter(viewModel.model.toJSON(), options)
+                }
+            }
+        },
+        batch: true,
+        serverPaging: true,
+        pageSize: 10,
+        schema: {
+            data: 'rows',
+            total: 'total',
+            model: {
+                id: "contractId",
+                fields: {}
+            }
+        }
+    });
+
+    $("#grid").kendoGrid({
+        dataSource: dataSource,
+        resizable: true,
+        scrollable: true,
+        navigatable: false,
+        selectable: 'multiple, rowbox',
+        dataBound: function () {
+            if (parent.autoResizeIframe) {
+                parent.autoResizeIframe('${RequestParameters.functionCode!}')
+            }
+        },
+        pageable: {
+            pageSizes: [5, 10, 20, 50],
+            refresh: true,
+            buttonCount: 5
+        },
+        columns: [
+            {
+                field: "chineseOrgName",
+                title: '公司名称',
+                width: 160,
+                hidden: true
+            },
+                    {
+                field: "custPoNumber",
+                title: '销售合同编号',
+                width: 200,
+                        template: function (dataItem) {
+                            var html = '<a href="javascript:void(0)" onclick="edit(\'' + dataItem.uid + '\')" style="text-decoration: underline; color: blue; cursor: pointer; margin-right: 10px;">'+dataItem.custPoNumber+'</a>';
+                            return html;
+                        }
+            },
+            {
+                field: "actualContractNo ",
+                title: '实际合同号',
+                width: 200
+            },
+                    {
+                field: "orderedDate",
+                title: '合同日期',
+                width: 120
+            },
+                    {
+                field: "customerCode",
+                title: '客户编码',
+                width: 80
+            },
+                    {
+                field: "customerName",
+                title: '客户名称',
+                width: 160
+            },
+            {
+                field: "itemName",
+                title: '品名规格',
+                width: 120
+            },
+            {
+                field: "soUom",
+                title: '单位',
+                width: 120
+            },
+            {
+                field: "soQty",
+                title: '数量',
+                width: 120
+            },
+            {
+                field: "unitSellingPrice",
+                title: '单价',
+                width: 120
+            },
+            {
+                field: "soAmount",
+                title: '总金额',
+                width: 120
+            },
+            {
+                field: "outQuantity",
+                title: '出库数量',
+                width: 120
+            },
+            {
+                field: "unOutQuantity",
+                title: '未出库数量',
+                width: 120
+            },
+            {
+                field: "vatQuantity",
+                title: '开票数量',
+                width: 120
+            },
+            {
+                field: "soPerson",
+                title: '业务员',
+                width: 120
+            },
+            {
+                field: "createPerson",
+                title: '制单人',
+                width: 120
+            },
+        ],
+        editable: false
+    });
+    function edit(uid){
+        var data=dataSource.getByUid(uid);
+        var url = '${base.contextPath}/cs/cs_transport_info.html?custPoNumber='+data.custPoNumber;
+        var dialog = $("#createItemCodeWindow").kendoWindow({
+            actions: ["Close"],
+            title: '查看运输物流',
+            content: url,
+            iframe: true,
+            visible: false,
+            resizable: false,
+            modal: true,
+            close: function () {
+                $('#grid').data('kendoGrid').dataSource.read();
+            }
+        }).data("kendoWindow");
+        dialog.maximize().open();
+    }
+</script>
+</body>
+</html>

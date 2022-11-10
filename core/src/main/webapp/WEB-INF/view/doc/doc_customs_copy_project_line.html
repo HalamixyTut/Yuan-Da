@@ -1,0 +1,395 @@
+<#--
+* description: 复制项目行
+* version: 1.0
+* author: feng.liu01@hand-china.com
+-->
+
+<#include "../include/header.html">
+
+<style>
+    /*表格标题居中显示*/
+    .k-grid th {
+        text-align: center !important;
+    }
+
+    /*表格列居中*/
+    .k-grid tr {
+        text-align: center !important;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+</style>
+<script type="text/javascript">
+    var customsId = '${RequestParameters.customsId!}';
+    var customsLineId = '${RequestParameters.customsLineId!}';
+    var productNameCn = '${RequestParameters.productNameCn!}';
+    var serialNumber = '${RequestParameters.serialNumber!}';
+    var type = '${RequestParameters.type!}';
+
+    var viewModel = Hap.createGridViewModel("#grid", {
+        model: {
+            invoiceNumber: serialNumber,
+            productNameCn: productNameCn
+        }
+    });
+    var viewModel2 = Hap.createGridViewModel("#grid2");
+
+    /* function copyLine() {
+
+     }*/
+    function cancle() {
+        window.parent.dataSource.read();
+        window.parent.$("#copyLineWin").data("kendoWindow").close();
+    }
+
+    function confirm() {
+        var rows = dataSource2.data();
+        if (type === 'update' && rows.length > 1) {
+            Hap.showToast({
+                type: 'warning',
+                message: '覆盖数据时只能选择一行!'
+            });
+            return
+        }
+
+        if (rows.length > 0) {
+            var url;
+            if (type === 'update') {
+                rows[0].customsId = customsId;
+                url = "${base.contextPath}/hcux/doc/customs/line/copy?customsLineId=" + customsLineId;
+            } else {
+                for (var i = 0; i < rows.length; i++) {
+                    rows[i].customsId = customsId;
+                }
+                url = "${base.contextPath}/hcux/doc/customs/line/copy";
+            }
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(rows),
+                success: function (data) {
+                    if (data.success) {
+                        Hap.showToast({
+                            type: "success",
+                            message: '复制成功'
+                        });
+                        window.parent.dataSource.read();
+                        window.parent.$("#copyLineWin").data("kendoWindow").close();
+                    }
+                },
+                error: function (data) {
+                    var a = data.message;
+                    Hap.showToast({
+                        type: "error",
+                        message: '复制失败'
+                    });
+                }
+            });
+        } else {
+            Hap.showToast({
+                type: "error",
+                message: '请选择数据'
+            });
+        }
+    }
+</script>
+<body>
+<div id="page-content">
+
+    <div class="pull-left" id="toolbar-btn" style="padding-bottom:10px;">
+        <input class="k-textbox" data-bind="value:model.invoiceNumber" data-role="maskedtextbox" id="invoiceNumberInput"
+               placeholder='项目号' style="float:left;width:150px;margin-right:5px;" type="text">
+        <input class="k-textbox" data-bind="value:model.productNameCn" data-role="maskedtextbox" id="productNameCnInput"
+               placeholder='品名' style="float:left;width:150px;margin-right:5px;" type="text">
+        <input class="k-textbox" data-bind="value:model.declarationElement" data-role="maskedtextbox"
+               id="declarationElementInput"
+               placeholder='申报要素' style="float:left;width:150px;" type="text">
+    </div>
+    <script>kendo.bind($('#toolbar-btn'), viewModel);</script>
+    <div class="pull-right" id="query-form" style="padding-bottom:10px;">
+        <span class="btn btn-primary" data-bind="click:query" style="float:left;width:70px" type="submit"><@spring.message "hap.query"/></span>
+        <div style="clear:both"></div>
+    </div>
+    <script>kendo.bind($('#query-form'), viewModel);</script>
+    <div style="clear:both">
+        <div id="grid"></div>
+    </div>
+    <div style="clear:both">
+        <div id="grid2"></div>
+    </div>
+    <div class="pull-right" id="btn-submit" style="padding-bottom:10px;">
+        <span class="btn btn-primary" onclick="confirm()" style="float:left;width:70px;margin-right:5px;" type="submit">确认</span>
+        <span class="btn btn-default" onclick="cancle()" style="float:left;width:70px;margin-right:5px;" type="submit">取消</span>
+        <div style="clear:both"></div>
+    </div>
+    <script>kendo.bind($('#btn-submit'), viewModel2);</script>
+</div>
+
+<script type="text/javascript">
+    Hap.initEnterQuery('#toolbar-btn', viewModel.query);
+    var BaseUrl = _basePath;
+    dataSource = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: BaseUrl + "/hcux/doc/customs/line/queryall",
+                type: "POST",
+                dataType: "json"
+            },
+            update: {
+                url: BaseUrl + "/hcux/doc/customs/line/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            destroy: {
+                url: BaseUrl + "/hcux/doc/customs/line/remove",
+                type: "POST",
+                contentType: "application/json"
+            },
+            create: {
+                url: BaseUrl + "/hcux/doc/customs/line/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            parameterMap: function (options, type) {
+                if (type !== "read" && options.models) {
+                    var datas = Hap.prepareSubmitParameter(options, type)
+                    return kendo.stringify(datas);
+                } else if (type === "read") {
+                    return Hap.prepareQueryParameter(viewModel.model.toJSON(), options)
+                }
+            }
+        },
+        batch: true,
+        serverPaging: true,
+        pageSize: 10,
+        schema: {
+            data: 'rows',
+            total: 'total',
+            model: {
+                id: "customsLineId",
+                fields: {}
+            }
+        }
+    });
+
+    $("#grid").kendoGrid({
+        dataSource: dataSource,
+        resizable: true,
+        scrollable: true,
+        navigatable: false,
+        selectable: 'multiple, rowbox',
+        dataBound: function (e) {
+            if (parent.autoResizeIframe) {
+                parent.autoResizeIframe('${RequestParameters.functionCode!}')
+            }
+
+            var rows = e.sender.element.find("tr");
+            rows.each(function (e) {
+                $(this).children().first().on("click", handleClick);
+            });
+        },
+        pageable: {
+            pageSizes: [5, 10, 20, 50],
+            refresh: true,
+            buttonCount: 5
+        },
+        columns: [
+
+            {
+                field: "customsLineId",
+                title: '<@spring.message "ID"/>',
+                width: 120,
+                hidden: true
+            },
+            {
+                field: "invoiceNumber",
+                title: '<@spring.message "项目号"/>',
+                width: 150
+            },
+            {
+                field: "goodsNumber",
+                title: '<@spring.message "商品编码"/>',
+                width: 120
+            },
+            {
+                field: "productNameCn",
+                title: '<@spring.message "中文品名"/>',
+                width: 120,
+            },
+            {
+                field: "productNameEn",
+                title: '<@spring.message "英文品名"/>',
+                width: 120,
+            },
+            {
+                field: "customsUnitOne",
+                title: '<@spring.message "报关单位"/>',
+                width: 120
+            },
+            {
+                field: "customsUnitThree",
+                title: '<@spring.message "辅助单位"/>',
+                width: 120
+            },
+
+            {
+                field: "originPlace",
+                title: '<@spring.message "境内货源地"/>',
+                width: 120
+            },
+            {
+                field: "declarationElement",
+                title: '<@spring.message "申报要素"/>',
+                width: 300
+            },
+        ],
+        editable: false
+    });
+
+    function handleClick(e) {
+        if ($(e.target).attr('class').indexOf('k-headbox') !== -1) {
+            var header = $('#grid .k-grid-header tr').children().children()[0];
+            var rows = $('#grid .k-grid-content').find('tr');
+
+            if (header.getAttribute('class') && header.getAttribute('class').indexOf('fa-check') !== -1) {
+                rows.each(function (k, v) {
+                    var uid = v.dataset.uid;
+                    dataSource2.remove(dataSource.getByUid(uid));
+
+                })
+            } else {
+                rows.each(function (k, v) {
+                    var uid = v.dataset.uid;
+                    dataSource2.remove(dataSource.getByUid(uid));
+
+                })
+                rows.each(function (k, v) {
+                    var uid = v.dataset.uid;
+                    dataSource2.add(dataSource.getByUid(uid));
+
+                })
+            }
+        } else if ($(e.target).attr('class').indexOf('k-checkbox') !== -1) {
+            var tr = $(e.target).closest("tr");
+            var uid = $(e.target).parent().parent().attr('data-uid');
+            if (!tr.hasClass("k-state-selected")) {
+                dataSource2.add(dataSource.getByUid(uid));
+            } else {
+                dataSource2.remove(dataSource.getByUid(uid));
+            }
+        }
+
+    }
+</script>
+
+<script type="text/javascript">
+
+    var BaseUrl = _basePath;
+    dataSource2 = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: BaseUrl + "/hcux/doc/customs/line/query",
+                type: "POST",
+                dataType: "json"
+            },
+            update: {
+                url: BaseUrl + "/hcux/doc/customs/line/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            destroy: {
+                url: BaseUrl + "/hcux/doc/customs/line/remove",
+                type: "POST",
+                contentType: "application/json"
+            },
+            create: {
+                url: BaseUrl + "/hcux/doc/customs/line/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            parameterMap: function (options, type) {
+                if (type !== "read" && options.models) {
+                    var datas = Hap.prepareSubmitParameter(options, type)
+                    return kendo.stringify(datas);
+                } else if (type === "read") {
+                    return Hap.prepareQueryParameter(viewModel.model.toJSON(), options)
+                }
+            }
+        },
+        batch: true,
+        serverPaging: true,
+        pageSize: 10,
+        schema: {
+            data: 'rows',
+            total: 'total',
+            model: {
+                id: "customsLineId",
+                fields: {}
+            }
+        }
+    });
+
+    $("#grid2").kendoGrid({
+        dataSource: dataSource2,
+        resizable: true,
+        scrollable: true,
+        navigatable: false,
+        selectable: 'multiple, rowbox',
+        dataBound: function () {
+            if (parent.autoResizeIframe) {
+                parent.autoResizeIframe('${RequestParameters.functionCode!}')
+            }
+        },
+        pageable: false,
+        columns: [
+            {
+                field: "invoiceNumber",
+                title: '<@spring.message "项目号"/>',
+                width: 120
+            },
+            {
+                field: "goodsNumber",
+                title: '<@spring.message "商品编码"/>',
+                width: 120
+            },
+            {
+                field: "productNameCn",
+                title: '<@spring.message "中文品名"/>',
+                width: 120,
+            },
+            {
+                field: "productNameEn",
+                title: '<@spring.message "英文品名"/>',
+                width: 120,
+            },
+            {
+                field: "customsUnitOne",
+                title: '<@spring.message "报关单位"/>',
+                width: 120
+            },
+            {
+                field: "customsUnitThree",
+                title: '<@spring.message "辅助单位"/>',
+                width: 120
+            },
+
+            {
+                field: "originPlace",
+                title: '<@spring.message "境内货源地"/>',
+                width: 120
+            },
+            {
+                field: "declarationElement",
+                title: '<@spring.message "申报要素"/>',
+                width: 120
+            },
+        ],
+        editable: false
+    });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.doc.mapper.DocSynthesisFileMapper">
+    <resultMap id="BaseResultMap" type="hcux.doc.dto.DocSynthesisFile"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="SYNTHESIS_FILE_ID" property="synthesisFileId" jdbcType="DECIMAL" />
+        <result column="FILE_TYPE" property="fileType" jdbcType="VARCHAR" />
+        <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR" />
+        <result column="FILE_NAME" property="fileName" jdbcType="VARCHAR" />
+        <result column="FILE_ID" property="fileId" jdbcType="VARCHAR" />
+        <result column="SYNTHESIS_ID" property="synthesisId" jdbcType="DECIMAL" />
+    </resultMap>
+    <select id="selectLists" parameterType="hcux.doc.dto.DocSynthesisFile" resultMap="BaseResultMap">
+        SELECT
+        HDSF.SYNTHESIS_FILE_ID,
+        HDSF.FILE_TYPE,
+        HDSF.REMARK,
+        HDSF.DELETE_FLAG,
+        HDSF.SYNTHESIS_ID,
+        SF.FILE_NAME,
+        SF.FILE_ID,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HDSF"/>
+        </include>
+        FROM HCUX_DOC_SYNTHESIS_FILE HDSF
+        LEFT JOIN SYS_ATTACHMENT SA ON to_char(HDSF.SYNTHESIS_FILE_ID) = SA.SOURCE_KEY AND SA.SOURCE_TYPE = 'DOC_SYNTHESIS_FILE'
+        LEFT JOIN SYS_FILE SF ON SA.ATTACHMENT_ID = SF.ATTACHMENT_ID
+        <where>
+            <if test="synthesisId != null">
+                AND HDSF.SYNTHESIS_ID = #{synthesisId}
+            </if>
+
+            <if test="fileType != null">
+                AND HDSF.FILE_TYPE = #{fileType}
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsOverdueMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsOverdue"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="OVERDUE_ID" property="overdueId" jdbcType="DECIMAL" />
+        <result column="INVOICE_ID" property="invoiceId" jdbcType="DECIMAL" />
+        <result column="ACCOUNT_NUMBER" property="accountNumber" jdbcType="VARCHAR" />
+        <result column="PARTY_NAME" property="partyName" jdbcType="VARCHAR" />
+        <result column="SO_PA_NUM" property="soPaNum" jdbcType="VARCHAR" />
+        <result column="DOC_AMOUNT" property="docAmount" jdbcType="DECIMAL" />
+        <result column="RETURN_AMOUNT" property="returnAmount" jdbcType="DECIMAL" />
+        <result column="RECEIPT_AMOUNT" property="receiptAmount" jdbcType="DECIMAL" />
+        <result column="LOCK_AMOUNT" property="lockAmount" jdbcType="DECIMAL" />
+        <result column="EXTENDS_DAYS" property="extendsDays" jdbcType="DECIMAL" />
+        <result column="INVOICE_NO" property="invoiceNo" jdbcType="VARCHAR" />
+        <result column="SUBMIT_DATE" property="submitDate" jdbcType="VARCHAR" />
+        <result column="EXPECT_RECEIVE_DATE" property="expectReceiveDate" jdbcType="VARCHAR" />
+        <result column="CURRENCY_CODE" property="currencyCode" jdbcType="VARCHAR" />
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR" />
+        <result column="COUNT_CS_OVERDUE" property="countCsOverdue" jdbcType="DECIMAL" />
+        <result column="SUM_LOCK_AMOUNT" property="sumLockAmount" jdbcType="DECIMAL" />
+        <result column="ORG_NAME" property="orgName" jdbcType="VARCHAR" />
+        <result column="DEPT_CODE" property="deptCode" jdbcType="VARCHAR" />
+        <result column="LAST_UPDATE_DATE" property="lastUpdateDate" jdbcType="DATE"/>
+        <result column="MAX_DAYS" property="maxDays" jdbcType="DATE"/>
+    </resultMap>
+    <!--从ebs分页查询数据-->
+    <select id="selectCsOverdueFromEbs" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOverdue">
+        select *
+        FROM (
+        SELECT tmp_page.*, rownum row_id
+        FROM (
+        SELECT
+          INVOICE_ID,
+          ACCOUNT_NUMBER,
+          PARTY_NAME,
+          SO_PA_NUM,
+          DOC_AMOUNT,
+          RETURN_AMOUNT,
+          RECEIPT_AMOUNT,
+          LOCK_AMOUNT,
+          EXTENDS_DAYS,
+          INVOICE_NO,
+          SUBMIT_DATE,
+          EXPECT_RECEIVE_DATE,
+          CURRENCY_CODE,
+          ORG_NAME,
+          DEPT_CODE,
+          null REQUEST_ID,
+        null PROGRAM_ID,
+        null OBJECT_VERSION_NUMBER,
+        null CREATED_BY,
+        null CREATION_DATE,
+        null LAST_UPDATED_BY,
+        null LAST_UPDATE_DATE,
+        null LAST_UPDATE_LOGIN
+        from cux_credit_invoice_v@ebs_db) tmp_page
+        WHERE rownum &lt;= #{pageSizeTo} )
+        WHERE row_id > #{pageSizeFrom}
+    </select>
+    <!--删除hap里面所有数据-->
+    <delete id="deleteCsOverdue">
+        delete from HCUX_CS_OVERDUE
+    </delete>
+    <!--查询出ebs系统所有数据的总数-->
+    <select id="selectCountCsOverdueFromEbs" resultMap="BaseResultMap">
+        SELECT
+        count(*) COUNT_CS_OVERDUE
+        from cux_credit_invoice_v@ebs_db
+    </select>
+    <!--根据查询条件查询Hap中的数据-->
+    <select id="selectListsFromHap" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOverdue">
+        SELECT
+        OVERDUE_ID,
+        INVOICE_ID,
+        ACCOUNT_NUMBER,
+        PARTY_NAME,
+        SO_PA_NUM,
+        DOC_AMOUNT,
+        RETURN_AMOUNT,
+        RECEIPT_AMOUNT,
+        LOCK_AMOUNT,
+        EXTENDS_DAYS,
+        INVOICE_NO,
+        SUBMIT_DATE,
+        EXPECT_RECEIVE_DATE,
+        CURRENCY_CODE,
+        ORG_NAME,
+        DEPT_CODE,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCO"/>
+        </include>
+        from HCUX_CS_OVERDUE HCO
+        where 1=1
+        <include refid="hcux.core.mapper.DataMaskingMapper.nhPortalSql01">
+            <property name="customerCode" value="ACCOUNT_NUMBER"/>
+            <property name="orgName" value="ORG_NAME"/>
+            <property name="deptCode" value="DEPT_CODE"/>
+        </include>
+
+        <if test="soPaNum!= null">
+            and SO_PA_NUM like '%'||#{soPaNum}||'%'
+        </if>
+        <if test="invoiceNo!= null">
+            and INVOICE_NO like '%'||#{invoiceNo}||'%'
+        </if>
+        <if test="extendsDaysFrom!= null">
+            and EXTENDS_DAYS>=#{extendsDaysFrom}
+        </if>
+        <if test="extendsDaysTo!= null">
+            and EXTENDS_DAYS &lt;=#{extendsDaysTo}
+        </if>
+        <if test="expectReceiveDateFrom != null">
+            and EXPECT_RECEIVE_DATE >= SUBSTR(#{expectReceiveDateFrom},1,10)
+        </if>
+        <if test="expectReceiveDateTo != null">
+            and EXPECT_RECEIVE_DATE &lt;= SUBSTR(#{expectReceiveDateTo},1,10)
+        </if>
+    </select>
+    <!--根据条件查询Ebs系统中的数据-->
+    <select id="selectListsFromEbs" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOverdue">
+        SELECT
+          INVOICE_ID,
+          ACCOUNT_NUMBER,
+          PARTY_NAME,
+          SO_PA_NUM,
+          DOC_AMOUNT,
+          RETURN_AMOUNT,
+          RECEIPT_AMOUNT,
+          LOCK_AMOUNT,
+          EXTENDS_DAYS,
+          INVOICE_NO,
+          SUBMIT_DATE,
+          EXPECT_RECEIVE_DATE,
+          CURRENCY_CODE,
+          ORG_NAME,
+          DEPT_CODE,
+          null REQUEST_ID,
+        null PROGRAM_ID,
+        null OBJECT_VERSION_NUMBER,
+        null CREATED_BY,
+        null CREATION_DATE,
+        null LAST_UPDATED_BY,
+        null LAST_UPDATE_DATE,
+        null LAST_UPDATE_LOGIN
+        from cux_credit_invoice_v@ebs_db
+        where ACCOUNT_NUMBER = #{accountNumber}
+    </select>
+
+
+    <!--根据条件从Hap查询出额度占用总额-->
+    <select id="selectSumLockAmountFromHap" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOverdue">
+        SELECT
+        MAX(LAST_UPDATE_DATE) LAST_UPDATE_DATE,
+        MAX(EXTENDS_DAYS) MAX_DAYS,
+        NVL(sum(LOCK_AMOUNT), 0) SUM_LOCK_AMOUNT
+        from HCUX_CS_OVERDUE
+        where 1=1
+        <include refid="hcux.core.mapper.DataMaskingMapper.nhPortalSql01">
+            <property name="customerCode" value="ACCOUNT_NUMBER"/>
+            <property name="orgName" value="ORG_NAME"/>
+            <property name="deptCode" value="DEPT_CODE"/>
+        </include>
+
+        <if test="soPaNum!= null">
+            and SO_PA_NUM like '%'||#{soPaNum}||'%'
+        </if>
+        <if test="invoiceNo!= null">
+            and INVOICE_NO like '%'||#{invoiceNo}||'%'
+        </if>
+        <if test="extendsDaysFrom!= null">
+            and EXTENDS_DAYS>=#{extendsDaysFrom}
+        </if>
+        <if test="extendsDaysTo!= null">
+            and EXTENDS_DAYS &lt;=#{extendsDaysTo}
+        </if>
+        <if test="expectReceiveDateFrom != null">
+            and EXPECT_RECEIVE_DATE>= SUBSTR(#{expectReceiveDateFrom},1,10)
+        </if>
+        <if test="expectReceiveDateTo != null">
+            and EXPECT_RECEIVE_DATE &lt;= SUBSTR(#{expectReceiveDateTo},1,10)
+        </if>
+    </select>
+    <!--根据InvoiceId查询hap的数据-->
+    <select id="selectByInvoiceId" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOverdue">
+        SELECT
+        OVERDUE_ID,
+        INVOICE_ID,
+        ACCOUNT_NUMBER,
+        PARTY_NAME,
+        SO_PA_NUM,
+        DOC_AMOUNT,
+        RETURN_AMOUNT,
+        RECEIPT_AMOUNT,
+        LOCK_AMOUNT,
+        EXTENDS_DAYS,
+        INVOICE_NO,
+        SUBMIT_DATE,
+        EXPECT_RECEIVE_DATE,
+        CURRENCY_CODE,
+        ORG_NAME,
+        DEPT_CODE,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCO"/>
+        </include>
+        from HCUX_CS_OVERDUE HCO
+        where INVOICE_ID = #{invoiceId}
+
+    </select>
+
+    <insert id="insertAll">
+        INSERT INTO HCUX_CS_OVERDUE (
+            OVERDUE_ID,
+            INVOICE_ID,
+            ACCOUNT_NUMBER,
+            PARTY_NAME,
+            SO_PA_NUM,
+            DOC_AMOUNT,
+            RETURN_AMOUNT,
+            RECEIPT_AMOUNT,
+            LOCK_AMOUNT,
+            EXTENDS_DAYS,
+            INVOICE_NO,
+            SUBMIT_DATE,
+            EXPECT_RECEIVE_DATE,
+            CURRENCY_CODE,
+            ORG_NAME,
+            DEPT_CODE
+        ) SELECT
+              HCUX_CS_OVERDUE_S.NEXTVAL,
+              INVOICE_ID,
+              ACCOUNT_NUMBER,
+              PARTY_NAME,
+              SO_PA_NUM,
+              DOC_AMOUNT,
+              RETURN_AMOUNT,
+              RECEIPT_AMOUNT,
+              LOCK_AMOUNT,
+              EXTENDS_DAYS,
+              INVOICE_NO,
+              SUBMIT_DATE,
+              EXPECT_RECEIVE_DATE,
+              CURRENCY_CODE,
+              ORG_NAME,
+              DEPT_CODE
+        FROM
+            cux_credit_invoice_v@ebs_db
+    </insert>
+</mapper>

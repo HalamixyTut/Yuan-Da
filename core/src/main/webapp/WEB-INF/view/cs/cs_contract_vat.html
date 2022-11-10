@@ -1,0 +1,171 @@
+<#include "../include/header.html">
+<script type="text/javascript">
+    var viewModel = Hap.createGridViewModel("#grid");
+     function test(){
+        $.ajax({
+            type : "POST",
+            url: "${base.contextPath}/hcux/cs/contract/vat/test",
+            /*contentType : "application/json; charset=utf-8",
+            dataType : "json",*/
+            success: function(data){
+                if(data.success){
+                    Hap.showToast({
+                        type: "success",
+                        message: '删除成功'
+                    });
+                    dataSource.read();
+                }else{
+                    var a=data.message;
+                    kendo.ui.showConfirmDialog({
+                        title: $l('hap.tip.info'),
+                        message: $l(a)
+                    });
+                }
+            },
+            error : function(data){
+
+            }
+        });
+    }
+</script>
+<body>
+<div id="page-content">
+    <div class="pull-left" id="toolbar-btn" style="padding-bottom:10px;">
+        <span class="btn btn-primary k-grid-add" style="float:left;margin-right:5px;" data-bind="click:create"><@spring.message "hap.new"/></span>
+        <span class="btn btn-success k-grid-save-changes" data-bind="click:save" style="float:left;margin-right:5px;"><@spring.message "hap.save"/></span>
+        <span  data-bind="click:remove" class="btn btn-danger" style="float:left;"><@spring.message "hap.delete"/></span>
+        <span  onclick="test()" class="btn btn-danger" style="float:left;">测试</span>
+    </div>
+    <script>kendo.bind($('#toolbar-btn'), viewModel);</script>
+    <div class="pull-right" id="query-form" style="padding-bottom:10px;">
+            <input type="text" data-role="maskedtextbox" style="float:left;width:150px;margin-right:5px;" placeholder='<@spring.message "CsContractVat.orgName"/>'
+                   data-bind="value:model.orgName" class="k-textbox">
+            <input type="text" data-role="maskedtextbox" style="float:left;width:150px;margin-right:5px;" placeholder='<@spring.message "CsContractVat.itemCode"/>'
+                   data-bind="value:model.itemCode" class="k-textbox">
+            <input type="text" data-role="maskedtextbox" style="float:left;width:150px;margin-right:5px;" placeholder='<@spring.message "CsContractVat.itemName"/>'
+                   data-bind="value:model.itemName" class="k-textbox">
+        <span class="btn btn-primary" style="float:left;width:70px" data-bind="click:query" type="submit"><@spring.message "hap.query"/></span>
+        <div style="clear:both"></div>
+    </div>
+    <script>kendo.bind($('#query-form'), viewModel);</script>
+    <div style="clear:both">
+        <div id="grid"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    Hap.initEnterQuery('#query-form', viewModel.query);
+    var BaseUrl = _basePath;
+    dataSource = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: BaseUrl + "/hcux/cs/contract/vat/query",
+                type: "POST",
+                dataType: "json"
+            },
+            update: {
+                url: BaseUrl + "/hcux/cs/contract/vat/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            destroy: {
+                url: BaseUrl + "/hcux/cs/contract/vat/remove",
+                type: "POST",
+                contentType: "application/json"
+            },
+            create: {
+                url: BaseUrl + "/hcux/cs/contract/vat/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            parameterMap: function (options, type) {
+                if (type !== "read" && options.models) {
+                    var datas = Hap.prepareSubmitParameter(options, type)
+                    return kendo.stringify(datas);
+                } else if (type === "read") {
+                    return Hap.prepareQueryParameter(viewModel.model.toJSON(), options)
+                }
+            }
+        },
+        batch: true,
+        serverPaging: true,
+        pageSize: 10,
+        schema: {
+            data: 'rows',
+            total: 'total',
+            model: {
+                id: "contractVatId",
+                fields: {}
+            }
+        }
+    });
+
+    $("#grid").kendoGrid({
+        dataSource: dataSource,
+        resizable: true,
+        scrollable: true,
+        navigatable: false,
+        selectable: 'multiple, rowbox',
+        dataBound: function () {
+            if (parent.autoResizeIframe) {
+                parent.autoResizeIframe('${RequestParameters.functionCode!}')
+            }
+        },
+        pageable: {
+            pageSizes: [5, 10, 20, 50],
+            refresh: true,
+            buttonCount: 5
+        },
+        columns: [
+            {
+                field: "contractVatId",
+                title: '<@spring.message "cscontractvat.contractvatid"/>',
+                width: 120
+            },
+                    {
+                field: "vatHeaderId",
+                title: '<@spring.message "cscontractvat.vatheaderid"/>',
+                width: 120
+            },
+                    {
+                field: "vatLineId",
+                title: '<@spring.message "cscontractvat.vatlineid"/>',
+                width: 120
+            },
+                    {
+                field: "orgName",
+                title: '<@spring.message "cscontractvat.orgname"/>',
+                width: 120
+            },
+                    {
+                field: "soPjNum",
+                title: '<@spring.message "cscontractvat.sopjnum"/>',
+                width: 120
+            },
+                    {
+                field: "itemCode",
+                title: '<@spring.message "cscontractvat.itemcode"/>',
+                width: 120
+            },
+                    {
+                field: "itemName",
+                title: '<@spring.message "cscontractvat.itemname"/>',
+                width: 120
+            },
+                    {
+                field: "vatQuantity",
+                title: '<@spring.message "cscontractvat.vatquantity"/>',
+                width: 120
+            },
+                    {
+                field: "deleteFlag",
+                title: '<@spring.message "cscontractvat.deleteflag"/>',
+                width: 120
+            },
+        ],
+        editable: true
+    });
+
+</script>
+</body>
+</html>

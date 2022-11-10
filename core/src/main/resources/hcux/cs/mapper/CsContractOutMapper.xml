@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsContractOutMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsContractOut"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="CONTRACT_OUT_ID" property="contractOutId" jdbcType="DECIMAL" />
+        <result column="HEADER_ID" property="headerId" jdbcType="DECIMAL" />
+        <result column="LINE_ID" property="lineId" jdbcType="DECIMAL" />
+        <result column="ORG_NAME" property="orgName" jdbcType="VARCHAR" />
+        <result column="CUST_PO_NUMBER" property="custPoNumber" jdbcType="VARCHAR" />
+        <result column="ITEM_CODE" property="itemCode" jdbcType="VARCHAR" />
+        <result column="ITEM_NAME" property="itemName" jdbcType="VARCHAR" />
+        <result column="OUT_QUANTITY" property="outQuantity" jdbcType="DECIMAL" />
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR" />
+        <result column="LINE_CATEGORY_CODE" property="lineCategoryCode" jdbcType="VARCHAR" />
+        <result column="UOM_CODE" property="uomCode" jdbcType="VARCHAR" />
+    </resultMap>
+    <select id="selectCsContractOutFromEbs" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsContractOut">
+        select
+        HEADER_ID,
+        LINE_ID,
+        ORG_NAME,
+        CUST_PO_NUMBER,
+        ITEM_CODE,
+        ITEM_DESC ITEM_NAME,
+        OUT_QUANTITY,
+        LINE_CATEGORY_CODE,
+        UOM_CODE,
+        null REQUEST_ID,
+        null PROGRAM_ID,
+        null OBJECT_VERSION_NUMBER,
+        null CREATED_BY,
+        null CREATION_DATE,
+        null LAST_UPDATED_BY,
+        LAST_UPDATE_DATE,
+        null LAST_UPDATE_LOGIN
+        from cux_contract_soexe_V2@ebs_db
+        <where>
+            <if test="lastUpdateDate != null">
+                AND LAST_UPDATE_DATE >=  TO_DATE(TO_CHAR(#{lastUpdateDate},'yyyy-MM-dd HH24:mi:ss'),'yyyy-MM-dd HH24:mi:ss')
+            </if>
+            <if test="headerId != null">
+                AND LINE_ID IS NOT NULL
+                AND HEADER_ID = #{headerId}
+            </if>
+        </where>
+    </select>
+    <select id="selectCsContractOutFromHap" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsContractOut">
+        select
+        CONTRACT_OUT_ID,
+        HEADER_ID,
+        LINE_ID,
+        ORG_NAME,
+        CUST_PO_NUMBER,
+        ITEM_CODE,
+        ITEM_NAME,
+        OUT_QUANTITY,
+        LINE_CATEGORY_CODE,
+        UOM_CODE,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCCO"/>
+        </include>
+        from HCUX_CS_CONTRACT_OUT HCCO
+        where HCCO.HEADER_ID = #{headerId}
+        and HCCO.LINE_ID = #{lineId}
+    </select>
+
+    <delete id="deleteByHeaderId" parameterType="hcux.cs.dto.CsContractOut">
+        DELETE
+        FROM
+            HCUX_CS_CONTRACT_OUT HCCO
+        WHERE
+            HCCO.HEADER_ID = #{ headerId}
+    </delete>
+</mapper>

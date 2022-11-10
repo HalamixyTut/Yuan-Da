@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.sys.mapper.SysWechatTokenMapper">
+    <resultMap id="BaseResultMap" type="hcux.sys.dto.SysWechatToken"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="WECHAT_TOKEN_ID" property="wechatTokenId" jdbcType="DECIMAL"/>
+        <result column="OPENID" property="openid" jdbcType="VARCHAR"/>
+        <result column="ACCESS_TOKEN" property="accessToken" jdbcType="VARCHAR"/>
+        <result column="REFRESH_TOKEN" property="refreshToken" jdbcType="VARCHAR"/>
+        <result column="USER_NAME" property="userName" jdbcType="VARCHAR"/>
+        <result column="TOKEN_UPDATE_DATE" property="tokenUpdateDate" jdbcType="DATE"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="TOKEN_EXPIRES_TIME" property="tokenExpiresTime" jdbcType="DATE"/>
+        <result column="REVOKE_FLAG" property="revokeFlag" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysWechatToken">
+        SELECT
+        HSWT.WECHAT_TOKEN_ID,
+        HSWT.OPENID,
+        HSWT.ACCESS_TOKEN,
+        HSWT.REFRESH_TOKEN,
+        HSWT.USER_NAME,
+        HSWT.TOKEN_UPDATE_DATE,
+        HSWT.DELETE_FLAG,
+        STL.TOKEN_EXPIRES_TIME,
+        STL.REVOKE_FLAG,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HSWT"/>
+        </include>
+        FROM HCUX_SYS_WECHAT_TOKEN HSWT
+        JOIN sys_token_logs STL ON HSWT.ACCESS_TOKEN = STL.TOKEN
+        WHERE HSWT.OPENID = #{openid}
+        ORDER BY WECHAT_TOKEN_ID DESC
+    </select>
+</mapper>

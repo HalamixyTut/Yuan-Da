@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsBillMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsBill"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="BILL_ID" property="billId" jdbcType="DECIMAL" />
+        <result column="FUND_BALANCES_ID" property="fundBalancesId" jdbcType="DECIMAL" />
+        <result column="PROJECT_NAME" property="projectName" jdbcType="VARCHAR" />
+        <result column="ACCOUNTS" property="accounts" jdbcType="VARCHAR" />
+        <result column="BALANCE_DATE" property="balanceDate" jdbcType="DATE" />
+        <result column="CURRENCY_CODE" property="currencyCode" jdbcType="VARCHAR" />
+        <result column="REMAIN_AMOUNT" property="remainAmount" jdbcType="DECIMAL" />
+        <result column="LOCAL_AMOUNT" property="localAmount" jdbcType="DECIMAL" />
+        <result column="PARTY_NAME" property="partyName" jdbcType="VARCHAR" />
+        <result column="TOTAL_AMOUNT" property="totalAmount" jdbcType="DECIMAL"/>
+        <result column="total_Remain_Amount" property="totalRemainAmount" jdbcType="DECIMAL" />
+    </resultMap>
+
+    <select id="selectEpsBillFromEbs" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsBill">
+        select
+        FUND_BALANCES_ID,
+        PROJECT_NAME,
+        ACCOUNTS,
+        BALANCE_DATE,
+        CURRENCY_CODE,
+        REMAIN_AMOUNT,
+        LOCAL_AMOUNT,
+        PARTY_NAME,
+        null REQUEST_ID,
+        null PROGRAM_ID,
+        null OBJECT_VERSION_NUMBER,
+        null CREATED_BY,
+        null CREATION_DATE,
+        null LAST_UPDATED_BY,
+        LAST_UPDATE_DATE,
+        null LAST_UPDATE_LOGIN
+        from cux_Details_of_fund_occup_v1@ebs_db
+        WHERE LAST_UPDATE_DATE >=  TO_DATE(TO_CHAR(#{lastUpdateDate},'yyyy-MM-dd HH24:mi:ss'),'yyyy-MM-dd HH24:mi:ss')
+    </select>
+    <select id="selectEpsBillFromHap" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsBill">
+        select
+        bill.BILL_ID,
+        bill.FUND_BALANCES_ID,
+        bill.PROJECT_NAME,
+        bill.ACCOUNTS,
+        bill.BALANCE_DATE,
+        bill.CURRENCY_CODE,
+        bill.REMAIN_AMOUNT,
+        bill.LOCAL_AMOUNT,
+        bill.PARTY_NAME,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="bill"/>
+        </include>
+        from HCUX_EPS_BILL bill
+        where  bill.FUND_BALANCES_ID = #{fundBalancesId}
+    </select>
+    <select id="queryEpsBill" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsBill">
+        select
+       /* bill.BILL_ID,
+        bill.FUND_BALANCES_ID,*/
+        bill.PROJECT_NAME,
+        bill.ACCOUNTS,
+        bill.BALANCE_DATE,
+        bill.CURRENCY_CODE,
+        ROUND(sum(bill.REMAIN_AMOUNT),2) REMAIN_AMOUNT,
+        ROUND(sum(bill.LOCAL_AMOUNT),2) LOCAL_AMOUNT,
+        bill.PARTY_NAME
+       <!-- <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="bill"/>
+        </include>-->
+        from HCUX_EPS_BILL bill
+        <where>
+
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                    <property name="projectNum" value="bill.PROJECT_NAME"/>
+                </include>
+            </if>
+
+            <if test="projectName != null">
+             and lower(PROJECT_NAME) like '%'|| lower(#{projectName}) ||'%'
+            </if>
+
+            <if test="projectNameFrom != null">
+             and lower(PROJECT_NAME) >= lower(#{projectNameFrom})
+            </if>
+
+            <if test="projectNameTo != null">
+             and lower(PROJECT_NAME) &lt;= lower(#{projectNameTo})
+            </if>
+
+            <if test="partyName != null">
+             and PARTY_NAME like '%'||#{partyName}||'%'
+            </if>
+            <if test="accounts != null">
+                and ACCOUNTS = #{accounts}
+            </if>
+
+            AND bill.REMAIN_AMOUNT != 0
+        </where>
+        group by
+        (bill.PROJECT_NAME,
+        bill.ACCOUNTS,
+        bill.BALANCE_DATE,
+        bill.CURRENCY_CODE,
+        bill.PARTY_NAME)
+        HAVING ROUND(sum(bill.REMAIN_AMOUNT),2) != 0
+        order by bill.BALANCE_DATE desc,bill.PROJECT_NAME desc
+    </select>
+
+    <insert id="insertAll">
+        INSERT INTO HCUX_EPS_BILL (
+            BILL_ID,
+            FUND_BALANCES_ID,
+            PROJECT_NAME,
+            ACCOUNTS,
+            BALANCE_DATE,
+            CURRENCY_CODE,
+            REMAIN_AMOUNT,
+            LOCAL_AMOUNT,
+            PARTY_NAME
+        ) SELECT
+              HCUX_EPS_BILL_S.nextval,
+              FUND_BALANCES_ID,
+              PROJECT_NAME,
+              ACCOUNTS,
+              BALANCE_DATE,
+              CURRENCY_CODE,
+              REMAIN_AMOUNT,
+              LOCAL_AMOUNT,
+              PARTY_NAME
+        FROM
+            cux_Details_of_fund_occup_v1 @ebs_db T
+        WHERE
+            NOT EXISTS (SELECT 'X' FROM HCUX_EPS_PROJECT_NUM HEPN WHERE T.PROJECT_NAME = HEPN.PROJECT_NUM)
+    </insert>
+
+    <select id="selectTotalAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsBill">
+        select
+        bill.CURRENCY_CODE CURRENCY_CODE,
+        ROUND(sum(bill.REMAIN_AMOUNT),2) REMAIN_AMOUNT
+        from HCUX_EPS_BILL bill
+        <where>
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                    <property name="projectNum" value="bill.PROJECT_NAME"/>
+                </include>
+            </if>
+
+            <if test="projectName != null">
+                and lower(PROJECT_NAME) like '%'|| lower(#{projectName}) ||'%'
+            </if>
+
+            <if test="projectNameFrom != null">
+                and lower(PROJECT_NAME) >= lower(#{projectNameFrom})
+            </if>
+
+            <if test="projectNameTo != null">
+                and lower(PROJECT_NAME) &lt;= lower(#{projectNameTo})
+            </if>
+
+            <if test="partyName != null">
+                and PARTY_NAME like '%'||#{partyName}||'%'
+            </if>
+            <if test="accounts != null">
+                and ACCOUNTS = #{accounts}
+            </if>
+
+            AND bill.REMAIN_AMOUNT != 0
+        </where>
+        group by bill.CURRENCY_CODE
+    </select>
+
+    <select id="selectTotalRemainAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsBill">
+        select
+        round(sum(remain_Amount),2)total_remain_amount
+        from HCUX_EPS_BILL
+       where accounts='应收外汇账款'
+       and PROJECT_NAME=#{projectName}
+    </select>
+
+    <insert id="insertPayment">
+        INSERT INTO HCUX_EPS_BILL (
+            BILL_ID,
+            PROJECT_NAME,
+            ACCOUNTS,
+            BALANCE_DATE,
+            CURRENCY_CODE,
+            REMAIN_AMOUNT,
+            LOCAL_AMOUNT,
+            PARTY_NAME
+        ) SELECT
+              HCUX_EPS_BILL_S.nextval,
+              PROJECT_NUM,
+              ACCT_DESC,
+              CHECK_DATE,
+              CURRENCY_CODE,
+              LINE_AMOUNT,
+              BASE_AMOUNT,
+              VENDOR_NAME
+        FROM cux_hap_ious_inv_v @ebs_db
+    </insert>
+
+    <insert id="insertReceiptForeign">
+        INSERT INTO HCUX_EPS_BILL (
+            BILL_ID,
+            PROJECT_NAME,
+            ACCOUNTS,
+            BALANCE_DATE,
+            CURRENCY_CODE,
+            REMAIN_AMOUNT,
+            LOCAL_AMOUNT,
+            PARTY_NAME
+        ) SELECT
+            HCUX_EPS_BILL_S.nextval,
+            PROJECT_NUM,
+            ACCOUNT_DESC,
+            RECEIPT_DATE,
+            CURRENCY_CODE,
+            ( NVL( RECEIVE_AMOUNT, 0 ) - NVL( BANK_CHARGES, 0 ) - NVL( RETURN_AMOUNT, 0 ) ) REMAIN_AMOUNT,
+            DECODE(
+                CURRENCY_CODE,
+                'CNY',
+                ( NVL( RECEIVE_AMOUNT, 0 ) - NVL( BANK_CHARGES, 0 ) - NVL( RETURN_AMOUNT, 0 ) ),
+                ( NVL( RECEIVE_AMOUNT, 0 ) - NVL( BANK_CHARGES, 0 ) - NVL( RETURN_AMOUNT, 0 ) ) * EXCHANGE_RATE
+            ) LOCAL_AMOUNT,
+            CUSTOMER_NAME
+        FROM
+            CUX_HAP_AR_RECEIPTS_V @EBS_DB T
+        WHERE
+            ACCOUNT_DESC = '预收外汇账款'
+            AND EXISTS (SELECT 'X' FROM HCUX_EPS_PROJECT_NUM HEPN WHERE T.PROJECT_NUM = HEPN.PROJECT_NUM )
+    </insert>
+
+    <insert id="insertReceipt">
+        INSERT INTO HCUX_EPS_BILL (
+            BILL_ID,
+            PROJECT_NAME,
+            ACCOUNTS,
+            BALANCE_DATE,
+            CURRENCY_CODE,
+            REMAIN_AMOUNT,
+            LOCAL_AMOUNT,
+            PARTY_NAME
+        ) SELECT
+            HCUX_EPS_BILL_S.nextval,
+            PROJECT_NUM,
+            ACCOUNT_DESC,
+            RECEIPT_DATE,
+            CURRENCY_CODE,
+            ( NVL( RECEIVE_AMOUNT, 0 ) - NVL( BANK_CHARGES, 0 ) - NVL( RETURN_AMOUNT, 0 ) ) REMAIN_AMOUNT,
+            DECODE(
+                CURRENCY_CODE,
+                'CNY',
+                ( NVL( RECEIVE_AMOUNT, 0 ) - NVL( BANK_CHARGES, 0 ) - NVL( RETURN_AMOUNT, 0 ) ),
+                ( NVL( RECEIVE_AMOUNT, 0 ) - NVL( BANK_CHARGES, 0 ) - NVL( RETURN_AMOUNT, 0 ) ) * EXCHANGE_RATE
+            ) LOCAL_AMOUNT,
+            CUSTOMER_NAME
+        FROM
+            CUX_HAP_AR_RECEIPTS_V @EBS_DB T
+        WHERE
+            ACCOUNT_DESC = '预收账款'
+            AND EXISTS (SELECT 'X' FROM HCUX_EPS_PROJECT_NUM HEPN WHERE T.PROJECT_NUM = HEPN.PROJECT_NUM )
+    </insert>
+</mapper>

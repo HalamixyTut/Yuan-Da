@@ -1,0 +1,49 @@
+<#--
+* description: 可在此文件中引入个性化样式或者脚本文件
+*
+-->
+
+<script src="${base.contextPath}/lib/hcux.js"></script>
+<style>
+    .dialog-btn-width {
+        min-width: 35px;
+    }
+</style>
+<script>
+    $.extend(kendo.ui, {
+        showCancelDialog: function (options) {
+            options = $.extend({
+                title: options.title || kendo.ui.Dialog.prototype.options.messages['confirm'],
+                buttons: [
+                    {
+                        text: options.ok || '是',
+                        type: 'primary dialog-btn-width',
+                        click: function (e) {
+                            e.dialog.destroy();
+                            e.deferred.resolve({button: 'OK'});
+                        }
+                    },
+                    {
+                        text: options.no || '否',
+                        type: 'danger dialog-btn-width',
+                        click: function (e) {
+                            e.dialog.destroy();
+                            e.deferred.resolve({button: 'NO'});
+                        }
+                    },
+                    {
+                        text: options.cancel || kendo.ui.Widget.prototype.options.messages['cancel'],
+                        type: 'default dialog-btn-width',
+                        click: function (e) {
+                            e.dialog.destroy();
+                            e.deferred.resolve({button: 'Cancel'});
+                        }
+                    }
+                ],
+                iconClass: 'fa fa-question-circle',
+                dialogClass: 'k-dialog-cancel'
+            }, options);
+            return this.showDialog(options);
+        }
+    });
+</script>

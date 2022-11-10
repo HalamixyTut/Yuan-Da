@@ -1,0 +1,233 @@
+<#include "../include/header.html">
+<script type="text/javascript">
+    var orderId = '${RequestParameters.orderId!}';
+
+    var viewModel = Hap.createGridViewModel("#grid", {
+        model: {
+            orderId: orderId
+        },
+        backFunction: function () {
+            window.parent.$("#searchWindow").data("kendoWindow").close();
+        }
+    });
+</script>
+<body>
+<div id="page-content">
+    <!--<div class="pull-left" id="toolbar-btn" style="padding-bottom:10px;">-->
+        <!--<span class="btn btn-primary k-grid-add" style="float:left;margin-right:5px;" data-bind="click:create"><@spring.message "hap.new"/></span>-->
+        <!--<span class="btn btn-success k-grid-save-changes" data-bind="click:save" style="float:left;margin-right:5px;"><@spring.message "hap.save"/></span>-->
+        <!--<span  data-bind="click:remove" class="btn btn-danger" style="float:left;"><@spring.message "hap.delete"/></span>-->
+    <!--</div>-->
+    <!--<script>kendo.bind($('#toolbar-btn'), viewModel);</script>-->
+    <div class="pull-right" id="query-form" style="padding-bottom:10px;">
+            <!--<input type="text" data-role="maskedtextbox" style="float:left;width:150px;margin-right:5px;" placeholder='<@spring.message "CsOutboundTrans.driverName"/>'-->
+                   <!--data-bind="value:model.driverName" class="k-textbox">-->
+            <!--<input type="text" data-role="maskedtextbox" style="float:left;width:150px;margin-right:5px;" placeholder='<@spring.message "CsOutboundTrans.itemCode"/>'-->
+                   <!--data-bind="value:model.itemCode" class="k-textbox">-->
+        <!--<span class="btn btn-primary" style="float:left;width:70px" data-bind="click:query" type="submit"><@spring.message "hap.query"/></span>-->
+        <span class="btn btn-danger" data-bind="click:backFunction" style="float:left;width:70px;margin-right:5px;"><@spring.message "hap.back"/></span>
+        <div style="clear:both"></div>
+    </div>
+    <script>kendo.bind($('#query-form'), viewModel);</script>
+    <div style="clear:both">
+        <div id="grid"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    Hap.initEnterQuery('#query-form', viewModel.query);
+    var BaseUrl = _basePath;
+    dataSource = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: BaseUrl + "/hcux/cs/outbound/trans/query",
+                type: "POST",
+                dataType: "json"
+            },
+            update: {
+                url: BaseUrl + "/hcux/cs/outbound/trans/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            destroy: {
+                url: BaseUrl + "/hcux/cs/outbound/trans/remove",
+                type: "POST",
+                contentType: "application/json"
+            },
+            create: {
+                url: BaseUrl + "/hcux/cs/outbound/trans/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            parameterMap: function (options, type) {
+                if (type !== "read" && options.models) {
+                    var datas = Hap.prepareSubmitParameter(options, type)
+                    return kendo.stringify(datas);
+                } else if (type === "read") {
+                    return Hap.prepareQueryParameter({orderId: viewModel.model.orderId}, options)
+                }
+            }
+        },
+        batch: true,
+        serverPaging: true,
+        pageSize: 10,
+        schema: {
+            data: 'rows',
+            total: 'total',
+            model: {
+                id: "transId",
+                fields: {}
+            }
+        }
+    });
+
+    $("#grid").kendoGrid({
+        dataSource: dataSource,
+        resizable: true,
+        scrollable: true,
+        navigatable: false,
+        selectable: 'multiple, rowbox',
+        rownumber: true,
+        dataBound: function () {
+            if (parent.autoResizeIframe) {
+                parent.autoResizeIframe('${RequestParameters.functionCode!}')
+            }
+        },
+        pageable: {
+            pageSizes: [5, 10, 20, 50],
+            refresh: true,
+            buttonCount: 5
+        },
+        columns: [
+            {
+                field: "orderId",
+                title: '出库编号',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            },
+            {
+                field: "driverName",
+                title: '司机姓名',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            },
+            {
+                field: "idNumber",
+                title: '身份证号',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            },
+            /*{
+                field: "transportNum",
+                title: '运输单号',
+                width: 120
+            },*/
+            {
+                field: "plateNumber",
+                title: '车船号',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            },
+            {
+                field: "contactInfo",
+                title: '联系方式',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            },
+            {
+                field: "itemCode",
+                title: '物料编码',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            },
+            {
+                field: "itemDesc",
+                title: '品名',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            },
+            {
+                field: "quantity",
+                title: '数量',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 80
+            },
+            {
+                field: "packCnt",
+                title: '包数',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 80
+            },
+             /*       {
+                field: "tankNum",
+                title: '仓库识别号',
+                width: 120
+            },*/
+              /*      {
+                field: "remark",
+                title: '备注',
+                width: 120
+            },*/
+            {
+                field: "logisticsInfo",
+                title: '物流信息',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            }
+        ],
+        editable: false
+    });
+
+</script>
+</body>
+</html>

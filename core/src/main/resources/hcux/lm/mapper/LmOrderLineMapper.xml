@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.lm.mapper.LmOrderLineMapper">
+    <resultMap id="BaseResultMap" type="hcux.lm.dto.LmOrderLine"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="ORDER_LINE_ID" property="orderLineId" jdbcType="DECIMAL"/>
+        <result column="ORDER_ID" property="orderId" jdbcType="DECIMAL"/>
+        <result column="GOODS_CODE" property="goodsCode" jdbcType="VARCHAR"/>
+        <result column="GOODS_NAME" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="GOODS_NUMBER" property="goodsNumber" jdbcType="DECIMAL"/>
+        <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+        <result column="UNIT" property="unit" jdbcType="VARCHAR"/>
+        <result column="SETTLEMENT_WAY" property="settlementWay" jdbcType="VARCHAR"/>
+        <result column="FREIGHT_PRICE" property="freightPrice" jdbcType="DECIMAL"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="DANGER_GOODS_UN" property="dangerGoodsUn" jdbcType="VARCHAR"/>
+        <result column="DANGER_GOODS_CAT" property="dangerGoodsCat" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap" parameterType="hcux.lm.dto.LmOrderLine">
+        SELECT
+        HLOL.ORDER_LINE_ID,
+        HLOL.ORDER_ID,
+        HLOL.GOODS_CODE,
+        HLOL.GOODS_NAME,
+        HLOL.GOODS_NUMBER,
+        HLOL.REMARK,
+        HLOL.UNIT,
+        HLOL.SETTLEMENT_WAY,
+        HLOL.FREIGHT_PRICE,
+        HLOL.DELETE_FLAG,
+        HLOL.DANGER_GOODS_UN,
+        HLOL.DANGER_GOODS_CAT,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HLOL"/>
+        </include>
+        FROM HCUX_LM_ORDER_LINE HLOL
+        WHERE ORDER_ID = #{orderId}
+    </select>
+</mapper>

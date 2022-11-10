@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.mdm.mapper.MdmBillingInfoMapper">
+    <resultMap id="BaseResultMap" type="hcux.mdm.dto.MdmBillingInfo"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="BILLING_ID" property="billingId" jdbcType="DECIMAL"/>
+        <result column="COMPANY_NAME" property="companyName" jdbcType="VARCHAR"/>
+        <result column="CUSTOMER_CODE" property="customerCode" jdbcType="VARCHAR"/>
+        <result column="CUSTOMER_NAME" property="customerName" jdbcType="VARCHAR"/>
+        <result column="TAXPAYER_ID" property="taxpayerId" jdbcType="VARCHAR"/>
+        <result column="BILLING_ADDRESS" property="billingAddress" jdbcType="VARCHAR"/>
+        <result column="MOBILE" property="mobile" jdbcType="VARCHAR"/>
+        <result column="BANK" property="bank" jdbcType="VARCHAR"/>
+        <result column="BANK_NUMBER" property="bankNumber" jdbcType="VARCHAR"/>
+        <result column="STATUS" property="status" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="PARTY_ID" property="partyId" jdbcType="DECIMAL"/>
+        <result column="EXT_BANK_ACCOUNT_ID" property="extBankAccountId" jdbcType="DECIMAL"/>
+    </resultMap>
+    <select id="selectMdmBillingInfo" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmBillingInfo">
+        select
+        ACCOUNT_NUMBER CUSTOMER_CODE,
+        PARTY_NAME CUSTOMER_NAME,
+        TAX_REFERENCE TAXPAYER_ID,
+        BILLING_ADDRESS,
+        BILLING_TELEPHONE MOBILE,
+        BANK_ACCOUNT_NAME BANK,
+        BANK_ACCOUNT_NUM BANK_NUMBER,
+        PARTY_ID,
+        EXT_BANK_ACCOUNT_ID
+        from cux_customer_bank_info_v@ebs_db
+        <where>
+        <if test='queryType == "PORTAL"'>
+            AND ACCOUNT_NUMBER = #{request.userName}
+        </if>
+
+        <if test="customerName != null">
+            AND PARTY_NAME like #{customerName,jdbcType=VARCHAR}||'%'
+        </if>
+        </where>
+    </select>
+    <!-- 审批后的数据提交到ebs系统 -->
+    <update id="updateMdmBillingInfoToEbs" statementType="CALLABLE" parameterType="hcux.mdm.dto.MdmBillingInfo">
+        CALL apps.cux_hap_new_pkg.process_bank_account@ebs_db(
+            #{extBankAccountId,jdbcType=INTEGER,mode=IN},
+            #{partyId,jdbcType=INTEGER,mode=IN},
+            #{bank,jdbcType=VARCHAR,mode=IN},
+            #{bankNumber,jdbcType=VARCHAR,mode=IN},
+            #{billingAddress,jdbcType=VARCHAR,mode=IN},
+            #{mobile,jdbcType=VARCHAR,mode=IN},
+            #{returnStatus,jdbcType=VARCHAR,mode=OUT},
+            #{msgCount,jdbcType=INTEGER,mode=OUT},
+            #{msgData,jdbcType=VARCHAR,mode=OUT})
+    </update>
+</mapper>

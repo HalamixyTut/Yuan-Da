@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.sys.mapper.SysMessageMapper">
+    <resultMap id="BaseResultMap" type="hcux.sys.dto.SysMessage"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="MESSAGE_ID" property="messageId" jdbcType="DECIMAL"/>
+        <result column="CONTENT" property="content" jdbcType="VARCHAR"/>
+        <result column="SOURCE_TYPE" property="sourceType" jdbcType="VARCHAR"/>
+        <result column="SOURCE_KEY" property="sourceKey" jdbcType="DECIMAL"/>
+        <result column="OWNER_ID" property="ownerId" jdbcType="DECIMAL"/>
+        <result column="OWNER_NAME" property="ownerName" jdbcType="VARCHAR"/>
+        <result column="CREATE_DATE" property="createDate" jdbcType="DATE"/>
+        <result column="READ_FLAG" property="readFlag" jdbcType="VARCHAR"/>
+        <result column="CHANGE_KEY" property="changeKey" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysMessage">
+        (
+            SELECT HSM.MESSAGE_ID,
+                   HSM.CONTENT,
+                   HSM.SOURCE_TYPE,
+                   HSM.SOURCE_KEY,
+                   HSM.OWNER_ID,
+                   HSM.READ_FLAG,
+                   HLOH.ORDER_NUMBER ATTRIBUTE1
+            FROM HCUX_SYS_MESSAGE HSM
+                     JOIN HCUX_LM_TRANSPORT HLT
+                          ON HSM.SOURCE_TYPE = 'HCUX_LM_TRANSPORT' AND HLT.TRANSPORT_ID = HSM.SOURCE_KEY
+                     JOIN HCUX_LM_ORDER_HEADER HLOH ON HLT.ORDER_ID = HLOH.ORDER_ID
+            WHERE HSM.OWNER_ID = #{request.userId}
+              AND HSM.READ_FLAG = 'N'
+              AND HSM.SOURCE_TYPE = 'HCUX_LM_TRANSPORT'
+        )
+        UNION ALL
+        (
+            SELECT HSM.MESSAGE_ID,
+                   HSM.CONTENT,
+                   HSM.SOURCE_TYPE,
+                   HSM.SOURCE_KEY,
+                   HSM.OWNER_ID,
+                   HSM.READ_FLAG,
+                   HLOH.ORDER_NUMBER ATTRIBUTE1
+            FROM HCUX_SYS_MESSAGE HSM
+                     JOIN HCUX_LM_ORDER_HEADER HLOH
+                          ON HSM.SOURCE_TYPE = 'HCUX_LM_ORDER_HEADER' AND HLOH.ORDER_ID = HSM.SOURCE_KEY
+            WHERE HSM.OWNER_ID = #{request.userId}
+              AND HSM.READ_FLAG = 'N'
+              AND HSM.SOURCE_TYPE = 'HCUX_LM_ORDER_HEADER'
+        )
+        UNION ALL
+        (
+            SELECT HSM.MESSAGE_ID,
+                   HSM.CONTENT,
+                   HSM.SOURCE_TYPE,
+                   HSM.SOURCE_KEY,
+                   HSM.OWNER_ID,
+                   HSM.READ_FLAG,
+                   HCTI.CUST_PO_NUMBER ATTRIBUTE1
+            FROM HCUX_SYS_MESSAGE HSM
+                     JOIN HCUX_CS_TRANSPORT_INFO HCTI
+                          ON HSM.SOURCE_TYPE = 'HCUX_CS_CONTRACT_TRANS' AND HCTI.TRANSPORT_ID = HSM.SOURCE_KEY
+            WHERE HSM.OWNER_ID = #{request.userId}
+              AND HSM.READ_FLAG = 'N'
+              AND HSM.SOURCE_TYPE = 'HCUX_CS_CONTRACT_TRANS'
+        )
+        UNION ALL
+        (
+            SELECT HSM.MESSAGE_ID,
+                   HSM.CONTENT,
+                   HSM.SOURCE_TYPE,
+                   HSM.SOURCE_KEY,
+                   HSM.OWNER_ID,
+                   HSM.READ_FLAG,
+                   HCOOF.INVOICE_NO ATTRIBUTE1
+            FROM HCUX_SYS_MESSAGE HSM
+                     JOIN HCUX_CS_OUTBOUND_ORDER_FULL HCOOF
+                          ON HSM.SOURCE_TYPE = 'HCUX_CS_CONFIRM_RECEIPT' AND HCOOF.ORDER_ALL_ID = HSM.SOURCE_KEY
+            WHERE HSM.OWNER_ID = #{request.userId}
+              AND HSM.READ_FLAG = 'N'
+              AND HSM.SOURCE_TYPE = 'HCUX_CS_CONFIRM_RECEIPT'
+        )
+        UNION ALL
+        (
+            SELECT HSM.MESSAGE_ID,
+                   HSM.CONTENT,
+                   HSM.SOURCE_TYPE,
+                   HSM.SOURCE_KEY,
+                   HSM.OWNER_ID,
+                   HSM.READ_FLAG,
+                   HLOH.ORDER_NUMBER ATTRIBUTE1
+            FROM HCUX_SYS_MESSAGE HSM
+            JOIN HCUX_LM_TRANSPORT HLT
+                          ON HSM.SOURCE_TYPE = 'HCUX_LM_TRANSPORT_CHANGE' AND HLT.TRANSPORT_ID = HSM.CHANGE_KEY
+                     JOIN HCUX_LM_ORDER_HEADER HLOH ON HLT.ORDER_ID = HLOH.ORDER_ID
+            WHERE HSM.OWNER_ID = #{request.userId}
+              AND HSM.READ_FLAG = 'N'
+              AND HSM.SOURCE_TYPE = 'HCUX_LM_TRANSPORT_CHANGE'
+        )
+        ORDER BY MESSAGE_ID DESC
+    </select>
+
+    <select id="selectUserAll" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysMessage">
+        SELECT MSG.*,HE.NAME OWNER_NAME FROM
+        (
+        (
+        SELECT HSM.MESSAGE_ID,
+        HSM.CONTENT,
+        HSM.SOURCE_TYPE,
+        HSM.SOURCE_KEY,
+        HSM.OWNER_ID,
+        HSM.CREATION_DATE CREATE_DATE,
+        HSM.READ_FLAG,
+        HLOH.ORDER_NUMBER ATTRIBUTE1
+        FROM HCUX_SYS_MESSAGE HSM
+        JOIN HCUX_LM_TRANSPORT HLT
+        ON HSM.SOURCE_TYPE = 'HCUX_LM_TRANSPORT' AND HLT.TRANSPORT_ID = HSM.SOURCE_KEY
+        JOIN HCUX_LM_ORDER_HEADER HLOH ON HLT.ORDER_ID = HLOH.ORDER_ID
+        AND HSM.SOURCE_TYPE = 'HCUX_LM_TRANSPORT'
+        )
+        UNION ALL
+        (
+        SELECT HSM.MESSAGE_ID,
+        HSM.CONTENT,
+        HSM.SOURCE_TYPE,
+        HSM.SOURCE_KEY,
+        HSM.OWNER_ID,
+        HSM.CREATION_DATE CREATE_DATE,
+        HSM.READ_FLAG,
+        HLOH.ORDER_NUMBER ATTRIBUTE1
+        FROM HCUX_SYS_MESSAGE HSM
+        JOIN HCUX_LM_ORDER_HEADER HLOH
+        ON HSM.SOURCE_TYPE = 'HCUX_LM_ORDER_HEADER' AND HLOH.ORDER_ID = HSM.SOURCE_KEY
+        AND HSM.SOURCE_TYPE = 'HCUX_LM_ORDER_HEADER'
+        )
+        UNION ALL
+        (
+        SELECT HSM.MESSAGE_ID,
+        HSM.CONTENT,
+        HSM.SOURCE_TYPE,
+        HSM.SOURCE_KEY,
+        HSM.OWNER_ID,
+        HSM.CREATION_DATE CREATE_DATE,
+        HSM.READ_FLAG,
+        HCTI.CUST_PO_NUMBER ATTRIBUTE1
+        FROM HCUX_SYS_MESSAGE HSM
+        JOIN HCUX_CS_TRANSPORT_INFO HCTI
+        ON HSM.SOURCE_TYPE = 'HCUX_CS_CONTRACT_TRANS' AND HCTI.TRANSPORT_ID = HSM.SOURCE_KEY
+        AND HSM.SOURCE_TYPE = 'HCUX_CS_CONTRACT_TRANS'
+        )
+        UNION ALL
+        (
+        SELECT HSM.MESSAGE_ID,
+        HSM.CONTENT,
+        HSM.SOURCE_TYPE,
+        HSM.SOURCE_KEY,
+        HSM.OWNER_ID,
+        HSM.CREATION_DATE CREATE_DATE,
+        HSM.READ_FLAG,
+        HCOOF.INVOICE_NO ATTRIBUTE1
+        FROM HCUX_SYS_MESSAGE HSM
+        JOIN HCUX_CS_OUTBOUND_ORDER_FULL HCOOF
+        ON HSM.SOURCE_TYPE = 'HCUX_CS_CONFIRM_RECEIPT' AND HCOOF.ORDER_ALL_ID = HSM.SOURCE_KEY
+        AND HSM.SOURCE_TYPE = 'HCUX_CS_CONFIRM_RECEIPT'
+        )
+        UNION ALL
+        (
+        SELECT HSM.MESSAGE_ID,
+        HSM.CONTENT,
+        HSM.SOURCE_TYPE,
+        HSM.SOURCE_KEY,
+        HSM.OWNER_ID,
+        HSM.CREATION_DATE CREATE_DATE,
+        HSM.READ_FLAG,
+        HLOH.ORDER_NUMBER ATTRIBUTE1
+        FROM HCUX_SYS_MESSAGE HSM
+        JOIN HCUX_LM_TRANSPORT HLT
+        ON HSM.SOURCE_TYPE = 'HCUX_LM_TRANSPORT_CHANGE' AND HLT.TRANSPORT_ID = HSM.CHANGE_KEY
+        JOIN HCUX_LM_ORDER_HEADER HLOH ON HLT.ORDER_ID = HLOH.ORDER_ID
+        AND HSM.SOURCE_TYPE = 'HCUX_LM_TRANSPORT_CHANGE'
+        )
+        ) MSG JOIN SYS_USER SU ON MSG.OWNER_ID = SU.USER_ID
+        JOIN HR_EMPLOYEE HE ON SU.EMPLOYEE_ID = HE.EMPLOYEE_ID
+        <where>
+            <if test="ownerName != null and ownerName != ''">
+                AND NAME = #{ownerName}
+            </if>
+            <if test="sourceType != null and sourceType != ''">
+                AND SOURCE_TYPE = #{sourceType}
+            </if>
+            <if test="content != null and content != ''">
+                AND CONTENT LIKE CONCAT('%',CONCAT(#{content},'%'))
+            </if>
+            <if test="readFlag != null and readFlag != ''">
+                AND READ_FLAG = #{readFlag}
+            </if>
+            <if test="creationDateFrom != null">
+                AND CREATE_DATE >= TO_DATE(TO_CHAR(#{creationDateFrom},'yyyy-MM-dd HH24:mi:ss'),'yyyy-MM-dd HH24:mi:ss')
+            </if>
+            <if test="creationDateTo != null">
+                AND CREATE_DATE &lt;= TO_DATE(TO_CHAR(#{creationDateTo},'yyyy-MM-dd HH24:mi:ss'),'yyyy-MM-dd HH24:mi:ss')
+            </if>
+        </where>
+        ORDER BY MESSAGE_ID DESC
+    </select>
+
+</mapper>

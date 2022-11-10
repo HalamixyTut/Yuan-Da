@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.core.mapper.HcuxBaseMapper">
+
+    <sql id="BaseSTDColumn">
+        ${std}.REQUEST_ID,
+        ${std}.PROGRAM_ID,
+        ${std}.OBJECT_VERSION_NUMBER,
+        ${std}.CREATED_BY,
+        ${std}.CREATION_DATE,
+        ${std}.LAST_UPDATED_BY,
+        ${std}.LAST_UPDATE_DATE,
+        ${std}.LAST_UPDATE_LOGIN
+    </sql>
+
+    <sql id="STDColumn">
+        ${std}.REQUEST_ID,
+        ${std}.PROGRAM_ID,
+        ${std}.OBJECT_VERSION_NUMBER,
+        ${std}.CREATED_BY,
+        ${std}.CREATION_DATE,
+        ${std}.LAST_UPDATED_BY,
+        ${std}.LAST_UPDATE_DATE,
+        ${std}.LAST_UPDATE_LOGIN,
+        ${std}.ATTRIBUTE_CATEGORY,
+        ${std}.ATTRIBUTE1,
+        ${std}.ATTRIBUTE2,
+        ${std}.ATTRIBUTE3,
+        ${std}.ATTRIBUTE4,
+        ${std}.ATTRIBUTE5,
+        ${std}.ATTRIBUTE6,
+        ${std}.ATTRIBUTE7,
+        ${std}.ATTRIBUTE8,
+        ${std}.ATTRIBUTE9,
+        ${std}.ATTRIBUTE10,
+        ${std}.ATTRIBUTE11,
+        ${std}.ATTRIBUTE12,
+        ${std}.ATTRIBUTE13,
+        ${std}.ATTRIBUTE14,
+        ${std}.ATTRIBUTE15
+    </sql>
+
+</mapper>

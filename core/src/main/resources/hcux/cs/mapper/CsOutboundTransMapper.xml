@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsOutboundTransMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsOutboundTrans"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="TRANS_ID" property="transId" jdbcType="DECIMAL" />
+        <result column="ORDER_ID" property="orderId" jdbcType="DECIMAL" />
+        <result column="DRIVER_NAME" property="driverName" jdbcType="VARCHAR" />
+        <result column="ID_NUMBER" property="idNumber" jdbcType="VARCHAR" />
+        <result column="TRANSPORT_NUM" property="transportNum" jdbcType="VARCHAR" />
+        <result column="PLATE_NUMBER" property="plateNumber" jdbcType="VARCHAR" />
+        <result column="CONTACT_INFO" property="contactInfo" jdbcType="VARCHAR" />
+        <result column="ITEM_CODE" property="itemCode" jdbcType="VARCHAR" />
+        <result column="ITEM_DESC" property="itemDesc" jdbcType="VARCHAR" />
+        <result column="QUANTITY" property="quantity" jdbcType="DECIMAL" />
+        <result column="PACK_CNT" property="packCnt" jdbcType="DECIMAL" />
+        <result column="TANK_NUM" property="tankNum" jdbcType="VARCHAR" />
+        <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <select id="selectData" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundTrans">
+        SELECT
+        HCOT.TRANS_ID,
+        HCOT.ORDER_ID,
+        HCOT.DRIVER_NAME,
+        HCOT.ID_NUMBER,
+        HCOT.TRANSPORT_NUM,
+        HCOT.PLATE_NUMBER,
+        HCOT.CONTACT_INFO,
+        HCOT.ITEM_CODE,
+        HCOT.ITEM_DESC,
+        HCOT.QUANTITY,
+        HCOT.PACK_CNT,
+        HCOT.TANK_NUM,
+        HCOT.REMARK,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCOT"/>
+        </include>
+        FROM HCUX_CS_OUTBOUND_TRANS HCOT
+        <where>
+            <if test="orderId != null">
+                AND HCOT.ORDER_ID = #{orderId,jdbcType=DECIMAL}
+            </if>
+        </where>
+    </select>
+</mapper>

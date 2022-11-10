@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.doc.mapper.DocSynthesisMapper">
+    <resultMap id="BaseResultMap" type="hcux.doc.dto.DocSynthesis"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="SYNTHESIS_ID" property="synthesisId" jdbcType="DECIMAL"/>
+        <result column="CUSTOMS_ID" property="customsId" jdbcType="DECIMAL"/>
+        <result column="DECLARE_CUSTOM_LINE" property="declareCustomLine" jdbcType="VARCHAR"/>
+        <result column="CARGO_AGENT_UNIT" property="cargoAgentUnit" jdbcType="VARCHAR"/>
+        <result column="BOX_DATE" property="boxDate" jdbcType="DATE"/>
+        <result column="SENDING_DATE" property="sendingDate" jdbcType="DATE"/>
+        <result column="SAILING_DATE" property="sailingDate" jdbcType="DATE"/>
+        <result column="BOX_TYPE" property="boxType" jdbcType="VARCHAR"/>
+        <result column="CABINET" property="cabinet" jdbcType="VARCHAR"/>
+        <result column="CARGO_AGENT_CODE" property="cargoAgentCode" jdbcType="VARCHAR"/>
+        <result column="BILL_NUMBER" property="billNumber" jdbcType="VARCHAR"/>
+        <result column="VESSEL_VOYAGE" property="vesselVoyage" jdbcType="VARCHAR"/>
+        <result column="ETD" property="etd" jdbcType="DATE"/>
+        <result column="ATD" property="atd" jdbcType="DATE"/>
+        <result column="STATUS" property="status" jdbcType="VARCHAR"/>
+        <result column="CABIN_FLAG" property="cabinFlag" jdbcType="VARCHAR"/>
+        <result column="FREIGHT_FLAG" property="freightFlag" jdbcType="VARCHAR"/>
+        <result column="CANCEL_FLAG" property="cancelFlag" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+
+        <result column="INVOICE_NUMBER" property="invoiceNumber" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE" property="consignee" jdbcType="VARCHAR"/>
+        <result column="DEPARTURE_PORT" property="departurePort" jdbcType="VARCHAR"/>
+        <result column="DISCHARGE_PORT" property="dischargePort" jdbcType="VARCHAR"/>
+        <result column="HEAD_CREATED_BY" property="headCreatedBy" jdbcType="VARCHAR"/>
+        <result column="BOOK_CREATED_BY" property="bookCreatedBy" jdbcType="VARCHAR"/>
+        <result column="BOOKING_ID" property="bookingId" jdbcType="DECIMAL"/>
+    </resultMap>
+    <select id="selectLists" parameterType="hcux.doc.dto.DocSynthesis" resultMap="BaseResultMap">
+        SELECT
+        HDS.SYNTHESIS_ID,
+        HDS.CUSTOMS_ID,
+        HDBN.DECLARE_CUSTOM_LINE,
+        HDBN.CARGO_AGENT_UNIT,
+        HDS.BOX_DATE,
+        HDS.SENDING_DATE,
+        --HDS.SAILING_DATE,
+        NVL(HDS.SAILING_DATE, HDBN.SAILING_DATE) SAILING_DATE,
+        HDBN.BOX_TYPE,
+        HDBN.CABINET,
+        HDS.CARGO_AGENT_CODE,
+        HDS.BILL_NUMBER,
+        HDS.VESSEL_VOYAGE,
+        HDS.ETD,
+        HDS.ATD,
+       -- HDS.STATUS,
+        NVL2(HDS.STATUS, HDS.STATUS, NVL2(HDS.SAILING_DATE ,null,NVL2(HDBN.SAILING_DATE, '0', null))) STATUS,
+        HDS.CABIN_FLAG,
+        HDS.FREIGHT_FLAG,
+        HDS.CANCEL_FLAG,
+        HDS.DELETE_FLAG,
+        HDCH.INVOICE_NUMBER INVOICE_NUMBER,
+        HDCH.CONSIGNEE CONSIGNEE,
+        HDCH.DEPARTURE_PORT DEPARTURE_PORT,
+        HDCH.DISCHARGE_PORT DISCHARGE_PORT,
+        HE1.NAME HEAD_CREATED_BY,
+        HE2.NAME BOOK_CREATED_BY,
+        HDBN.BOOKING_ID BOOKING_ID,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HDS"/>
+        </include>
+        FROM HCUX_DOC_SYNTHESIS HDS
+        JOIN HCUX_DOC_CUSTOMS_HEADER HDCH ON HDCH.CUSTOMS_ID=HDS.CUSTOMS_ID
+        LEFT JOIN HCUX_DOC_BOOKING_NOTE HDBN ON HDCH.BOOKING_ID=HDBN.BOOKING_ID
+        LEFT JOIN HR_EMPLOYEE HE1 ON HDCH.DOCUMENT_ID = HE1.EMPLOYEE_ID
+        LEFT JOIN SYS_USER SU2 ON HDBN.CREATED_BY = SU2.USER_ID
+        LEFT JOIN HR_EMPLOYEE HE2 ON SU2.EMPLOYEE_ID = HE2.EMPLOYEE_ID
+        <where>
+            <if test="invoiceNumber != null">
+                and LOWER(HDCH.INVOICE_NUMBER) like '%'|| LOWER(#{invoiceNumber}) ||'%'
+            </if>
+            <if test="consignee != null">
+                and LOWER(HDCH.CONSIGNEE) like '%'|| LOWER(#{consignee}) ||'%'
+            </if>
+            <if test="cargoAgentCode != null">
+                and LOWER(HDS.CARGO_AGENT_CODE) like '%'|| LOWER(#{cargoAgentCode}) ||'%'
+            </if>
+            <if test="billNumber != null">
+                and LOWER(HDS.BILL_NUMBER) like '%'|| LOWER(#{billNumber}) ||'%'
+            </if>
+            <if test='currentUserName != null  and currentUserName != ""'>
+                and (LOWER(HE2.NAME) like '%'|| LOWER(#{currentUserName}) ||'%'
+                 or LOWER(HE1.NAME) like '%'|| LOWER(#{currentUserName}) ||'%')
+            </if>
+            <if test="sailingDateFrom != null">
+                and to_char(NVL(HDS.SAILING_DATE, HDBN.SAILING_DATE),'yyyy-MM-dd')>= to_char(#{sailingDateFrom},'yyyy-MM-dd')
+            </if>
+            <if test="sailingDateTo != null">
+                and to_char(NVL(HDS.SAILING_DATE, HDBN.SAILING_DATE),'yyyy-MM-dd') &lt;= to_char(#{sailingDateTo},'yyyy-MM-dd')
+            </if>
+            <if test="status != null">
+                AND HDS.STATUS = #{status,jdbcType=VARCHAR}
+            </if>
+
+            <if test="statusList != null and statusList.size > 0">
+                AND HDS.STATUS in
+                <foreach collection="statusList" open="(" separator="," close=")" item="status">
+                    #{status,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+
+            <if test='customsStatus != null'>
+                and HDCH.STATUS = #{customsStatus}
+            </if>
+
+            <if test="sendingDateFrom != null">
+                and to_char(HDS.SENDING_DATE,'yyyy-MM-dd') >= to_char(#{sendingDateFrom},'yyyy-MM-dd')
+            </if>
+
+            <if test="sendingDateTo != null">
+                and to_char(HDS.SENDING_DATE,'yyyy-MM-dd') &lt;= to_char(#{sendingDateTo},'yyyy-MM-dd')
+            </if>
+
+            <if test="boxDateFrom != null">
+                and to_char(HDS.BOX_DATE,'yyyy-MM-dd') >= to_char(#{boxDateFrom},'yyyy-MM-dd')
+            </if>
+
+            <if test="boxDateTo != null">
+                and to_char(HDS.BOX_DATE,'yyyy-MM-dd') &lt;= to_char(#{boxDateTo},'yyyy-MM-dd')
+            </if>
+
+            <if test="cargoAgentUnit != null">
+                and LOWER(HDBN.CARGO_AGENT_UNIT) like '%'|| LOWER(#{cargoAgentUnit}) ||'%'
+            </if>
+            AND SUBSTR(HDCH.INVOICE_NUMBER, -1, 1) = 'A'
+        </where>
+        ORDER BY HDS.SYNTHESIS_ID DESC
+    </select>
+
+    <select id="queryStatus" resultMap="BaseResultMap">
+		select
+		HDS.SYNTHESIS_ID,
+		HDS.CUSTOMS_ID,
+		HDS.BOX_DATE,
+		HDS.SENDING_DATE,
+		HDS.STATUS
+		from
+		HCUX_DOC_SYNTHESIS HDS
+		where 1 = 1
+		and (HDS.BOX_DATE IS NOT NULL OR HDS.SENDING_DATE IS NOT NULL)
+		and HDS.STATUS IN ('0','1','2','B')
+    </select>
+
+    <select id="queryDocSynthesis" resultMap="BaseResultMap" parameterType="hcux.doc.dto.DocSynthesis">
+        SELECT
+        HDS.SYNTHESIS_ID,
+        HDS.CUSTOMS_ID,
+        HDS.SENDING_DATE,
+        HDS.CARGO_AGENT_CODE,
+        HDS.BILL_NUMBER,
+        HDS.VESSEL_VOYAGE,
+        HDCH.INVOICE_NUMBER INVOICE_NUMBER
+        FROM HCUX_DOC_SYNTHESIS HDS
+        JOIN HCUX_DOC_CUSTOMS_HEADER HDCH ON HDCH.CUSTOMS_ID=HDS.CUSTOMS_ID
+        where HDCH.INVOICE_NUMBER = #{invoiceNumber}
+    </select>
+</mapper>

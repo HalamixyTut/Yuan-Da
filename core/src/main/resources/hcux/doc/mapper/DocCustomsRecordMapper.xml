@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.doc.mapper.DocCustomsRecordMapper">
+    <resultMap id="BaseResultMap" type="hcux.doc.dto.DocCustomsRecord"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="CUSTOMS_RECORD_ID" property="customsRecordId" jdbcType="DECIMAL"/>
+        <result column="CUSTOMS_ID" property="customsId" jdbcType="DECIMAL"/>
+        <result column="OPERATION_TYPE" property="operationType" jdbcType="VARCHAR"/>
+        <result column="OPERATION_DATE" property="operationDate" jdbcType="DATE"/>
+        <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+        <result column="OPERATOR_ID" property="operatorId" jdbcType="VARCHAR"/>
+
+        <result column="INVOICE_NUMBER" property="invoiceNumber" jdbcType="VARCHAR"/>
+        <result column="CREATED_BY_NAME" property="createdByName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap"
+            parameterType="hcux.doc.dto.DocCustomsRecord">
+        SELECT
+            HDCR.CUSTOMS_RECORD_ID,
+            HDCR.CUSTOMS_ID,
+            HDCR.OPERATION_TYPE,
+            HDCR.OPERATION_DATE,
+            HDCR.REMARK,
+            HDCH.INVOICE_NUMBER,
+            HE.NAME CREATED_BY_NAME
+        FROM
+            HCUX_DOC_CUSTOMS_RECORD HDCR
+                LEFT JOIN HCUX_DOC_CUSTOMS_HEADER HDCH ON HDCH.CUSTOMS_ID = HDCR.CUSTOMS_ID
+                LEFT JOIN HR_EMPLOYEE HE ON HDCR.OPERATOR_ID = HE.EMPLOYEE_ID
+        WHERE HDCR.CUSTOMS_ID = #{customsId}
+        ORDER BY HDCR.CUSTOMS_RECORD_ID
+    </select>
+
+    <select id="selectMaxTime" resultMap="BaseResultMap" parameterType="hcux.doc.dto.DocCustomsRecord">
+        SELECT t.OPERATION_DATE from
+        (SELECT * FROM
+        HCUX_DOC_CUSTOMS_RECORD HDCR
+        <where>
+            <if test="customsId != null">
+                and HDCR.CUSTOMS_ID = #{customsId}
+            </if>
+        </where>
+        ORDER BY HDCR.OPERATION_DATE DESC) t
+        WHERE
+            rownum = 1
+    </select>
+</mapper>

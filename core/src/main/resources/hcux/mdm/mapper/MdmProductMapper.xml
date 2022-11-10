@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.mdm.mapper.MdmProductMapper">
+    <resultMap id="BaseResultMap" type="hcux.mdm.dto.MdmProduct">
+        <result column="PRODUCT_ID" property="productId" jdbcType="DECIMAL" />
+        <result column="PRODUCT" property="product" jdbcType="VARCHAR" />
+        <result column="SALESPERSON" property="salesperson" jdbcType="VARCHAR" />
+        <result column="MOBILE" property="mobile" jdbcType="VARCHAR" />
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR" />
+    </resultMap>
+
+</mapper>

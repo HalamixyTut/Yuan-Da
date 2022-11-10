@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.doc.mapper.DocBookingNoteMapper">
+    <resultMap id="BaseResultMap" type="hcux.doc.dto.DocBookingNote"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="BOOKING_ID" property="bookingId" jdbcType="DECIMAL"/>
+        <result column="INVOICE_NUMBER" property="invoiceNumber" jdbcType="VARCHAR"/>
+        <result column="SHIPPER" property="shipper" jdbcType="VARCHAR"/>
+        <result column="SHIPPER_ADDRESS" property="shipperAddress" jdbcType="VARCHAR"/>
+        <result column="SHIPPER_MOBILE" property="shipperMobile" jdbcType="VARCHAR"/>
+        <result column="CUSTOMER_ID" property="customerId" jdbcType="DECIMAL"/>
+        <result column="CONSIGNEE" property="consignee" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE_ADDRESS" property="consigneeAddress" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE_MOBILE" property="consigneeMobile" jdbcType="VARCHAR"/>
+        <result column="NOTIFICATION_UNIT" property="notificationUnit" jdbcType="VARCHAR"/>
+        <result column="NOTIFICATION_ADDRESS" property="notificationAddress" jdbcType="VARCHAR"/>
+        <result column="NOTIFICATION_MOBILE" property="notificationMobile" jdbcType="VARCHAR"/>
+        <result column="TRANSPORT_WAY" property="transportWay" jdbcType="VARCHAR"/>
+        <result column="STOPPING_PLACE" property="stoppingPlace" jdbcType="VARCHAR"/>
+        <result column="SHIPMENT_PORT" property="shipmentPort" jdbcType="VARCHAR"/>
+        <result column="DISCHARGE_PORT" property="dischargePort" jdbcType="VARCHAR"/>
+        <result column="DESTINATION_PORT" property="destinationPort" jdbcType="VARCHAR"/>
+        <result column="FREIGHT_CLAUSE" property="freightClause" jdbcType="VARCHAR"/>
+        <result column="BILL_COPIES" property="billCopies" jdbcType="VARCHAR"/>
+        <result column="CARGO_AGENT_UNIT" property="cargoAgentUnit" jdbcType="VARCHAR"/>
+        <result column="CARGO_AGENT" property="cargoAgent" jdbcType="VARCHAR"/>
+        <result column="CARGO_AGENT_MOBILE" property="cargoAgentMobile" jdbcType="VARCHAR"/>
+        <result column="CARGO_AGENT_EMAIL" property="cargoAgentEmail" jdbcType="VARCHAR"/>
+        <result column="DECLARE_CUSTOM_LINE" property="declareCustomLine" jdbcType="VARCHAR"/>
+        <result column="STOWAGE_PLAN" property="stowagePlan" jdbcType="VARCHAR"/>
+        <result column="SAILING_DATE" property="sailingDate" jdbcType="DATE"/>
+        <result column="BATCH" property="batch" jdbcType="VARCHAR"/>
+        <result column="TRANSFER" property="transfer" jdbcType="VARCHAR"/>
+        <result column="PRODUCT_NAME" property="productName" jdbcType="VARCHAR"/>
+        <result column="PACKAGE_NUMBER" property="packageNumber" jdbcType="DECIMAL"/>
+        <result column="PACKAGE_NUMBER_UNIT" property="packageNumberUnit" jdbcType="VARCHAR"/>
+        <result column="GROSS_WEIGHT" property="grossWeight" jdbcType="DECIMAL"/>
+        <result column="NET_WEIGHT" property="netWeight" jdbcType="DECIMAL"/>
+        <result column="VOLUME" property="volume" jdbcType="DECIMAL"/>
+        <result column="MONEY" property="money" jdbcType="DECIMAL"/>
+        <result column="CUSTOM_STATISTICS_CODE" property="customStatisticsCode" jdbcType="VARCHAR"/>
+        <result column="SHIPPING_MARK" property="shippingMark" jdbcType="VARCHAR"/>
+        <result column="ATTACHMENT_ID" property="attachmentId" jdbcType="DECIMAL"/>
+        <result column="CONTACT_PEOPLE" property="contactPeople" jdbcType="VARCHAR"/>
+        <result column="CONTACT_ADDRESS" property="contactAddress" jdbcType="VARCHAR"/>
+        <result column="CONTACT_MOBILE" property="contactMobile" jdbcType="VARCHAR"/>
+        <result column="CONTACT_EMAIL" property="contactEmail" jdbcType="VARCHAR"/>
+        <result column="CUSTOMER_ORDER_NUM" property="customerOrderNum" jdbcType="VARCHAR"/>
+        <result column="GOODS_DATE" property="goodsDate" jdbcType="VARCHAR"/>
+        <result column="BOX_TYPE" property="boxType" jdbcType="VARCHAR"/>
+        <result column="CABINET" property="cabinet" jdbcType="VARCHAR"/>
+        <result column="CABINET_ADDRESS" property="cabinetAddress" jdbcType="VARCHAR"/>
+        <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+
+        <result column="CREATED_BY_NAME" property="createdByName" jdbcType="VARCHAR"/>
+        <result column="COUNTRY" property="country" jdbcType="VARCHAR"/>
+        <result column="FILE_ID" property="fileId" jdbcType="DECIMAL"/>
+        <result column="FILE_NAME" property="fileName" jdbcType="VARCHAR"/>
+
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap"
+            parameterType="hcux.doc.dto.DocBookingNote">
+        SELECT
+        HDBN.BOOKING_ID,
+        HDBN.INVOICE_NUMBER,
+        HDBN.SHIPPER,
+        HDBN.SHIPPER_ADDRESS,
+        HDBN.SHIPPER_MOBILE,
+        HDBN.CUSTOMER_ID,
+        HDBN.CONSIGNEE,
+        HDBN.CONSIGNEE_ADDRESS,
+        HDBN.CONSIGNEE_MOBILE,
+        HDBN.NOTIFICATION_UNIT,
+        HDBN.NOTIFICATION_ADDRESS,
+        HDBN.NOTIFICATION_MOBILE,
+        HDBN.TRANSPORT_WAY,
+        HDBN.STOPPING_PLACE,
+        HDBN.SHIPMENT_PORT,
+        HDBN.DISCHARGE_PORT,
+        HDBN.DESTINATION_PORT,
+        HDBN.FREIGHT_CLAUSE,
+        HDBN.BILL_COPIES,
+        HDBN.CARGO_AGENT,
+        HDBN.CARGO_AGENT_UNIT,
+        HDBN.CARGO_AGENT_MOBILE,
+        HDBN.CARGO_AGENT_EMAIL,
+        HDBN.DECLARE_CUSTOM_LINE,
+        HDBN.STOWAGE_PLAN,
+        HDBN.SAILING_DATE,
+        HDBN.BATCH,
+        HDBN.TRANSFER,
+        HDBN.PRODUCT_NAME,
+        HDBN.PACKAGE_NUMBER,
+        HDBN.PACKAGE_NUMBER_UNIT,
+        HDBN.GROSS_WEIGHT,
+        HDBN.NET_WEIGHT,
+        HDBN.VOLUME,
+        HDBN.MONEY,
+        HDBN.CUSTOM_STATISTICS_CODE,
+        HDBN.SHIPPING_MARK,
+        HDBN.ATTACHMENT_ID,
+        HDBN.CUSTOMER_ORDER_NUM,
+        HDBN.GOODS_DATE,
+        HDBN.BOX_TYPE,
+        HDBN.CABINET,
+        HDBN.CABINET_ADDRESS,
+        HDBN.REMARK,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HDBN"/>
+        </include>
+        ,
+        HMC.COUNTRY AS COUNTRY,
+        SF.FILE_ID AS FILE_ID,
+        SF.FILE_NAME AS FILE_NAME,
+        HE.NAME AS CREATED_BY_NAME,
+        SU.PHONE AS CONTACT_MOBILE,
+        SU.EMAIL AS CONTACT_EMAIL
+        FROM HCUX_DOC_BOOKING_NOTE HDBN
+        LEFT JOIN SYS_FILE SF ON HDBN.ATTACHMENT_ID = SF.ATTACHMENT_ID
+        LEFT JOIN HCUX_MDM_CUSTOMER HMC ON HDBN.CUSTOMER_ID = HMC.CUSTOMER_ID
+        LEFT JOIN SYS_USER SU ON HDBN.CREATED_BY = SU.USER_ID
+        LEFT JOIN HR_EMPLOYEE HE ON SU.EMPLOYEE_ID = HE.EMPLOYEE_ID
+        <where>
+            <if test="bookingId != null">
+                AND HDBN.BOOKING_ID = #{bookingId,jdbcType=DECIMAL}
+            </if>
+
+            <if test="invoiceNumber != null">
+                AND LOWER(HDBN.INVOICE_NUMBER) LIKE CONCAT('%',CONCAT(LOWER(#{invoiceNumber,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="consignee != null">
+                AND LOWER(HDBN.CONSIGNEE) LIKE CONCAT('%',CONCAT(LOWER(#{consignee,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="createdByName != null">
+                AND LOWER(HE.NAME) LIKE CONCAT('%',CONCAT(LOWER(#{createdByName,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="cargoAgentUnit != null">
+                AND LOWER(HDBN.CARGO_AGENT_UNIT) LIKE CONCAT('%',CONCAT(LOWER(#{cargoAgentUnit,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            AND SUBSTR(HDBN.INVOICE_NUMBER, -1, 1) = 'A'
+        </where>
+        ORDER BY BOOKING_ID DESC
+    </select>
+
+    <select id="selectDocBookingNote" resultMap="BaseResultMap"
+            parameterType="hcux.doc.dto.DocBookingNote">
+        SELECT
+        HDBN.BOOKING_ID,
+        HDBN.INVOICE_NUMBER,
+        HDBN.SHIPPER,
+        HDBN.SHIPPER_ADDRESS,
+        HDBN.SHIPPER_MOBILE,
+        HDBN.CUSTOMER_ID,
+        HDBN.CONSIGNEE,
+        HDBN.CONSIGNEE_ADDRESS,
+        HDBN.CONSIGNEE_MOBILE,
+        HDBN.NOTIFICATION_UNIT,
+        HDBN.NOTIFICATION_ADDRESS,
+        HDBN.NOTIFICATION_MOBILE,
+        HDBN.TRANSPORT_WAY,
+        HDBN.STOPPING_PLACE,
+        HDBN.SHIPMENT_PORT,
+        HDBN.DISCHARGE_PORT,
+        HDBN.DESTINATION_PORT,
+        HDBN.FREIGHT_CLAUSE,
+        HDBN.BILL_COPIES,
+        HDBN.CARGO_AGENT,
+        HDBN.CARGO_AGENT_UNIT,
+        HDBN.CARGO_AGENT_MOBILE,
+        HDBN.CARGO_AGENT_EMAIL,
+        HDBN.DECLARE_CUSTOM_LINE,
+        HDBN.STOWAGE_PLAN,
+        HDBN.SAILING_DATE,
+        HDBN.BATCH,
+        HDBN.TRANSFER,
+        HDBN.PRODUCT_NAME,
+        HDBN.PACKAGE_NUMBER,
+        HDBN.PACKAGE_NUMBER_UNIT,
+        HDBN.GROSS_WEIGHT,
+        HDBN.NET_WEIGHT,
+        HDBN.VOLUME,
+        HDBN.MONEY,
+        HDBN.CUSTOM_STATISTICS_CODE,
+        HDBN.SHIPPING_MARK,
+        HDBN.ATTACHMENT_ID,
+        HDBN.CONTACT_PEOPLE,
+        HDBN.CONTACT_ADDRESS,
+        HDBN.CONTACT_MOBILE,
+        HDBN.CONTACT_EMAIL,
+        HDBN.CUSTOMER_ORDER_NUM,
+        HDBN.GOODS_DATE,
+        HDBN.BOX_TYPE,
+        HDBN.CABINET,
+        HDBN.CABINET_ADDRESS,
+        HDBN.REMARK,
+        HDBN.DELETE_FLAG,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HDBN"/>
+        </include>
+        FROM HCUX_DOC_BOOKING_NOTE HDBN
+        WHERE HDBN.INVOICE_NUMBER = #{invoiceNumber,jdbcType=VARCHAR}
+
+    </select>
+</mapper>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.mdm.mapper.MdmDangerousGoodsMapper">
+    <resultMap id="BaseResultMap" type="hcux.mdm.dto.MdmDangerousGoods"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="GOODS_ID" property="goodsId" jdbcType="DECIMAL"/>
+        <result column="ITEM_NUM" property="itemNum" jdbcType="VARCHAR"/>
+        <result column="ITEM_DESC" property="itemDesc" jdbcType="VARCHAR"/>
+        <result column="DANGER_GOODS_UN" property="dangerGoodsUn" jdbcType="VARCHAR"/>
+        <result column="DANGER_GOODS_CAT" property="dangerGoodsCat" jdbcType="VARCHAR"/>
+        <result column="ENABLED_FLAG" property="enabledFlag" jdbcType="VARCHAR"/>
+        <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <select id="selectList" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmDangerousGoods">
+        SELECT
+        HMDG.GOODS_ID,
+        HMDG.ITEM_NUM,
+        HMDG.ITEM_DESC,
+        HMDG.DANGER_GOODS_UN,
+        HMDG.DANGER_GOODS_CAT,
+        HMDG.ENABLED_FLAG,
+        HMDG.REMARK
+        FROM HCUX_MDM_DANGEROUS_GOODS HMDG
+        <where>
+            <if test="goodsId != null">
+                AND HMDG.GOODS_ID = #{goodsId}
+            </if>
+            <if test="itemNum != null">
+                AND HMDG.ITEM_NUM LIKE CONCAT('%',CONCAT(#{itemNum},'%'))
+            </if>
+            <if test="itemDesc != null">
+                AND HMDG.ITEM_DESC LIKE CONCAT('%',CONCAT(#{itemDesc},'%'))
+            </if>
+        </where>
+        ORDER BY GOODS_ID ASC
+    </select>
+
+    <select id="selectEnabled" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmDangerousGoods">
+        SELECT
+        HMDG.GOODS_ID,
+        HMDG.ITEM_NUM,
+        HMDG.ITEM_DESC,
+        HMDG.DANGER_GOODS_UN,
+        HMDG.DANGER_GOODS_CAT,
+        HMDG.ENABLED_FLAG,
+        HMDG.REMARK,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HMDG"/>
+        </include>
+        FROM HCUX_MDM_DANGEROUS_GOODS HMDG
+        <where>
+        HMDG.ENABLED_FLAG = 'Y'
+            <if test="itemNum != null">
+                AND HMDG.ITEM_NUM = #{itemNum}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectEnabledByGoodsId" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmDangerousGoods">
+        SELECT
+        HMDG.GOODS_ID,
+        HMDG.ITEM_NUM,
+        HMDG.ITEM_DESC,
+        HMDG.DANGER_GOODS_UN,
+        HMDG.DANGER_GOODS_CAT,
+        HMDG.ENABLED_FLAG,
+        HMDG.REMARK,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HMDG"/>
+        </include>
+        FROM HCUX_MDM_DANGEROUS_GOODS HMDG
+        <where>
+            HMDG.ENABLED_FLAG = 'Y'
+            <if test="itemNum != null">
+                AND HMDG.ITEM_NUM = #{itemNum}
+            </if>
+            <if test="goodsId != null">
+                AND HMDG.GOODS_ID != #{goodsId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectEbsItemNum" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmDangerousGoods">
+        SELECT
+        chiv.ITEM_NUM,
+        chiv.ITEM_DESC
+        FROM cux_hap_item_v@ebs_db chiv
+        <where>
+            <if test="itemNum != null">
+                AND chiv.ITEM_NUM LIKE CONCAT('%',CONCAT(#{itemNum},'%'))
+            </if>
+            <if test="itemDesc != null">
+                AND chiv.ITEM_DESC LIKE CONCAT('%',CONCAT(#{itemDesc},'%'))
+            </if>
+        </where>
+    </select>
+</mapper>

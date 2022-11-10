@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.mdm.mapper.MdmCustomerMapper">
+    <resultMap id="BaseResultMap" type="hcux.mdm.dto.MdmCustomer"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="CUSTOMER_ID" property="customerId" jdbcType="DECIMAL"/>
+        <result column="CUSTOMER_CODE" property="customerCode" jdbcType="VARCHAR"/>
+        <result column="CUSTOMER_NAME" property="customerName" jdbcType="VARCHAR"/>
+        <result column="OUTSIDE_CONSIGNEE" property="outsideConsignee" jdbcType="VARCHAR"/>
+        <result column="ADDRESS" property="address" jdbcType="VARCHAR"/>
+        <result column="COUNTRY" property="country" jdbcType="VARCHAR"/>
+        <result column="CONSIGNEE_CODE" property="consigneeCode" jdbcType="VARCHAR"/>
+        <result column="CITIC_AMOUNT" property="citicAmount" jdbcType="DECIMAL"/>
+        <result column="MOBILE" property="mobile" jdbcType="VARCHAR"/>
+        <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmCustomer">
+        select
+        HMC.CUSTOMER_ID,
+        HMC.CUSTOMER_CODE,
+        HMC.CUSTOMER_NAME,
+        HMC.OUTSIDE_CONSIGNEE,
+        HMC.ADDRESS,
+        HMC.COUNTRY,
+        HMC.CONSIGNEE_CODE,
+        HMC.CITIC_AMOUNT,
+        HMC.MOBILE,
+        HMC.REMARK,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HMC"/>
+        </include>
+        from HCUX_MDM_CUSTOMER HMC
+        <where>
+            <if test="outsideConsignee != null">
+                AND LOWER(HMC.OUTSIDE_CONSIGNEE) LIKE CONCAT('%',CONCAT(LOWER(#{outsideConsignee,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="customerName != null">
+                AND LOWER(HMC.CUSTOMER_NAME) LIKE CONCAT('%',CONCAT(LOWER(#{customerName,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="customerCode != null">
+                AND LOWER(HMC.CUSTOMER_CODE) LIKE CONCAT('%',CONCAT(LOWER(#{customerCode,jdbcType=VARCHAR}),'%'))
+            </if>
+        </where>
+    </select>
+
+    <select id="queryLov" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmCustomer">
+        select
+        HMC.CUSTOMER_ID,
+        HMC.CUSTOMER_CODE,
+        HMC.CUSTOMER_NAME,
+        HMC.OUTSIDE_CONSIGNEE,
+        HMC.ADDRESS,
+        HMC.COUNTRY,
+        HMC.CONSIGNEE_CODE,
+        HMC.CITIC_AMOUNT,
+        HMC.MOBILE,
+        HMC.REMARK
+        from HCUX_MDM_CUSTOMER HMC
+        <where>
+            <if test="outsideConsignee != null">
+                AND LOWER(HMC.OUTSIDE_CONSIGNEE) LIKE CONCAT('%',CONCAT(LOWER(#{outsideConsignee,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="customerName != null">
+                AND LOWER(HMC.CUSTOMER_NAME) LIKE CONCAT('%',CONCAT(LOWER(#{customerName,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="customerCode != null">
+                AND LOWER(HMC.CUSTOMER_CODE) LIKE CONCAT('%',CONCAT(LOWER(#{customerCode,jdbcType=VARCHAR}),'%'))
+            </if>
+        </where>
+    </select>
+</mapper>

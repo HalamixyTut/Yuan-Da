@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.core.mapper.DataMaskingMapper">
+    <!--能化门户权限SQL01 合同、出库明细、逾期用-->
+    <sql id="nhPortalSql01">
+        AND UPPER(${customerCode}) = UPPER(#{request.userName})
+        AND ${orgName} IN (
+            SELECT DISTINCT FC.COMPANY_CODE
+            FROM HCUX_SYS_PLATE_SECTION HSPS
+            LEFT JOIN FND_COMPANY_B FC ON HSPS.COMPANY_ID = FC.COMPANY_ID
+            WHERE HSPS.PLATE IN (
+                SELECT REGEXP_SUBSTR(PLATE,'[^,]+',1,ROWNUM) PLATE
+                FROM (SELECT PLATE FROM SYS_USER WHERE USER_ID = #{request.userId})
+                CONNECT BY ROWNUM &lt;= LENGTH(PLATE)-LENGTH(REPLACE(PLATE,',')) + 1
+            )
+        )
+        <if test="sectionList != null and sectionList.size > 0">
+            AND
+            <foreach collection="sectionList" item="item" open="(" separator=" OR " close=")">
+                ${deptCode} LIKE #{item} ||'%'
+            </foreach>
+        </if>
+    </sql>
+
+    <!--能化 HAP中台 权限SQL01 合同、出库明细-->
+    <sql id="nhHapSql01">
+        AND ${orgName} IN (
+            SELECT DISTINCT FC.COMPANY_CODE
+            FROM HCUX_SYS_USER_SECTION HSUS
+            LEFT JOIN FND_COMPANY_B FC ON HSUS.COMPANY_ID = FC.COMPANY_ID
+            WHERE HSUS.USER_ID = #{request.userId}
+        )
+        <if test="sectionList != null and sectionList.size > 0">
+            AND
+            <foreach collection="sectionList" item="item" open="(" separator=" OR " close=")">
+                ${deptCode} LIKE #{item} ||'%'
+            </foreach>
+        </if>
+    </sql>
+
+    <!--能化门户权限SQL02 发票快递单查询、收件人维护用-->
+    <sql id="nhPortalSql02">
+        AND PLATE IN (
+            SELECT REGEXP_SUBSTR(PLATE,'[^,]+',1,ROWNUM) PLATE
+            FROM (SELECT PLATE FROM SYS_USER WHERE USER_ID = #{request.userId})
+            CONNECT BY ROWNUM &lt;= LENGTH(PLATE)-LENGTH(REPLACE(PLATE,',')) + 1
+        )
+        AND UPPER(CUSTOMER_CODE) = UPPER(#{request.userName})
+    </sql>
+
+    <!--能化 HAP中台 权限SQL02 发票快递单查询、收件人维护用-->
+    <sql id="nhHapSql02">
+        AND PLATE IN (
+            SELECT REGEXP_SUBSTR(PLATE,'[^,]+',1,ROWNUM) PLATE
+            FROM (SELECT PLATE FROM SYS_USER WHERE USER_ID = #{request.userId})
+            CONNECT BY ROWNUM &lt;= LENGTH(PLATE)-LENGTH(REPLACE(PLATE,',')) + 1
+        )
+    </sql>
+
+    <!--新景门户权限SQL-->
+    <sql id="xjPortalSql">
+        AND SUBSTR(${projectNum},2,8) = (
+            SELECT SERIAL_NUMBER
+            FROM SYS_USER SU
+            LEFT JOIN HCUX_SYS_ENTRUST_PARTY HSEP ON SU.ENTRUST_ID = HSEP.ENTRUST_ID
+            WHERE SU.USER_ID = #{request.userId}
+        )
+    </sql>
+</mapper>

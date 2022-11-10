@@ -1,0 +1,928 @@
+<#--
+* description: 托单数据编辑界面
+* version: 1.0
+* author: feng.liu01@hand-china.com
+-->
+
+<#include "../include/header.html">
+
+<!-- 托单-运费条款 -->
+<script src="${base.contextPath}/common/code?freightClauseData=HCUX_DOC_FREIGHT_CLAUSE"></script>
+<!-- 托单-运输方式 -->
+<script src="${base.contextPath}/common/code?transportWayData=HCUX_DOC_TRANSPORT_WAY"></script>
+<!-- 托单-件数单位 -->
+<script src="${base.contextPath}/common/code?packageNumberUnitData=HCUX_DOC_PACKAGE_NUMBER_UNIT"></script>
+
+<script src="${base.contextPath}/lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+
+    var operationType = '${RequestParameters.type!}';
+
+    var viewModel = Hap.createGridViewModel("#grid", {
+        model: {
+            bookingId: ${RequestParameters.bookingId!},
+            shipper: 'ZHEJIANG NEW VISION IMPORT AND EXPORT CO., LTD.',
+            transportWay: '2',
+            freightClause: '0',
+            contactAddress: '宁波市惊驾路555号泰富广场A座1412室（邮编315040）',
+            notificationUnit: 'SAME AS CONSIGNEE',
+        },
+        check: {
+            dirty: false
+        },
+        saveFunction: function () {
+            var validator = $("#submitForm").data("kendoValidator");
+
+            // 校验
+            if (!validator.validate()) {
+                Hap.showToast({
+                    type: 'error',
+                    message: '保存失败，必填项未填！'
+                });
+                return;
+            }
+
+            if (!viewModel.model.invoiceNumber.endsWith('A')) {
+                Hap.showToast({
+                    type: 'error',
+                    message: '格式错误！发票号末尾需为A！'
+                });
+                return;
+            }
+
+            var data = viewModel.model.toJSON();
+
+            if (data.bookingId) {
+                data.__status = 'update';
+            } else {
+                data.__status = 'add';
+            }
+
+            Hap.lockBtn({target: '#saveButton'});
+
+            var returnVar = false;
+            $.ajax({
+                type: 'POST',
+                url: '${base.contextPath}/hcux/doc/booking/note/submit',
+                datatype: "json",
+                contentType: "application/json",
+                async: false,
+                data: '[' + JSON.stringify(data) + ']',
+                complete: function () {
+                    Hap.unLockBtn({target: '#saveButton'});
+                },
+                success: function (data) {
+
+                    if (data.success) {
+                        Hap.showToast({
+                            type: 'success',
+                            message: data.message || '保存成功'
+                        });
+                        //数据更新回viewModel
+                        var formData = data.rows[0];
+                        for (var k in formData) {
+                            if (k !== 'fileId' && k !== 'fileName') {
+                                viewModel.model.set(k, formData[k]);
+                            }
+                        }
+                        returnVar = true;
+                        viewModel.check.set('dirty', false);
+                    } else {
+                        Hap.showToast({
+                            type: 'error',
+                            message: data.message || ' 保存失败'
+                        });
+                    }
+                }
+            });
+
+            return returnVar;
+        },
+        backFunction: function () {
+            if (!viewModel.check.dirty) {
+                window.parent.$("#editWindow").data("kendoWindow").close();
+                return;
+            }
+            kendo.ui.showCancelDialog({
+                title: $l('hap.tip.info'),
+                message: '是否保存修改？'
+            }).done(function (event) {
+                if (event.button === 'OK') {
+                    if (viewModel.saveFunction()) {
+                        window.parent.$("#editWindow").data("kendoWindow").close();
+                    }
+                } else if (event.button === 'NO') {
+                    window.parent.$("#editWindow").data("kendoWindow").close();
+                }
+            })
+        },
+        pdfPrint: function () {
+
+            if (!viewModel.model.bookingId) {
+                Hap.showToast({
+                    type: 'warning',
+                    message: '请先保存！'
+                });
+                return
+            }
+            window.open('${base.contextPath}/hcux/doc/booking/note/pdfPrint?bookingId=' + viewModel.model.bookingId)
+        }
+    });
+
+    $(document).ready(function () {
+        if (viewModel.model.bookingId > 0) {
+
+            $.ajax({
+                url: '${base.contextPath}/hcux/doc/booking/note/query?bookingId=' + viewModel.model.bookingId,
+                dataType: "json",
+                contentType: 'application/json',
+                error: function () {
+                    kendo.ui.showErrorDialog({
+                        message: '<@spring.message "hap.error"/>'
+                    });
+                },
+                success: function (data) {
+
+                    $.each(data.rows[0], function (k, v) {
+
+                        if (!$.isEmpty(v)) {
+                            viewModel.model.set(k, v);
+                        }
+
+                    });
+                    viewModel.check.set('dirty', false);
+
+                    if (operationType === 'COPY') {
+                        viewModel.model.set('bookingId', null);
+                        // viewModel.model.set('invoiceNumber', null);
+                        viewModel.model.set('invoiceNumber', viewModel.model.invoiceNumber.substr(0, 11));
+                        viewModel.model.set('packageNumber', null);
+                        viewModel.model.set('grossWeight', null);
+                        viewModel.model.set('netWeight', null);
+                        viewModel.model.set('volume', null);
+                        viewModel.model.set('money', null);
+
+                    }
+
+                }
+            });
+
+        }
+    });
+
+    viewModel.model.bind('change', function (e) {
+        if (!viewModel.check.dirty)
+            viewModel.check.set('dirty', true);
+
+        if (e.field === 'destinationPort' && $.isEmpty(viewModel.model.dischargePort)) {
+            viewModel.model.set('dischargePort', viewModel.model.destinationPort)
+        }
+    });
+</script>
+<body>
+<div id="page-content">
+
+    <div class="panel panel-default">
+        <div class="panel-heading" style="padding: 4px 10px">
+            <div class="row">
+                <div class="col-md-12">
+                    <button id="saveButton" type="button" data-bind="click:saveFunction" class="btn btn-success">
+                        <i class="fa fa-save"></i><@spring.message "hap.save"/>
+                    </button>
+
+                    <button id="backButton" type="button" data-bind="click:backFunction" class="btn btn-danger"
+                            style="margin-left: 10px">
+                        <i class="fa fa-times-circle-o"></i><@spring.message "hap.back"/>
+                    </button>
+
+                    <button id="pdfPrintButton" type="button" data-bind="click:pdfPrint" class="btn btn-info"
+                            style="margin-left: 10px">
+                        <i class="fa fa-times-circle-o"></i>打印
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-body">
+            <form id="submitForm" class="form-horizontal" role="form" style="">
+
+                <div class="row">
+                    <!-- 发票号 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="invoiceNumberInput">
+                                发票号
+                            </label>
+                            <div class="col-md-8">
+                                <input id="invoiceNumberInput" style="width: 100%; " required
+                                       type="text" class="k-textbox" name="发票号"
+                                       data-bind="value:model.invoiceNumber"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 客户订单号 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="customerOrderNumInput">
+                                客户订单号
+                            </label>
+                            <div class="col-md-8">
+                                <input id="customerOrderNumInput" style="width: 100%; "
+                                       type="text" class="k-textbox" name="客户订单号"
+                                       data-bind="value:model.customerOrderNum"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 船期 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="sailingDateInput">
+                                船期
+                            </label>
+                            <div class="col-md-8">
+                                <input id="sailingDateInput" style="width: 100%; "
+                                       type="text"
+                                       data-bind="value:model.sailingDate"/>
+                            </div>
+
+                            <script>
+                                $("#sailingDateInput").kendoDatePicker({
+                                    format: "yyyy-MM-dd"
+                                });
+                            </script>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <!-- 货好日 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="goodsDateInput">
+                                货好日
+                            </label>
+                            <div class="col-md-8">
+                                <input id="goodsDateInput" style="width: 100%; "
+                                       type="text"
+                                       data-bind="value:model.goodsDate"/>
+                            </div>
+
+                            <script>
+                                $("#goodsDateInput").kendoDatePicker({
+                                    format: "yyyy-MM-dd"
+                                });
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- 箱型 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="boxTypeInput">
+                                箱型
+                            </label>
+                            <div class="col-md-8">
+                                <input id="boxTypeInput" style="width: 100%; "
+                                       type="text" class="k-textbox"
+                                       data-bind="value:model.boxType"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 进仓或装柜 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="cabinetInput">
+                                进仓或装柜
+                            </label>
+                            <div class="col-md-8">
+                                <input id="cabinetInput" style="width: 100%; "
+                                       type="text" class="k-textbox"
+                                       data-bind="value:model.cabinet"/>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <!-- 装柜地址及联系方式 -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="col-md-1 control-label" for="cabinetAddressInput">
+                                装柜地址及联系方式
+                            </label>
+                            <div class="col-md-11">
+                                <input id="cabinetAddressInput" style="width: 100%;"
+                                       type="text" class="k-textbox"
+                                       data-bind="value:model.cabinetAddress"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- 其他备注信息 -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="col-md-1 control-label" for="remarkInput">
+                                其他备注信息
+                            </label>
+                            <div class="col-md-11">
+                                <textarea id="remarkInput" style="width: 100%;height: 60px;"
+                                          type="text" class="k-textbox" name="其他备注信息"
+                                          data-bind="value:model.remark">
+                                </textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <!-- 起运港 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="shipmentPortInput">
+                                起运港
+                            </label>
+                            <div class="col-md-8">
+                                <input id="shipmentPortInput" style="width: 100%; "
+                                       type="text" class="k-textbox" name="起运港"
+                                       data-bind="value:model.shipmentPort"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 卸货港 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="dischargePortInput">
+                                卸货港
+                            </label>
+                            <div class="col-md-8">
+                                <input id="dischargePortInput" style="width: 100%; "
+                                       type="text" class="k-textbox" name="卸货港"
+                                       data-bind="value:model.dischargePort"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 目的港 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="destinationPortInput">
+                                目的港
+                            </label>
+                            <div class="col-md-8">
+                                <input id="destinationPortInput" style="width: 100%; "
+                                       type="text" class="k-textbox" name="目的港"
+                                       data-bind="value:model.destinationPort"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- 运输方式 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="transportWayInput">
+                                运输方式
+                            </label>
+                            <div class="col-md-8">
+                                <input id="transportWayInput" style="width: 100%; "
+                                       type="text" name="运输方式"
+                                       data-bind="value:model.transportWay"/>
+                            </div>
+
+                            <script>
+                                $('#transportWayInput').kendoDropDownList({
+                                    dataTextField: "meaning",
+                                    dataValueField: "value",
+                                    valuePrimitive: true,
+                                    dataSource: transportWayData
+                                });
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- 运费条款 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="freightClauseInput">
+                                运费条款
+                            </label>
+                            <div class="col-md-8">
+                                <input id="freightClauseInput" style="width: 100%; "
+                                       type="text" name="运费条款"
+                                       data-bind="value:model.freightClause"/>
+                            </div>
+
+                            <script>
+                                $('#freightClauseInput').kendoDropDownList({
+                                    dataTextField: "meaning",
+                                    dataValueField: "value",
+                                    valuePrimitive: true,
+                                    dataSource: freightClauseData
+                                });
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- 提单份数 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="billCopiesInput">
+                                提单份数
+                            </label>
+                            <div class="col-md-8">
+                                <input id="billCopiesInput" style="width: 100%; "
+                                       type="text" class="k-textbox" name="提单份数"
+                                       data-bind="value:model.billCopies"/>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <!-- 货代简称 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="cargoAgentUnitInput">
+                                货代简称
+                            </label>
+                            <div class="col-md-8">
+                                <input id="cargoAgentUnitInput" style="width: 100%; "
+                                       type="text" class="k-textbox" name="货代简称"
+                                       data-bind="value:model.cargoAgentUnit"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 货代联系人 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="cargoAgentInput">
+                                货代联系人
+                            </label>
+                            <div class="col-md-8">
+                                <input id="cargoAgentInput" style="width: 100%; "
+                                       type="text" class="k-textbox" name="货代联系人"
+                                       data-bind="value:model.cargoAgent"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 货代电话 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="cargoAgentMobileInput">
+                                货代电话
+                            </label>
+                            <div class="col-md-8">
+                                <input id="cargoAgentMobileInput" style="width: 100%; "
+                                       type="text" class="k-textbox" name="货代电话"
+                                       data-bind="value:model.cargoAgentMobile"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 货代邮件 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="cargoAgentEmailInput">
+                                货代邮件
+                            </label>
+                            <div class="col-md-8">
+                                <input id="cargoAgentEmailInput" style="width: 100%; "
+                                       type="text" class="k-textbox" name="货代邮件"
+                                       data-bind="value:model.cargoAgentEmail"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- 报关行 -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="col-md-1 control-label" for="declareCustomLineInput">
+                                报关行
+                            </label>
+                            <div class="col-md-11">
+                                <input id="declareCustomLineInput" style="width: 100%;"
+                                       type="text" class="k-textbox" name="报关行"
+                                       data-bind="value:model.declareCustomLine"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- 托运单位 -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="col-md-1 control-label" for="shipperInput">
+                                托运单位
+                            </label>
+                            <div class="col-md-11">
+                                <input id="shipperInput" style="width: 100%; "
+                                       type="text" name="托运单位"
+                                       data-bind="value:model.shipper,text:model.shipper"/>
+
+                                <textarea id="shipperAddressInput" style="width: 100%; margin-top: 2px;height: 60px;resize: none;"
+                                       type="text" class="k-textbox" name="托运单位地址"
+                                          data-bind="value:model.shipperAddress"></textarea>
+
+                                <input id="shipperMobileInput" style="width: 100%;margin-top: 2px; "
+                                       type="text" class="k-textbox" name="托运单位电话"
+                                       data-bind="value:model.shipperMobile"/>
+
+                                <script>
+
+                                    $("#shipperInput").kendoLov($.extend(${lovProvider.getLov(base.contextPath, base.locale, "HCUX_MDM_CUSTOMER")}, {
+                                        dataTextField: 'outsideConsignee',
+                                        dataValueField: 'outsideConsignee',
+                                        select: function (e) {
+                                            viewModel.model.set('shipperAddress', e.item.address);
+                                            viewModel.model.set('shipperMobile', (e.item.consigneeCode ? e.item.consigneeCode + ' ' : '') + (e.item.mobile || ''))
+                                        }
+                                    }))
+
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- 收货单位 -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="col-md-1 control-label" for="consigneeInput">
+                                收货单位
+                            </label>
+                            <div class="col-md-11">
+                                <input id="consigneeInput" style="width: 100%; "
+                                       type="text" name="收货单位"
+                                       data-bind="value:model.consignee,text:model.consignee"/>
+
+                                <textarea id="consigneeAddressInput" style="width: 100%; margin-top: 2px;height: 60px;resize: none;"
+                                       type="text" class="k-textbox" name="收货单位地址"
+                                          data-bind="value:model.consigneeAddress"></textarea>
+
+                                <input id="consigneeMobileInput" style="width: 100%;margin-top: 2px; "
+                                       type="text" class="k-textbox" name="收货单位电话"
+                                       data-bind="value:model.consigneeMobile"/>
+                                <script>
+
+                                    $("#consigneeInput").kendoLov($.extend(${lovProvider.getLov(base.contextPath, base.locale, "HCUX_MDM_CUSTOMER")}, {
+                                        dataTextField: 'outsideConsignee',
+                                        dataValueField: 'outsideConsignee',
+                                        select: function (e) {
+                                            viewModel.model.set('customerId', e.item.customerId);
+                                            viewModel.model.set('consigneeAddress', e.item.address);
+                                            viewModel.model.set('consigneeMobile', (e.item.consigneeCode ? e.item.consigneeCode + ' ' : '') + (e.item.mobile || ''))
+
+                                        }
+                                    }))
+
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- 通知单位 -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="col-md-1 control-label" for="notificationUnitInput">
+                                通知单位
+                            </label>
+                            <div class="col-md-11">
+                                <input id="notificationUnitInput" style="width: 100%; "
+                                       type="text" name="通知单位"
+                                       data-bind="value:model.notificationUnit,text:model.notificationUnit"/>
+
+                                <textarea id="notificationAddressInput" style="width: 100%; margin-top: 2px;height: 60px;resize: none;"
+                                       type="text" class="k-textbox" name="通知单位地址"
+                                          data-bind="value:model.notificationAddress"></textarea>
+
+                                <input id="notificationMobileInput" style="width: 100%;margin-top: 2px; "
+                                       type="text" class="k-textbox" name="通知单位电话"
+                                       data-bind="value:model.notificationMobile"/>
+                                <script>
+
+                                    $("#notificationUnitInput").kendoLov($.extend(${lovProvider.getLov(base.contextPath, base.locale, "HCUX_MDM_CUSTOMER")}, {
+                                        dataTextField: 'outsideConsignee',
+                                        dataValueField: 'outsideConsignee',
+                                        select: function (e) {
+                                            viewModel.model.set('notificationAddress', e.item.address);
+                                            viewModel.model.set('notificationMobile', (e.item.consigneeCode ? e.item.consigneeCode + ' ' : '') + (e.item.mobile || ''))
+                                        }
+                                    }))
+
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <!-- 件数 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="packageNumberInput">
+                                件数
+                            </label>
+                            <div class="col-md-8">
+                                <input id="packageNumberInput" style="width: 100%; "
+                                       type="text" name="件数"
+                                       data-bind="value:model.packageNumber"/>
+
+                                <script>
+                                    $("#packageNumberInput").kendoNumericTextBox({
+                                        format: "#.##"
+                                    }).data("kendoNumericTextBox");
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 件数单位 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="packageNumberUnitInput">
+                                件数单位
+                            </label>
+                            <div class="col-md-8">
+                                <input id="packageNumberUnitInput" style="width: 100%; "
+                                       type="text" name="件数单位"
+                                       data-bind="value:model.packageNumberUnit"/>
+                            </div>
+
+                            <script>
+                                $('#packageNumberUnitInput').kendoDropDownList({
+                                    dataTextField: "meaning",
+                                    dataValueField: "value",
+                                    valuePrimitive: true,
+                                    dataSource: packageNumberUnitData
+                                });
+                            </script>
+                        </div>
+                    </div>
+
+                    <!-- 毛重 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="grossWeightInput">
+                                毛重
+                            </label>
+                            <div class="col-md-8">
+                                <input id="grossWeightInput" style="width: 100%; "
+                                       type="text" name="毛重"
+                                       data-bind="value:model.grossWeight"/>
+
+                                <script>
+                                    $("#grossWeightInput").kendoNumericTextBox({
+                                        format: "#.##",
+                                        decimals: 2
+                                    }).data("kendoNumericTextBox");
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 体积 -->
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="col-md-4 control-label" for="volumeInput">
+                                体积
+                            </label>
+                            <div class="col-md-8">
+                                <input id="volumeInput" style="width: 100%; "
+                                       type="text" name="体积"
+                                       data-bind="value:model.volume"/>
+
+                                <script>
+                                    $("#volumeInput").kendoNumericTextBox({
+                                        format: "#.###",
+                                        decimals: 3
+                                    }).data("kendoNumericTextBox");
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+                <div class="row">
+
+                    <!-- 品名 -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="col-md-1 control-label" for="productNameInput">
+                                品名
+                            </label>
+                            <div class="col-md-11">
+                                <input id="productNameInput" style="width: 100%;"
+                                       type="text" class="k-textbox" name="品名"
+                                       data-bind="value:model.productName"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <!-- 唛头 -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="col-md-1 control-label" for="shippingMarkInput">
+                                唛头
+                            </label>
+                            <div class="col-md-11">
+                                <textarea id="shippingMarkInput" style="width: 100%;height: 80px;resize: none;"
+                                          type="text" class="k-textbox" name="唛头"
+                                          data-bind="value:model.shippingMark">
+                                </textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- 唛头图片 -->
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="col-md-1 control-label" for="fileNameInput">
+                                唛头图片
+                            </label>
+                            <div class="col-md-11">
+
+                                <input id="fileNameInput" name="fileName" type="text"
+                                       class="k-textbox k-state-disabled" readonly
+                                       data-bind="value:model.fileName" style="width: 65%; "/>
+
+                                <span onclick="openUploadDialogUI(2,0)"
+                                      style="" class="fileUpload btn btn-primary btn-sm">
+                                    <i class="fa fa-upload" aria-hidden="true"></i>
+                                </span>
+
+                                <span onclick="downloadFile(2,0)"
+                                      style="" class="fileDownload btn btn-success btn-sm">
+                                    <i class="fa fa-download" aria-hidden="true"></i>
+                                </span>
+
+                                <span onclick="deleteFile(2,0)"
+                                      style="" class="fileDelete btn btn-danger btn-sm">
+                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                </span>
+
+                                <span onclick="photoPreview(0)"
+                                      style="" class="filePreview btn btn-warning btn-sm">
+                                    <i class="fa fa-eye" aria-hidden="true"></i>
+                                </span>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+<div id="uploadFileDialog"></div>
+<div id="photoDialog" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <center>
+                <img alt="" id="photoPreview" class="img-responsive" src=""/>
+            </center>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    kendo.bind($('#page-content'), viewModel);
+
+    // 打开文件上传界面
+    function openUploadDialogUI() {
+
+        $('#uploadFileDialog').kendoWindow({
+            actions: ["Close"],
+            width: 800,
+            height: 500,
+            title: '<@spring.message "上传文件"/>',
+            visible: false,
+            iframe: true,
+            model: true,
+            resizable: false,
+            content: "${base.contextPath}/doc/doc_shipping_mark_upload.html"
+        }).data('kendoWindow').center().open();
+    }
+
+    // 文件下载
+    function downloadFile() {
+
+
+        if ($.isEmpty(viewModel.model.fileId)) {
+            Hap.showToast({
+                type: 'warning',
+                message: '文件不存在'
+            });
+            return;
+        }
+
+        var url = '${base.contextPath}/hcux/doc/booking/note/download?' +
+            'fileId=' + viewModel.model.fileId + '&${_csrf.parameterName}=${_csrf.token}';
+
+        window.open(url);
+    }
+
+    // 文件删除
+    function deleteFile() {
+
+        if ($.isEmpty(viewModel.model.fileId)) {
+            Hap.showToast({
+                type: 'warning',
+                message: '文件不存在'
+            });
+            return;
+        }
+
+        Hap.blockUI();
+        $.ajax({
+            type: 'POST',
+            url: '${base.contextPath}/hcux/doc/booking/note/delete',
+            datatype: "json",
+            // contentType: "application/json",
+            data: {'fileId': viewModel.model.fileId},
+            complete: function () {
+                Hap.unblockUI();
+            },
+            success: function (data) {
+
+                if (data.success) {
+                    Hap.showToast({
+                        type: 'success',
+                        message: '删除成功'
+                    });
+
+                    viewModel.model.set('fileId', null);
+                    viewModel.model.set('fileName', null);
+
+                } else {
+                    Hap.showToast({
+                        type: 'error',
+                        message: data.message || ' 删除失败'
+                    });
+                }
+            }
+        });
+
+
+    }
+
+    function photoPreview() {
+
+        if ($.isEmpty(viewModel.model.fileId)) {
+            Hap.showToast({
+                type: 'warning',
+                message: '文件不存在'
+            });
+            return;
+        }
+
+        var url = '${base.contextPath}/hcux/doc/booking/note/download?' +
+            'fileId=' + viewModel.model.fileId + '&${_csrf.parameterName}=${_csrf.token}';
+
+        $('#photoPreview').attr("src", url);
+
+        $('#photoDialog').modal('toggle');
+
+    }
+
+    //验证
+    $("#submitForm").kendoValidator({
+        // messages: {
+        //     required: '<@spring.message "hap.validation.notempty"/>'
+        // },
+        invalidMessageType: "tooltip"
+    });
+</script>
+</body>
+</html>

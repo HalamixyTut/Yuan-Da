@@ -1,0 +1,473 @@
+<#include "../include/header.html">
+<style>
+    div[role=tooltip].k-tooltip {
+        padding: 2px;
+        background: #5c9acf;
+    }
+
+    .k-tooltip-content {
+        padding: 4px;
+        text-align: left;
+        background: #fff;
+        color: #666;
+    }
+
+    .k-callout {
+        border-bottom-color: #5c9acf;
+    }
+</style>
+<script src="${base.contextPath}/common/code?confirmReceiptData=HCUX_CS_ORDER_RECEIPT_YES_NO"></script>
+<script type="text/javascript">
+    var initExpectDateFrom = new Date();
+    initExpectDateFrom.setDate(initExpectDateFrom.getDate() - 10);
+    initExpectDateFrom.setHours(0);
+    initExpectDateFrom.setMinutes(0);
+    initExpectDateFrom.setSeconds(0);
+
+    var initExpectDateTo = new Date();
+    initExpectDateTo.setHours(23);
+    initExpectDateTo.setMinutes(59);
+    initExpectDateTo.setSeconds(59);
+
+    var viewModel = Hap.createGridViewModel("#grid", {
+        model: {
+            expectedDepotDateFrom: initExpectDateFrom,
+            expectedDepotDateTo: initExpectDateTo
+        },
+        pdfPrint: function () {
+            var checked = $("#grid").data("kendoGrid").selectedDataItems();
+
+            if (checked.length == 0) {
+                Hap.showToast({
+                    type: 'warning',
+                    message: '请选择需要打印的数据！'
+                });
+                return
+            }
+
+            var hasNotConfirm = checked.some(function (item) {
+                return item.confirmReceipt == 'N';
+            });
+
+            if (hasNotConfirm) {
+                Hap.showToast({
+                    type: 'warning',
+                    message: '数据中有客户尚未确认收货！'
+                });
+                return
+            }
+            var invoiceIds = checked.map(function (item) {
+                return item.invoiceId;
+            }).join(";");
+
+            window.open('${base.contextPath}/hcux/cs/outbound/order/full/pdfPrint?invoiceIds=' + invoiceIds)
+        }
+    });
+
+    //跳转到出库物流详细
+    function searchData(invoiceId) {
+        var url = '${base.contextPath}/cs/cs_outbound_trans_full.html?invoiceId=' + invoiceId;
+
+        var dialog = $("#searchWindow").kendoWindow({
+            actions: ["Close"],
+            title: '仓库数据明细',
+            content: url,
+
+
+            iframe: true,
+            visible: false,
+            resizable: false,
+            modal: true,
+            close: function () {
+                $('#grid').data('kendoGrid').dataSource.read();
+            }
+        }).data("kendoWindow");
+        dialog.maximize().open();
+    }
+
+    var invoiceNo = '${RequestParameters.invoiceNo!}';
+    if (!$.isEmpty(invoiceNo))
+        viewModel.model.set('invoiceNo', invoiceNo);
+    var flag = '${RequestParameters.flag!}';
+    if (flag == 1){
+        viewModel.model.set('expectedDepotDateFrom', null);
+        viewModel.model.set('expectedDepotDateTo', null);
+    }
+</script>
+<body>
+<div id="page-content">
+    <form class="form-horizontal" id="query-input" style="">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="partyNameInput">
+                        客户名称
+                    </label>
+                    <div class="col-md-8">
+                        <input class="k-textbox" data-bind="value:model.partyName"
+                               id="partyNameInput" name="客户名称" style="width: 100%;"
+                               type="text"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="invoiceNoInput">
+                        出库编号
+                    </label>
+                    <div class="col-md-8">
+                        <input class="k-textbox" data-bind="value:model.invoiceNo"
+                               id="invoiceNoInput" name="出库编号" style="width: 100%;"
+                               type="text"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="expectedDepotDateFromInput">
+                        预计出库日期从
+                    </label>
+                    <div class="col-md-8">
+                        <input data-bind="value:model.expectedDepotDateFrom"
+                               id="expectedDepotDateFromInput" name="预计出库日期从" style="width: 100%;"
+                               type="text"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="expectedDepotDateToInput">
+                        预计出库日期至
+                    </label>
+                    <div class="col-md-8">
+                        <input data-bind="value:model.expectedDepotDateTo"
+                               id="expectedDepotDateToInput" name="预计出库日期至" style="width: 100%;"
+                               type="text"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="itemDescInput">
+                        物料品名
+                    </label>
+                    <div class="col-md-8">
+                        <input class="k-textbox" data-bind="value:model.itemDesc"
+                               id="itemDescInput" name="物料品名" style="width: 100%;"
+                               type="text"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="sourceSubinvInput">
+                        仓库
+                    </label>
+                    <div class="col-md-8">
+                        <input class="k-textbox" data-bind="value:model.sourceSubinv"
+                               id="sourceSubinvInput" name="仓库" style="width: 100%;"
+                               type="text"/>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="col-md-4 control-label" for="confirmReceiptInput">
+                        确认收货
+                    </label>
+                    <div class="col-md-8">
+                        <input data-bind="value:model.confirmReceipt"
+                               id="confirmReceiptInput" name="确认收货" style="width: 100%;"
+                               type="text"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="pull-right" id="query-form" style="padding-bottom:10px;">
+        <span class="btn btn-info" data-bind="click:pdfPrint" style="float:left;margin-right:5px;">打印确认函</span>
+        <span class="btn btn-primary" style="float:left;width:70px" data-bind="click:query" type="submit"><@spring.message "hap.query"/></span>
+        <span class="btn btn-default" data-bind="click:reset" style="width:70px;margin-left:5px;" type="button"> <@spring.message "hap.reset"/></span>
+        <div style="clear:both"></div>
+    </div>
+    <script>
+        kendo.bind($('#query-input'), viewModel);
+        kendo.bind($('#query-form'), viewModel);
+        $("#expectedDepotDateFromInput").kendoDatePicker({
+            format: "yyyy-MM-dd"
+        });
+
+        $("#expectedDepotDateToInput").kendoDatePicker({
+            format: "yyyy-MM-dd"
+        });
+
+        $("#confirmReceiptInput").kendoDropDownList({
+            optionLabel: "--请选择是否确认收货--",
+            dataTextField: "meaning",
+            dataValueField: "value",
+            valuePrimitive: true,
+            dataSource: confirmReceiptData
+        })
+    </script>
+    <div style="clear:both">
+        <div id="grid"></div>
+    </div>
+</div>
+<div id="searchWindow"></div>
+
+<script type="text/javascript">
+    Hap.initEnterQuery('#query-input', viewModel.query);
+    var BaseUrl = _basePath;
+    dataSource = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: BaseUrl + "/hcux/cs/outbound/order/full/query",
+                type: "POST",
+                dataType: "json"
+            },
+            update: {
+                url: BaseUrl + "/hcux/cs/outbound/order/full/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            destroy: {
+                url: BaseUrl + "/hcux/cs/outbound/order/full/remove",
+                type: "POST",
+                contentType: "application/json"
+            },
+            create: {
+                url: BaseUrl + "/hcux/cs/outbound/order/full/submit",
+                type: "POST",
+                contentType: "application/json"
+            },
+            parameterMap: function (options, type) {
+                if (type !== "read" && options.models) {
+                    var datas = Hap.prepareSubmitParameter(options, type)
+                    return kendo.stringify(datas);
+                } else if (type === "read") {
+                    return Hap.prepareQueryParameter(viewModel.model.toJSON(), options)
+                }
+            }
+        },
+        batch: true,
+        serverPaging: true,
+        pageSize: 10,
+        schema: {
+            data: 'rows',
+            total: 'total',
+            model: {
+                id: "orderAllId",
+                fields: {
+                    expectedDepotDate: {type: 'date'},
+                    effectiveDate: {type: 'date'},
+                    confirmReceipt: {defaultValue: 'N', type: 'boolean', checkedValue: 'Y', uncheckedValue: 'N'},
+                }
+            }
+        }
+    });
+
+    $("#grid").kendoGrid({
+        dataSource: dataSource,
+        resizable: true,
+        scrollable: true,
+        navigatable: false,
+        selectable: 'multiple, rowbox',
+        dataBound: function () {
+            if (parent.autoResizeIframe) {
+                parent.autoResizeIframe('${RequestParameters.functionCode!}')
+            }
+        },
+        pageable: {
+            pageSizes: [5, 10, 20, 50],
+            refresh: true,
+            buttonCount: 5
+        },
+        columns: [
+            {
+                field: "customerName",
+                title: '公司名称',
+                width: 120,
+                hidden: true
+            },
+            {
+                field: "partyName",
+                title: '客户名称',
+                width: 180,
+            },
+            /*{
+                field: "orderTypeDesc",
+                title: '订单类型',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            },*/
+            {
+                field: "invoiceNo",
+                title: '出库编号',
+                width: 170,
+                template: function (rowdata) {
+                    return '<a style="text-decoration : none;color : blue;cursor:pointer" onclick="searchData(' + rowdata.invoiceId + ')">'
+                        + rowdata.invoiceNo
+                        + '</a>'
+                }
+            },
+            {
+                field: "expectedDepotDate",
+                title: '预计出库日期',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120,
+                format: "{0:yyyy-MM-dd}"
+            },
+            {
+                field: "effectiveDate",
+                title: '有效日期',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120,
+                format: "{0:yyyy-MM-dd}"
+            },
+            /*{
+                field: "poProjectNumber",
+                title: '采购项目号',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            },*/
+            {
+                field: "itemDesc",
+                title: '物料品名',
+                headerAttributes: {
+                    style: "text-align: left"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: left"
+                },
+                width: 120
+            },
+            {
+                field: "sourceSubinv",
+                title: '仓库',
+                headerAttributes: {
+                    style: "text-align: left"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: left"
+                },
+                width: 150
+            },
+            {
+                field: "outboundQty",
+                title: '出库数量',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: right"
+                },
+                width: 80
+            },
+            {
+                field: "actInvQty",
+                title: '仓库实际出库数量',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: right"
+                },
+                width: 80
+            },
+            {
+                field: "invStatus",
+                title: '仓库返回状态',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: left"
+                },
+                width: 80
+            },
+            {
+                field: "createPerson",
+                title: '制单人',
+                headerAttributes: {
+                    style: "text-align: left"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: left"
+                },
+                width: 80
+            },
+            {
+                field: "confirmReceipt",
+                title: '确认收货',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 80
+            },
+            {
+                field: "remark",
+                title: '客户备注',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                attributes: {
+                    style: "white-space:nowrap;text-overflow:ellipsis;text-align: center"
+                },
+                width: 120
+            }
+        ],
+        editable: false
+    });
+
+    //add tooltip
+    $("#grid").kendoTooltip({
+        show: function (e) {
+            if ($.trim(this.content.text()) !== "") {
+                $('[role="tooltip"]').css("visibility", "visible");
+            }
+        },
+        hide: function () {
+            $('[role="tooltip"]').css("visibility", "hidden");
+        },
+        filter: "td:nth-child(n+3)",
+        content: function (e) {
+            var element = e.target[0];
+            if (element.offsetWidth < element.scrollWidth) {
+                var text = $(e.target).text();
+                return '<div style="min-width:100px;max-width: 1000px;">' + text + '</div>';
+            } else {
+                $('[role="tooltip"]').css("visibility", "hidden");
+                return "";
+            }
+
+        }
+    }).data("kendoTooltip");
+</script>
+</body>
+</html>

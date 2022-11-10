@@ -1,0 +1,779 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsCustomsDetailMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsCustomsDetail"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="CUSTOMS_DETAIL_ID" property="customsDetailId" jdbcType="DECIMAL"/>
+        <result column="CUSTOMS_NUMBER" property="customsNumber" jdbcType="VARCHAR"/>
+        <result column="IMPORT_EXPORT" property="importExport" jdbcType="VARCHAR"/>
+        <result column="MANUAL_NUMBER" property="manualNumber" jdbcType="VARCHAR"/>
+        <result column="DECLARE_DATE" property="declareDate" jdbcType="DATE"/>
+        <result column="IMPORT_EXPORT_DATE" property="importExportDate" jdbcType="DATE"/>
+        <result column="IMPORT_EXPORT_PORT" property="importExportPort" jdbcType="VARCHAR"/>
+        <result column="DECLARE_UNIT" property="declareUnit" jdbcType="VARCHAR"/>
+        <result column="CONTRACT_NUMBER" property="contractNumber" jdbcType="VARCHAR"/>
+        <result column="INVOICE_NUMBER" property="invoiceNumber" jdbcType="VARCHAR"/>
+        <result column="COUNTRY" property="country" jdbcType="VARCHAR"/>
+        <result column="TRANSACTION_MODE" property="transactionMode" jdbcType="VARCHAR"/>
+        <result column="DEAL_WAY" property="dealWay" jdbcType="VARCHAR"/>
+        <result column="PROJECT_NUMBER" property="projectNumber" jdbcType="VARCHAR"/>
+        <result column="GOODS_NAME" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="GOODS_NUMBER" property="goodsNumber" jdbcType="VARCHAR"/>
+        <result column="SPECIFICATION_TYPE" property="specificationType" jdbcType="VARCHAR"/>
+        <result column="AMOUNT" property="amount" jdbcType="DECIMAL"/>
+        <result column="UNIT" property="unit" jdbcType="VARCHAR"/>
+        <result column="FIRST_AMOUNT" property="firstAmount" jdbcType="DECIMAL"/>
+        <result column="FIRST_UNIT" property="firstUnit" jdbcType="VARCHAR"/>
+        <result column="SECOND_AMOUNT" property="secondAmount" jdbcType="DECIMAL"/>
+        <result column="SECOND_UNIT" property="secondUnit" jdbcType="VARCHAR"/>
+        <result column="CURRENCY_SYSTEM" property="currencySystem" jdbcType="VARCHAR"/>
+        <result column="UNIT_PRICE" property="unitPrice" jdbcType="DECIMAL"/>
+        <result column="TOTAL_PRICE" property="totalPrice" jdbcType="DECIMAL"/>
+        <result column="BILL_NUMBER" property="billNumber" jdbcType="VARCHAR"/>
+        <result column="BOX_NUMBER" property="boxNumber" jdbcType="VARCHAR"/>
+        <result column="STATUS" property="status" jdbcType="VARCHAR"/>
+        <result column="TOTAL_VALUE" property="totalValue" jdbcType="DECIMAL"/>
+        <result column="MODIFY_FLAG" property="modifyFlag" jdbcType="VARCHAR"/>
+        <result column="MAX_DECLARE_DATE" property="maxDeclareDate" jdbcType="DATE"/>
+        <result column="TOTAL_AMOUNT" property="totalAmount" jdbcType="DECIMAL"/>
+        <result column="VESSEL_VOYAGE" property="vesselVoyage" jdbcType="VARCHAR"/>
+        <result column="IS_EXPORTED" property="isExported" jdbcType="VARCHAR"/>
+        <result column="USER_ID" property="userId" jdbcType="DECIMAL"/>
+    </resultMap>
+    <select id="selectList" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select
+        HECD.CUSTOMS_DETAIL_ID,
+        HECD.CUSTOMS_NUMBER,
+        HECD.IMPORT_EXPORT,
+        HECD.MANUAL_NUMBER,
+        HECD.DECLARE_DATE,
+        HECD.IMPORT_EXPORT_DATE,
+        HECD.IMPORT_EXPORT_PORT,
+        HECD.DECLARE_UNIT,
+        HECD.CONTRACT_NUMBER,
+        HECD.INVOICE_NUMBER,
+        HECD.COUNTRY,
+        HECD.TRANSACTION_MODE,
+        HECD.DEAL_WAY,
+        HECD.PROJECT_NUMBER,
+        HECD.GOODS_NAME,
+        HECD.GOODS_NUMBER,
+        HECD.SPECIFICATION_TYPE,
+        HECD.AMOUNT,
+        HECD.UNIT,
+        HECD.FIRST_AMOUNT,
+        HECD.FIRST_UNIT,
+        HECD.SECOND_AMOUNT,
+        HECD.SECOND_UNIT,
+        HECD.CURRENCY_SYSTEM,
+        HECD.UNIT_PRICE,
+        HECD.TOTAL_PRICE,
+        HECD.BILL_NUMBER,
+        HECD.BOX_NUMBER,
+        HECD.STATUS,
+        HECD.MODIFY_FLAG,
+        HECD.VESSEL_VOYAGE,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HECD"/>
+        </include>
+        from HCUX_EPS_CUSTOMS_DETAIL HECD
+        <where>
+            <if test="customsNumber != null">
+                and lower(HECD.CUSTOMS_NUMBER) like '%'|| lower(#{customsNumber}) ||'%'
+            </if>
+            <if test="invoiceNumber != null">
+                and lower(HECD.INVOICE_NUMBER) like '%'|| lower(#{invoiceNumber}) ||'%'
+            </if>
+
+            <if test="invoiceNumberFrom != null">
+                and lower(HECD.INVOICE_NUMBER) >= lower(#{invoiceNumberFrom})
+            </if>
+
+            <if test="invoiceNumberTo != null">
+                and lower(HECD.INVOICE_NUMBER) &lt;= lower(#{invoiceNumberTo})
+            </if>
+
+            <if test="country != null">
+                and lower(HECD.COUNTRY) like '%'|| lower(#{country}) ||'%'
+            </if>
+            <if test="goodsName != null">
+                and lower(HECD.GOODS_NAME) like '%'|| lower(#{goodsName}) ||'%'
+            </if>
+            <if test="billNumber != null">
+                and lower(BILL_NUMBER) like '%'|| lower(#{billNumber}) ||'%'
+            </if>
+            <if test="boxNumber != null">
+                and lower(HECD.BOX_NUMBER) like '%'|| lower(#{boxNumber})||'%'
+            </if>
+            <if test="declareDateFrom != null">
+                and HECD.DECLARE_DATE>=#{declareDateFrom}
+            </if>
+            <if test="declareDateTo != null">
+                and HECD.DECLARE_DATE&lt;= #{declareDateTo}
+            </if>
+            <if test="status != null">
+                and HECD.STATUS = #{status}
+            </if>
+            <if test="modifyFlag != null">
+                and HECD.MODIFY_FLAG = #{modifyFlag}
+            </if>
+            <if test="goodsNumber != null">
+                and HECD.GOODS_NUMBER like '%' || #{goodsNumber} || '%'
+            </if>
+            <if test="contractNumber != null">
+                and lower(HECD.CONTRACT_NUMBER) like '%' || lower(#{contractNumber}) || '%'
+            </if>
+            <if test="currencySystem != null">
+                and lower(HECD.CURRENCY_SYSTEM) like '%' || lower(#{currencySystem}) || '%'
+            </if>
+        </where>
+        order by HECD.DECLARE_DATE desc,HECD.CUSTOMS_NUMBER desc,to_number(HECD.PROJECT_NUMBER)
+    </select>
+    <select id="selectErrorList" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select * from
+        (
+        select
+        HECD.CUSTOMS_DETAIL_ID,
+        ROW_NUMBER () over(partition by HECD.CUSTOMS_NUMBER order by HECD.CUSTOMS_DETAIL_ID) CN,
+        HECD.CUSTOMS_NUMBER,
+        HECD.IMPORT_EXPORT,
+        HECD.MANUAL_NUMBER,
+        HECD.DECLARE_DATE,
+        HECD.IMPORT_EXPORT_DATE,
+        HECD.IMPORT_EXPORT_PORT,
+        HECD.DECLARE_UNIT,
+        HECD.CONTRACT_NUMBER,
+        HECD.INVOICE_NUMBER,
+        HECD.COUNTRY,
+        HECD.TRANSACTION_MODE,
+        HECD.DEAL_WAY,
+        HECD.PROJECT_NUMBER,
+        HECD.GOODS_NAME,
+        HECD.GOODS_NUMBER,
+        HECD.SPECIFICATION_TYPE,
+        HECD.AMOUNT,
+        HECD.UNIT,
+        HECD.FIRST_AMOUNT,
+        HECD.FIRST_UNIT,
+        HECD.SECOND_AMOUNT,
+        HECD.SECOND_UNIT,
+        HECD.CURRENCY_SYSTEM,
+        HECD.UNIT_PRICE,
+        HECD.TOTAL_PRICE,
+        HECD.BILL_NUMBER,
+        HECD.BOX_NUMBER,
+        HECD.STATUS,
+        HECD.MODIFY_FLAG,
+        HECD.VESSEL_VOYAGE,
+        HECD.IS_EXPORTED,
+        sum(TOTAL_PRICE)over(partition by HECD.CUSTOMS_NUMBER) TOTAL_VALUE,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HECD"/>
+        </include>
+        from HCUX_EPS_CUSTOMS_DETAIL HECD
+        where
+        HECD.MODIFY_FLAG = 'N'
+        <if test="customsNumber != null">
+            and lower(HECD.CUSTOMS_NUMBER) like '%'|| lower(#{customsNumber}) ||'%'
+        </if>
+
+        <if test="invoiceNumber != null">
+            and lower(HECD.INVOICE_NUMBER) like '%'|| lower(#{invoiceNumber}) ||'%'
+        </if>
+
+        <if test="invoiceNumberFrom != null">
+            and lower(HECD.INVOICE_NUMBER) >= lower(#{invoiceNumberFrom})
+        </if>
+
+        <if test="invoiceNumberTo != null">
+            and lower(HECD.INVOICE_NUMBER) &lt;= lower(#{invoiceNumberTo})
+        </if>
+
+        <if test="declareDateFrom != null">
+            and HECD.DECLARE_DATE>=#{declareDateFrom}
+        </if>
+        <if test="declareDateTo != null">
+            and HECD.DECLARE_DATE&lt;= #{declareDateTo}
+        </if>
+        <if test="status != null">
+            and HECD.STATUS = #{status}
+        </if>
+        <if test="contractNumber != null">
+            and lower(HECD.CONTRACT_NUMBER) like '%' || lower(#{contractNumber}) || '%'
+        </if>
+        <if test="isExported != null">
+            and HECD.IS_EXPORTED = #{isExported}
+        </if>
+        )
+        WHERE CN=1
+        <if test="totalValue != null">
+            and TOTAL_VALUE =#{totalValue}
+        </if>
+        order by DECLARE_DATE desc,CUSTOMS_DETAIL_ID desc
+    </select>
+    <select id="selectPortalList" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select
+        HECD.CUSTOMS_DETAIL_ID,
+        HECD.CUSTOMS_NUMBER,
+        HECD.IMPORT_EXPORT,
+        HECD.MANUAL_NUMBER,
+        HECD.DECLARE_DATE,
+        HECD.IMPORT_EXPORT_DATE,
+        HECD.IMPORT_EXPORT_PORT,
+        HECD.DECLARE_UNIT,
+        HECD.CONTRACT_NUMBER,
+        HECD.INVOICE_NUMBER,
+        HECD.COUNTRY,
+        HECD.TRANSACTION_MODE,
+        HECD.DEAL_WAY,
+        HECD.PROJECT_NUMBER,
+        HECD.GOODS_NAME,
+        HECD.GOODS_NUMBER,
+        HECD.SPECIFICATION_TYPE,
+        HECD.AMOUNT,
+        HECD.UNIT,
+        HECD.FIRST_AMOUNT,
+        HECD.FIRST_UNIT,
+        HECD.SECOND_AMOUNT,
+        HECD.SECOND_UNIT,
+        HECD.CURRENCY_SYSTEM,
+        HECD.UNIT_PRICE,
+        HECD.TOTAL_PRICE,
+        HECD.BILL_NUMBER,
+        HECD.BOX_NUMBER,
+        HECD.STATUS,
+        HECD.MODIFY_FLAG,
+        sum(TOTAL_PRICE)over(partition by HECD.INVOICE_NUMBER) TOTAL_VALUE,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HECD"/>
+        </include>
+        from HCUX_EPS_CUSTOMS_DETAIL HECD
+        where HECD.STATUS='1'
+        AND HECD.MODIFY_FLAG = 'N'
+
+        <if test='queryType == "PORTAL"'>
+            <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                <property name="projectNum" value="HECD.INVOICE_NUMBER"/>
+            </include>
+        </if>
+
+        <if test="invoiceNumber != null">
+            and HECD.INVOICE_NUMBER like '%'||#{invoiceNumber}||'%'
+        </if>
+
+        <if test="invoiceNumberFrom != null">
+            and lower(HECD.INVOICE_NUMBER) >= lower(#{invoiceNumberFrom})
+        </if>
+
+        <if test="invoiceNumberTo != null">
+            and lower(HECD.INVOICE_NUMBER) &lt;= lower(#{invoiceNumberTo})
+        </if>
+
+        <if test="country != null">
+            and HECD.COUNTRY like '%'||#{country}||'%'
+        </if>
+        <if test="goodsName != null">
+            and HECD.GOODS_NAME like '%'||#{goodsName}||'%'
+        </if>
+        <if test="declareDateFrom != null">
+            and HECD.DECLARE_DATE>=#{declareDateFrom}
+        </if>
+        <if test="declareDateTo != null">
+            and HECD.DECLARE_DATE&lt;= #{declareDateTo}
+        </if>
+        order by HECD.DECLARE_DATE desc,HECD.CUSTOMS_NUMBER desc,to_number(HECD.PROJECT_NUMBER)
+    </select>
+    <select id="selectTotalAmountForHap" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select CURRENCY_SYSTEM CURRENCY_SYSTEM,
+        ROUND(sum(TOTAL_PRICE), 2)  TOTAL_AMOUNT
+        from HCUX_EPS_CUSTOMS_DETAIL HECD
+        <where>
+            <if test="customsNumber != null">
+                and lower(HECD.CUSTOMS_NUMBER) like '%'|| lower(#{customsNumber}) ||'%'
+            </if>
+            <if test="invoiceNumber != null">
+                and lower(HECD.INVOICE_NUMBER) like '%'|| lower(#{invoiceNumber}) ||'%'
+            </if>
+
+            <if test="invoiceNumberFrom != null">
+                and lower(HECD.INVOICE_NUMBER) >= lower(#{invoiceNumberFrom})
+            </if>
+
+            <if test="invoiceNumberTo != null">
+                and lower(HECD.INVOICE_NUMBER) &lt;= lower(#{invoiceNumberTo})
+            </if>
+
+            <if test="country != null">
+                and lower(HECD.COUNTRY) like '%'|| lower(#{country}) ||'%'
+            </if>
+            <if test="goodsName != null">
+                and lower(HECD.GOODS_NAME) like '%'|| lower(#{goodsName}) ||'%'
+            </if>
+            <if test="billNumber != null">
+                and lower(BILL_NUMBER) like '%'|| lower(#{billNumber}) ||'%'
+            </if>
+            <if test="boxNumber != null">
+                and lower(HECD.BOX_NUMBER) like '%'|| lower(#{boxNumber})||'%'
+            </if>
+            <if test="declareDateFrom != null">
+                and HECD.DECLARE_DATE>=#{declareDateFrom}
+            </if>
+            <if test="declareDateTo != null">
+                and HECD.DECLARE_DATE&lt;= #{declareDateTo}
+            </if>
+            <if test="status != null">
+                and HECD.STATUS = #{status}
+            </if>
+            <if test="modifyFlag != null">
+                and HECD.MODIFY_FLAG = #{modifyFlag}
+            </if>
+            <if test="goodsNumber != null">
+                and HECD.GOODS_NUMBER like '%' || #{goodsNumber} || '%'
+            </if>
+            <if test="contractNumber != null">
+                and lower(HECD.CONTRACT_NUMBER) like '%' || lower(#{contractNumber}) || '%'
+            </if>
+            <if test="currencySystem != null">
+                and lower(HECD.CURRENCY_SYSTEM) like '%' || lower(#{currencySystem}) || '%'
+            </if>
+        </where>
+        GROUP BY CURRENCY_SYSTEM
+    </select>
+    <select id="selectTotalAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select CURRENCY_SYSTEM CURRENCY_SYSTEM,
+        ROUND(sum(TOTAL_PRICE), 2)  TOTAL_AMOUNT
+        from HCUX_EPS_CUSTOMS_DETAIL HECD
+        where HECD.STATUS='1'
+        AND HECD.MODIFY_FLAG = 'N'
+
+        <if test='queryType == "PORTAL"'>
+            <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                <property name="projectNum" value="HECD.INVOICE_NUMBER"/>
+            </include>
+        </if>
+
+        <if test="invoiceNumber != null">
+            and lower(HECD.INVOICE_NUMBER) like '%'|| lower(#{invoiceNumber}) ||'%'
+        </if>
+
+        <if test="invoiceNumberFrom != null">
+            and lower(HECD.INVOICE_NUMBER) >= lower(#{invoiceNumberFrom})
+        </if>
+
+        <if test="invoiceNumberTo != null">
+            and lower(HECD.INVOICE_NUMBER) &lt;= lower(#{invoiceNumberTo})
+        </if>
+
+        <if test="country != null">
+            and HECD.COUNTRY like '%'||#{country}||'%'
+        </if>
+        <if test="goodsName != null">
+            and HECD.GOODS_NAME like '%'||#{goodsName}||'%'
+        </if>
+        <if test="declareDateFrom != null">
+            and HECD.DECLARE_DATE>=#{declareDateFrom}
+        </if>
+        <if test="declareDateTo != null">
+            and HECD.DECLARE_DATE&lt;= #{declareDateTo}
+        </if>
+        GROUP BY CURRENCY_SYSTEM
+    </select>
+    <select id="selectMaxDeclareDate" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select
+        max(DECLARE_DATE) MAX_DECLARE_DATE
+        from HCUX_EPS_CUSTOMS_DETAIL HECD
+        where HECD.BILL_NUMBER = #{billNumber}
+    </select>
+    <select id="selectListByConditions" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select
+        HECD.CUSTOMS_DETAIL_ID,
+        HECD.CUSTOMS_NUMBER,
+        HECD.IMPORT_EXPORT,
+        HECD.MANUAL_NUMBER,
+        HECD.DECLARE_DATE,
+        HECD.IMPORT_EXPORT_DATE,
+        HECD.IMPORT_EXPORT_PORT,
+        HECD.DECLARE_UNIT,
+        HECD.CONTRACT_NUMBER,
+        HECD.INVOICE_NUMBER,
+        HECD.COUNTRY,
+        HECD.TRANSACTION_MODE,
+        HECD.DEAL_WAY,
+        HECD.PROJECT_NUMBER,
+        HECD.GOODS_NAME,
+        HECD.GOODS_NUMBER,
+        HECD.SPECIFICATION_TYPE,
+        HECD.AMOUNT,
+        HECD.UNIT,
+        HECD.FIRST_AMOUNT,
+        HECD.FIRST_UNIT,
+        HECD.SECOND_AMOUNT,
+        HECD.SECOND_UNIT,
+        HECD.CURRENCY_SYSTEM,
+        HECD.UNIT_PRICE,
+        HECD.TOTAL_PRICE,
+        HECD.BILL_NUMBER,
+        HECD.BOX_NUMBER,
+        HECD.STATUS,
+        HECD.MODIFY_FLAG,
+        HECD.IS_EXPORTED,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HECD"/>
+        </include>
+        from HCUX_EPS_CUSTOMS_DETAIL HECD
+        where 1=1
+        <if test="customsNumber != null">
+            and HECD.CUSTOMS_NUMBER =#{customsNumber}
+        </if>
+        <if test="invoiceNumber != null">
+            and HECD.INVOICE_NUMBER =#{invoiceNumber}
+        </if>
+
+        <if test="invoiceNumberFrom != null">
+            and lower(HECD.INVOICE_NUMBER) >= lower(#{invoiceNumberFrom})
+        </if>
+
+        <if test="invoiceNumberTo != null">
+            and lower(HECD.INVOICE_NUMBER) &lt;= lower(#{invoiceNumberTo})
+        </if>
+
+        <if test="contractNumber != null">
+            and HECD.CONTRACT_NUMBER =#{contractNumber}
+        </if>
+
+        <if test="billNumber != null">
+            and HECD.BILL_NUMBER =#{billNumber}
+        </if>
+
+        <if test="modifyFlag != null">
+            and HECD.MODIFY_FLAG = #{modifyFlag}
+        </if>
+    </select>
+
+    <select id="selectHeaderListForWechat" resultMap="BaseResultMap"
+            parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select
+        HECD.INVOICE_NUMBER,
+        HECD.DECLARE_DATE,
+        HECD.CURRENCY_SYSTEM,
+        sum(TOTAL_PRICE) TOTAL_VALUE
+        from HCUX_EPS_CUSTOMS_DETAIL HECD
+
+        where HECD.STATUS='1'
+        AND HECD.MODIFY_FLAG = 'N'
+
+        <if test='queryType == "PORTAL"'>
+            <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                <property name="projectNum" value="HECD.INVOICE_NUMBER"/>
+            </include>
+        </if>
+        <if test="invoiceNumber != null">
+            and HECD.INVOICE_NUMBER like '%'||#{invoiceNumber}||'%'
+        </if>
+
+        <if test="invoiceNumberFrom != null">
+            and lower(HECD.INVOICE_NUMBER) >= lower(#{invoiceNumberFrom})
+        </if>
+
+        <if test="invoiceNumberTo != null">
+            and lower(HECD.INVOICE_NUMBER) &lt;= lower(#{invoiceNumberTo})
+        </if>
+
+        <if test="goodsName != null">
+            and HECD.GOODS_NAME like '%'||#{goodsName}||'%'
+        </if>
+
+        <if test="declareDateFrom != null">
+            and HECD.DECLARE_DATE>=#{declareDateFrom}
+        </if>
+        <if test="declareDateTo != null">
+            and HECD.DECLARE_DATE&lt;= #{declareDateTo}
+        </if>
+
+        GROUP BY
+        HECD.INVOICE_NUMBER,
+        HECD.DECLARE_DATE,
+        HECD.CURRENCY_SYSTEM
+        ORDER BY HECD.DECLARE_DATE DESC,HECD.INVOICE_NUMBER
+    </select>
+
+    <select id="selectDetailListForWechat" resultMap="BaseResultMap"
+            parameterType="hcux.eps.dto.EpsCustomsDetail">
+        SELECT
+            HECD.GOODS_NAME,
+            HECD.AMOUNT || HECD.UNIT || '/' || HECD.FIRST_AMOUNT || HECD.FIRST_UNIT || '/' || HECD.SECOND_AMOUNT || HECD.SECOND_UNIT AS UNIT,
+            HECD.TOTAL_PRICE
+        FROM
+            HCUX_EPS_CUSTOMS_DETAIL HECD
+        WHERE
+            HECD.STATUS = '1'
+          AND HECD.MODIFY_FLAG = 'N'
+          and HECD.INVOICE_NUMBER = #{invoiceNumber}
+    </select>
+
+    <select id="queryInvoiceNum" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select
+        HECD.CUSTOMS_DETAIL_ID,
+        HECD.CUSTOMS_NUMBER,
+        HECD.IMPORT_EXPORT,
+        HECD.MANUAL_NUMBER,
+        HECD.DECLARE_DATE,
+        HECD.IMPORT_EXPORT_DATE,
+        HECD.IMPORT_EXPORT_PORT,
+        HECD.DECLARE_UNIT,
+        HECD.CONTRACT_NUMBER,
+        HECD.INVOICE_NUMBER,
+        HECD.COUNTRY,
+        HECD.TRANSACTION_MODE,
+        HECD.DEAL_WAY,
+        HECD.PROJECT_NUMBER,
+        HECD.GOODS_NAME,
+        HECD.GOODS_NUMBER,
+        HECD.SPECIFICATION_TYPE,
+        HECD.AMOUNT,
+        HECD.UNIT,
+        HECD.FIRST_AMOUNT,
+        HECD.FIRST_UNIT,
+        HECD.SECOND_AMOUNT,
+        HECD.SECOND_UNIT,
+        HECD.CURRENCY_SYSTEM,
+        HECD.UNIT_PRICE,
+        HECD.TOTAL_PRICE,
+        HECD.BILL_NUMBER,
+        HECD.BOX_NUMBER,
+        HECD.STATUS,
+        HECD.MODIFY_FLAG,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HECD"/>
+        </include>
+        from HCUX_EPS_CUSTOMS_DETAIL HECD
+        where 1=1
+        <if test="modifyFlag != null">
+            and HECD.MODIFY_FLAG =#{modifyFlag}
+        </if>
+        <if test="invoiceNumber != null">
+            and HECD.INVOICE_NUMBER =#{invoiceNumber}
+        </if>
+
+        <if test="invoiceNumberFrom != null">
+            and lower(HECD.INVOICE_NUMBER) >= lower(#{invoiceNumberFrom})
+        </if>
+
+        <if test="invoiceNumberTo != null">
+            and lower(HECD.INVOICE_NUMBER) &lt;= lower(#{invoiceNumberTo})
+        </if>
+
+    </select>
+
+    <select id="selectForCustomsData" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select DISTINCT
+               HECD.CUSTOMS_NUMBER,
+               HECD.BILL_NUMBER,
+               HECD.IMPORT_EXPORT,
+               HECD.COUNTRY,
+               HECD.CONTRACT_NUMBER,
+               HECD.INVOICE_NUMBER,
+               HECD.MANUAL_NUMBER,
+               HECD.DECLARE_DATE
+        FROM HCUX_EPS_CUSTOMS_DETAIL HECD
+        WHERE HECD.STATUS = '1'
+          AND HECD.MODIFY_FLAG = 'N'
+          AND (HECD.CONTRACT_NUMBER = #{contractNumber}
+            OR HECD.INVOICE_NUMBER = #{contractNumber}
+            )
+        order by HECD.DECLARE_DATE desc
+    </select>
+
+    <select id="selectErrorTotalAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        SELECT
+            CURRENCY_SYSTEM,
+            ROUND(sum(TOTAL_VALUE), 2)  TOTAL_AMOUNT
+        FROM
+        (
+            SELECT
+            HECD.CUSTOMS_DETAIL_ID,
+            ROW_NUMBER () over ( partition BY HECD.CUSTOMS_NUMBER ORDER BY HECD.CUSTOMS_DETAIL_ID ) CN,
+            HECD.CUSTOMS_NUMBER,
+            HECD.IMPORT_EXPORT,
+            HECD.MANUAL_NUMBER,
+            HECD.DECLARE_DATE,
+            HECD.IMPORT_EXPORT_DATE,
+            HECD.IMPORT_EXPORT_PORT,
+            HECD.DECLARE_UNIT,
+            HECD.CONTRACT_NUMBER,
+            HECD.INVOICE_NUMBER,
+            HECD.COUNTRY,
+            HECD.TRANSACTION_MODE,
+            HECD.DEAL_WAY,
+            HECD.PROJECT_NUMBER,
+            HECD.GOODS_NAME,
+            HECD.GOODS_NUMBER,
+            HECD.SPECIFICATION_TYPE,
+            HECD.AMOUNT,
+            HECD.UNIT,
+            HECD.FIRST_AMOUNT,
+            HECD.FIRST_UNIT,
+            HECD.SECOND_AMOUNT,
+            HECD.SECOND_UNIT,
+            HECD.CURRENCY_SYSTEM,
+            HECD.UNIT_PRICE,
+            HECD.TOTAL_PRICE,
+            HECD.BILL_NUMBER,
+            HECD.BOX_NUMBER,
+            HECD.STATUS,
+            HECD.MODIFY_FLAG,
+            HECD.IS_EXPORTED,
+            sum( TOTAL_PRICE ) over ( partition BY HECD.CUSTOMS_NUMBER ) TOTAL_VALUE
+            FROM
+            HCUX_EPS_CUSTOMS_DETAIL HECD
+            where
+            HECD.MODIFY_FLAG = 'N'
+            <if test="customsNumber != null">
+                and lower(HECD.CUSTOMS_NUMBER) like '%'|| lower(#{customsNumber}) ||'%'
+            </if>
+
+            <if test="invoiceNumber != null">
+                and lower(HECD.INVOICE_NUMBER) like '%'|| lower(#{invoiceNumber}) ||'%'
+            </if>
+
+            <if test="invoiceNumberFrom != null">
+                and lower(HECD.INVOICE_NUMBER) >= lower(#{invoiceNumberFrom})
+            </if>
+
+            <if test="invoiceNumberTo != null">
+                and lower(HECD.INVOICE_NUMBER) &lt;= lower(#{invoiceNumberTo})
+            </if>
+
+            <if test="declareDateFrom != null">
+                and HECD.DECLARE_DATE>=#{declareDateFrom}
+            </if>
+            <if test="declareDateTo != null">
+                and HECD.DECLARE_DATE&lt;= #{declareDateTo}
+            </if>
+            <if test="status != null">
+                and HECD.STATUS = #{status}
+            </if>
+            <if test="contractNumber != null">
+                and lower(HECD.CONTRACT_NUMBER) like '%' || lower(#{contractNumber}) || '%'
+            </if>
+            <if test="isExported != null">
+                and HECD.IS_EXPORTED = #{isExported}
+            </if>
+        )
+        WHERE CN=1
+            <if test="totalValue != null">
+                and TOTAL_VALUE =#{totalValue}
+            </if>
+        GROUP BY CURRENCY_SYSTEM
+    </select>
+    <select id="selectUserIds" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+       (SELECT
+       to_number( spy.level_value) as USER_ID
+        FROM SYS_PROFILE_VALUE  SPY join sys_profile SP
+        on SPY.PROFILE_ID=SP.PROFILE_ID
+        WHERE SP.PROFILE_NAME='HCUX_EPS_CUSTOMS_DETAIL_AUTHORIZE'
+        and SPY.LEVEL_ID=30
+        )
+        union
+        (
+        SELECT
+         USER_ID
+        FROM SYS_PROFILE_VALUE  SPY join sys_profile SP
+        on SPY.PROFILE_ID=SP.PROFILE_ID join sys_user_role sur
+        on sur.role_id=spy.level_value
+        WHERE SP.PROFILE_NAME='HCUX_EPS_CUSTOMS_DETAIL_AUTHORIZE'
+        and SPY.LEVEL_ID=20
+        )
+
+    </select>
+    <select id="selectSelfExportList" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCustomsDetail">
+        select * from
+        (
+        select
+        HECD.CUSTOMS_DETAIL_ID,
+        ROW_NUMBER () over(partition by HECD.CUSTOMS_NUMBER order by HECD.CUSTOMS_DETAIL_ID) CN,
+        HECD.CUSTOMS_NUMBER,
+        HECD.IMPORT_EXPORT,
+        HECD.MANUAL_NUMBER,
+        HECD.DECLARE_DATE,
+        HECD.IMPORT_EXPORT_DATE,
+        HECD.IMPORT_EXPORT_PORT,
+        HECD.DECLARE_UNIT,
+        HECD.CONTRACT_NUMBER,
+        HECD.INVOICE_NUMBER,
+        HECD.COUNTRY,
+        HECD.TRANSACTION_MODE,
+        HECD.DEAL_WAY,
+        HECD.PROJECT_NUMBER,
+        HECD.GOODS_NAME,
+        HECD.GOODS_NUMBER,
+        HECD.SPECIFICATION_TYPE,
+        HECD.AMOUNT,
+        HECD.UNIT,
+        HECD.FIRST_AMOUNT,
+        HECD.FIRST_UNIT,
+        HECD.SECOND_AMOUNT,
+        HECD.SECOND_UNIT,
+        HECD.CURRENCY_SYSTEM,
+        HECD.UNIT_PRICE,
+        HECD.TOTAL_PRICE,
+        HECD.BILL_NUMBER,
+        HECD.BOX_NUMBER,
+        HECD.STATUS,
+        HECD.MODIFY_FLAG,
+        HECD.VESSEL_VOYAGE,
+        HECD.IS_EXPORTED,
+        sum(TOTAL_PRICE)over(partition by HECD.CUSTOMS_NUMBER) TOTAL_VALUE,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HECD"/>
+        </include>
+        from HCUX_EPS_CUSTOMS_DETAIL HECD
+        where
+        HECD.MODIFY_FLAG = 'N'
+        and HECD.TRANSACTION_MODE in
+        (
+        select scvb.meaning from
+        sys_code_b  scb join sys_code_value_b scvb
+        on scvb.code_id=scb.code_id
+        where scb.code='HCUX_CUSTOMS_TRANSACTION_MODE'
+        )
+        <if test="customsNumber != null">
+            and lower(HECD.CUSTOMS_NUMBER) like '%'|| lower(#{customsNumber}) ||'%'
+        </if>
+
+        <if test="invoiceNumber != null">
+            and lower(HECD.INVOICE_NUMBER) like '%'|| lower(#{invoiceNumber}) ||'%'
+        </if>
+
+        <if test="invoiceNumberFrom != null">
+            and lower(HECD.INVOICE_NUMBER) >= lower(#{invoiceNumberFrom})
+        </if>
+
+        <if test="invoiceNumberTo != null">
+            and lower(HECD.INVOICE_NUMBER) &lt;= lower(#{invoiceNumberTo})
+        </if>
+
+        <if test="declareDateFrom != null">
+            and HECD.DECLARE_DATE>=#{declareDateFrom}
+        </if>
+        <if test="declareDateTo != null">
+            and HECD.DECLARE_DATE&lt;= #{declareDateTo}
+        </if>
+        <if test="status != null">
+            and HECD.STATUS = #{status}
+        </if>
+        <if test="contractNumber != null">
+            and lower(HECD.CONTRACT_NUMBER) like '%' || lower(#{contractNumber}) || '%'
+        </if>
+        <if test="isExported != null">
+            and HECD.IS_EXPORTED = #{isExported}
+        </if>
+        )
+        WHERE CN=1
+        <if test="totalValue != null">
+            and TOTAL_VALUE =#{totalValue}
+        </if>
+        order by DECLARE_DATE desc,CUSTOMS_DETAIL_ID desc
+    </select>
+</mapper>

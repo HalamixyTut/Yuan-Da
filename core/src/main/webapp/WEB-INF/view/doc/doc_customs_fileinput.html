@@ -1,0 +1,159 @@
+<!--
+* description: 文件上传页面
+* version: 1.0
+* author:feng.liu01@hand-china.com
+-->
+<#include "../include/header.html">
+<link href="${base.contextPath}/lib/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet" type="text/css"/>
+<link href="${base.contextPath}/lib/bootstrap-fileinput/themes/explorer/theme.min.css" rel="stylesheet"
+      type="text/css"/>
+
+<script src="${base.contextPath}/lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+
+<script src="${base.contextPath}/lib/bootstrap-fileinput/js/plugins/piexif.min.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-fileinput/js/plugins/sortable.min.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-fileinput/js/plugins/purify.min.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-fileinput/js/fileinput.min.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-fileinput/js/locales/zh.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-fileinput/themes/explorer/theme.min.js"></script>
+<body>
+<script>
+
+    var viewModel = kendo.observable({
+        model: {
+            bookingFlag: 'Y',
+            customsFlag: 'Y',
+        },
+    });
+
+    viewModel.model.bind('change', function (e) {
+        if (viewModel.model.bookingFlag === 'N' && viewModel.model.customsFlag === 'N') {
+            $('#files').fileinput('disable');
+        } else {
+            $('#files').fileinput('enable');
+        }
+    });
+
+    var ajaxUrl = '${base.contextPath}/hcux/doc/customs/header/excel/import2?${_csrf.parameterName}=${_csrf.token}';
+</script>
+<div id="content-container">
+    <div id="page-content" style="margin: 2px;">
+
+        <form class="form-horizontal" enctype="multipart/form-data" id="mainform">
+
+            <div id="docDiv" class="row" style="margin-bottom: 10px;">
+                <div class="col-xs-1 col-xs-offset-4">
+                    <input data-bind="value:model.bookingFlag" id="bookingInput"
+                           style="float: right;margin-top: 2px"
+                           type="text"/>
+                    <script>
+                        $("#bookingInput").kendoCheckbox({
+                            checkedValue: 'Y',
+                            uncheckedValue: 'N',
+                            defaultValue: 'Y'
+                        });
+                    </script>
+                </div>
+
+                <div class="col-xs-1" style="font-size: 16px;">
+                    托单
+                </div>
+                <div class="col-xs-1">
+                    <input data-bind="value:model.customsFlag" id="customsInput"
+                           style="float: right;margin-top: 2px"
+                           type="text"/>
+                    <script>
+                        $("#customsInput").kendoCheckbox({
+                            checkedValue: 'Y',
+                            uncheckedValue: 'N',
+                            defaultValue: 'Y'
+                        });
+                    </script>
+                </div>
+
+                <div class="col-xs-1" style="font-size: 16px;">
+                    报关
+                </div>
+            </div>
+
+            <div class="file-loading">
+                <input class="file" id="files" name="file" type="file"/>
+            </div>
+
+            <script>
+
+                kendo.bind($('#docDiv'), viewModel);
+
+                var coverFlag = 'N';
+
+                $("#files").fileinput({
+                    language: "zh",
+                    showUpload: true,
+                    previewFileType: 'any',
+                    browseOnZoneClick: true,
+                    // 'theme': 'explorer',
+                    uploadUrl: ajaxUrl,
+                    showRemove: true,
+                    allowedFileExtensions: ['xlsx', 'xls'],
+                    uploadExtraData: function () {
+                        return {
+                            'coverFlag': coverFlag,
+                            'bookingFlag': viewModel.model.bookingFlag,
+                            'customsFlag': viewModel.model.customsFlag,
+                        };
+                    },
+                    ajaxSettings: {
+                        datatype: "json",
+                        /* contentType: "multipart/form-data",*/
+                        success: function (e) {
+                            //设置覆盖标记
+                            coverFlag = e.coverFlag;
+
+                            if (!e.error) {
+                                Hap.showToast({
+                                    type: 'success',
+                                    message: '上传成功'
+                                });
+                                $('#files').fileinput('clear');
+                                $('#files').fileinput('enable');
+                                coverFlag = 'N';
+                            } else {
+                                if (coverFlag !== 'Y') {
+                                    Hap.showToast({
+                                        type: 'error',
+                                        message: e.error || '上传失败，请联系管理员'
+                                    });
+                                    return;
+                                }
+
+                                kendo.ui.showConfirmDialog({
+                                    title: $l('hap.tip.info'),
+                                    message: '数据重复，是否覆盖?'
+                                }).done(function (event) {
+                                    if (event.button === 'OK') {
+                                        $('#files').fileinput('upload');
+
+                                    } else {
+                                        coverFlag = 'N';
+                                        $('#files').fileinput('clear');
+                                    }
+                                });
+                            }
+
+
+                        },
+                        error: function (e) {
+                            Hap.showToast({
+                                type: 'error',
+                                message: e.message || '上传失败，请联系管理员'
+                            });
+                        }
+                    },
+                    mergeAjaxCallbacks: 'before'
+                });
+
+            </script>
+        </form>
+    </div>
+</div>
+</body>

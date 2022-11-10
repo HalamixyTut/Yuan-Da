@@ -1,0 +1,117 @@
+<!--
+* description: 文件上传页面
+* version: 1.0
+* author:feng.liu01@hand-china.com
+-->
+<#include "../include/header.html">
+<style>
+	.k-file-name{
+		font-size:14px;
+		color:#333;
+	}
+	.k-file-size{
+		margin-left:15px;
+		color:#9d9d9d;
+	}
+</style>
+<body>
+<script>
+    function onSuccess(e) {
+        var viewModel = parent.viewModel;
+        if(e.response.success === true){
+            var data = e.response.rows[0];
+            Hap.showToast({
+                type:'success',
+                message: '<@spring.message "hap.upload_success"/>'
+            });
+            window.parent.$('#importWin').data("kendoWindow").close();
+        }else{
+            var message=e.response.message;
+            if(message.indexOf("项目号不能为空")>-1){
+                Hap.showToast({
+                    type:'error',
+                    message: message
+                });
+			}
+            else if(message.indexOf("有重复数据")>-1){
+             var datas=e.response.rows;
+                kendo.ui.showConfirmDialog({
+                    title: $l('hap.tip.info'),
+                    message: '是否覆盖?'
+                }).done(function(event){
+                    if(event.button=='OK'){
+                        $.ajax({
+                            type: "POST",
+                            url: "${base.contextPath}/hcux/doc/customs/header/excel/import3",
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            data: JSON.stringify(datas),
+                            success: function (data) {
+                                if (data.success) {
+                                    Hap.showToast({
+                                        type: "success",
+                                        message: '覆盖成功'
+                                    });
+                                    window.parent.$('#importWin').data("kendoWindow").close();
+                                }
+                            },
+                            error: function (data) {
+                                var a = data.message;
+                                Hap.showToast({
+                                    type: "error",
+                                    message: '覆盖失败'
+                                });
+                            }
+                        });
+                    }
+                });
+            }else{
+                Hap.showToast({
+                    type:'error',
+                    message: message
+                });
+			}
+		}
+    }
+
+    function onUpload(e){
+       /* e.data = {
+            fileId : fileId
+        }*/
+    }
+</script>
+<div id="content-container">
+	<div id="page-content">
+		<form id="mainform" class="form-horizontal">
+			<div class="panel-body">
+				<div class="row">
+					<div class="form-group">
+						<!--<label class="col-sm-3 control-label"><@spring.message "attachcategory.attachment"/></label>-->
+						<div class="col-sm-4">
+                            <div class="demo-section k-content">
+                                <input name="file" id="files1" type="file" />
+                            </div>
+							<script>
+								$(document).ready(function() {
+									$("#files1").kendoUpload({
+										async: {
+                                            saveUrl: "${base.contextPath}/hcux/doc/customs/header/excel/import2?${_csrf.parameterName}=${_csrf.token}",
+											autoUpload: false
+										},
+                                        upload       : onUpload,
+                                        success      : onSuccess,
+                                         validation: {
+                                             allowedExtensions: [".xlsx",".xls"]
+                                         },
+										showFileList:false
+									});
+								});
+							</script>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+</body>

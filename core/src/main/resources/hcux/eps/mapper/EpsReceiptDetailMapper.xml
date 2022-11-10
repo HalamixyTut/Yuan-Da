@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsReceiptDetailMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsReceiptDetail"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="RECEIPT_ID" property="receiptId" jdbcType="DECIMAL"/>
+        <result column="DATA_ID" property="dataId" jdbcType="DECIMAL"/>
+        <result column="DATA_ID2" property="dataId2" jdbcType="DECIMAL"/>
+        <result column="DATA_ID3" property="dataId3" jdbcType="DECIMAL"/>
+        <result column="DATA_ID4" property="dataId4" jdbcType="DECIMAL"/>
+        <result column="PROJECT_NAME" property="projectName" jdbcType="VARCHAR"/>
+        <result column="GL_DATE" property="glDate" jdbcType="VARCHAR"/>
+        <result column="CURRENCY_CODE" property="currencyCode" jdbcType="VARCHAR"/>
+        <result column="CR_AMOUNT" property="crAmount" jdbcType="DECIMAL"/>
+        <result column="CR_BASE_AMOUNT" property="crBaseAmount" jdbcType="DECIMAL"/>
+        <result column="EXCHANGE_RATE" property="exchangeRate" jdbcType="DECIMAL"/>
+        <result column="RECEIPT_NUMBER" property="receiptNumber" jdbcType="VARCHAR"/>
+        <result column="TOTAL_AMOUNT" property="totalAmount" jdbcType="DECIMAL"/>
+        <result column="RECEIPTS_STATUS" property="receiptsStatus" jdbcType="DECIMAL"/>
+        <result column="CR_AMOUNT1" property="crAmount1" jdbcType="DECIMAL"/>
+        <result column="CR_BASE_AMOUNT1" property="crBaseAmount1" jdbcType="DECIMAL"/>
+        <result column="METHOD_NAME" property="methodName" jdbcType="VARCHAR"/>
+        <result column="CR_BASE_AMOUNT1_TOTAL" property="crBaseAmount1Total" jdbcType="DECIMAL"/>
+        <result column="total_cr_amount" property="totalCrAmount" jdbcType="DECIMAL"/>
+        <result column="total_return_amount" property="totalReturnAmount" jdbcType="DECIMAL"/>
+    </resultMap>
+
+    <select id="selectEpsReceiptDetailFromEbs" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select
+        DATA_ID,
+        DATA_ID2,
+        DATA_ID3,
+        DATA_ID4,
+        PROJECT_NAME,
+        GL_DATE,
+        CURRENCY_CODE,
+        CR_AMOUNT,
+        CR_BASE_AMOUNT,
+        EXCHANGE_RATE,
+        RECEIPTS_STATUS,
+        cr_amount_1 CR_AMOUNT1,
+        cr_base_amount_1 CR_BASE_AMOUNT1,
+        METHOD_NAME,
+        RECEIPT_NUMBER,
+        null REQUEST_ID,
+        null PROGRAM_ID,
+        null OBJECT_VERSION_NUMBER,
+        null CREATED_BY,
+        null CREATION_DATE,
+        null LAST_UPDATED_BY,
+        LAST_UPDATE_DATE,
+        null LAST_UPDATE_LOGIN
+        from cux_Det_acct_of_rec_in_adv_v@ebs_db
+        WHERE LAST_UPDATE_DATE >=  TO_DATE(TO_CHAR(#{lastUpdateDate},'yyyy-MM-dd HH24:mi:ss'),'yyyy-MM-dd HH24:mi:ss')
+    </select>
+    <select id="selectEpsReceiptDetailFromHap" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select
+        RECEIPT_ID,
+        DATA_ID,
+        DATA_ID2,
+        DATA_ID3,
+        DATA_ID4,
+        PROJECT_NAME,
+        GL_DATE,
+        CURRENCY_CODE,
+        CR_AMOUNT,
+        CR_BASE_AMOUNT,
+        EXCHANGE_RATE,
+        RECEIPTS_STATUS,
+        CR_AMOUNT1,
+        CR_BASE_AMOUNT1,
+        METHOD_NAME,
+        RECEIPT_NUMBER,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="receipt"/>
+        </include>
+        from HCUX_EPS_RECEIPT_DETAIL receipt
+       <where>
+           <if test="dataId != null">
+               and DATA_ID = #{dataId}
+           </if>
+
+           <if test="dataId2 != null">
+               and DATA_ID2 = #{dataId2}
+           </if>
+
+           <if test="dataId3 != null">
+               and DATA_ID3 = #{dataId3}
+           </if>
+
+           <if test="dataId4 != null">
+               and DATA_ID4 = #{dataId4}
+           </if>
+       </where>
+    </select>
+    <select id="queryEpsReceiptDetail" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select *
+        from (
+            select
+            HEPD.RECEIPT_ID,
+            HEPD.DATA_ID,
+            HEPD.DATA_ID2,
+            HEPD.DATA_ID3,
+            HEPD.DATA_ID4,
+            HEPD.PROJECT_NAME,
+            HEPD.RECEIPT_NUMBER,
+            HEPD.GL_DATE,
+            HEPD.CURRENCY_CODE,
+            receipt_cuout.CR_AMOUNT,
+            HEPD.CR_BASE_AMOUNT,
+            decode(HEPD.CURRENCY_CODE, 'CNY', 1, HEPD.EXCHANGE_RATE) EXCHANGE_RATE,
+            HEPD.RECEIPTS_STATUS,
+            HEPD.CR_AMOUNT1,
+            HEPD.CR_BASE_AMOUNT1,
+            HEPD.METHOD_NAME,
+            ROW_NUMBER() OVER(partition by HEPD.PROJECT_NAME,HEPD.RECEIPT_NUMBER ORDER BY HEPD.PROJECT_NAME) CN,
+            <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+                <property name="std" value="HEPD"/>
+            </include>
+            from HCUX_EPS_RECEIPT_DETAIL HEPD
+            LEFT JOIN (
+                SELECT
+                receipt.PROJECT_NAME,
+                receipt.RECEIPT_NUMBER,
+                sum(receipt.CR_AMOUNT) CR_AMOUNT
+                FROM
+                HCUX_EPS_RECEIPT_DETAIL receipt
+                WHERE
+                1 = 1
+                AND receipt.CR_AMOUNT != 0
+                AND receipt.RECEIPTS_STATUS != '已冲销'
+                AND receipt.METHOD_NAME not in('XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+                GROUP BY
+                receipt.PROJECT_NAME,
+                receipt.RECEIPT_NUMBER
+            ) receipt_cuout
+            ON HEPD.PROJECT_NAME = receipt_cuout.PROJECT_NAME
+            AND receipt_cuout.RECEIPT_NUMBER = HEPD.RECEIPT_NUMBER
+            <where>
+
+                <if test='queryType == "PORTAL"'>
+                    <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                        <property name="projectNum" value="HEPD.PROJECT_NAME"/>
+                    </include>
+                </if>
+
+                <if test="projectName != null">
+                    and lower(HEPD.PROJECT_NAME) like '%'|| lower(#{projectName}) ||'%'
+                </if>
+
+                <if test="projectNameFrom != null">
+                    and lower(HEPD.PROJECT_NAME) >= lower(#{projectNameFrom})
+                </if>
+
+                <if test="projectNameTo != null">
+                    and lower(HEPD.PROJECT_NAME) &lt;= lower(#{projectNameTo})
+                </if>
+
+                <if test="glDateFrom != null">
+                    and HEPD.GL_DATE >= to_char(#{glDateFrom},'yyyy-MM-dd')
+                </if>
+                <if test="glDateTo != null">
+                    and HEPD.GL_DATE &lt;=  to_char(#{glDateTo},'yyyy-MM-dd')
+                </if>
+
+                AND HEPD.CR_AMOUNT != 0
+                AND HEPD.RECEIPTS_STATUS != '已冲销'
+                AND receipt_cuout.CR_AMOUNT != 0
+                AND HEPD.METHOD_NAME not in('XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+            </where>
+            ORDER BY HEPD.GL_DATE DESC,HEPD.RECEIPT_ID DESC
+        )
+        where CN = 1
+    </select>
+
+    <select id="selectTotalAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select
+        receipt.CURRENCY_CODE CURRENCY_CODE,
+        ROUND(sum(receipt.CR_AMOUNT),2) TOTAL_AMOUNT
+        from HCUX_EPS_RECEIPT_DETAIL receipt
+        <where>
+
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                    <property name="projectNum" value="PROJECT_NAME"/>
+                </include>
+            </if>
+
+            <if test="projectName != null">
+                and lower(PROJECT_NAME) like '%'|| lower(#{projectName}) ||'%'
+            </if>
+
+            <if test="projectNameFrom != null">
+                and lower(PROJECT_NAME) >= lower(#{projectNameFrom})
+            </if>
+
+            <if test="projectNameTo != null">
+                and lower(PROJECT_NAME) &lt;= lower(#{projectNameTo})
+            </if>
+
+            <if test="glDateFrom != null">
+                and GL_DATE >= to_char(#{glDateFrom},'yyyy-MM-dd')
+            </if>
+            <if test="glDateTo != null">
+                and GL_DATE &lt;=  to_char(#{glDateTo},'yyyy-MM-dd')
+            </if>
+            AND CR_AMOUNT != 0
+            AND RECEIPTS_STATUS != '已冲销'
+        </where>
+        GROUP BY receipt.CURRENCY_CODE
+    </select>
+
+    <select id="selectTotalBaseAmount1" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select
+        sum(receipt.CR_BASE_AMOUNT1) CR_BASE_AMOUNT1_TOTAL
+        from HCUX_EPS_RECEIPT_DETAIL receipt
+        where project_name=#{projectName}
+    </select>
+    <!--对账单增量数据的收汇金额计算1-->
+    <select id="selectTotalCrAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select
+        round(sum(CR_AMOUNT_1),2)total_cr_amount
+        from cux_Det_acct_of_rec_in_adv_v@ebs_db
+        where project_name=#{projectName}
+        and LAST_UPDATE_DATE>=to_date('2019-06-01','yyyy-MM-dd')
+        and METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+        AND currency_code !='CNY'
+        and LINE_CREATION_DATE >=to_date('2019-06-01','yyyy-MM-dd')
+        and gl_Date &lt;('2019-06-01')
+    </select>
+    <!--对账单增量数据的收汇金额计算2-->
+    <select id="selectTotalReturnAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select
+        (-round(sum(RETURN_AMOUNT),2))total_return_amount
+        from cux_Det_acct_of_rec_in_adv_v@ebs_db
+        where project_name=#{projectName}
+        and LAST_UPDATE_DATE>=to_date('2019-06-01','yyyy-MM-dd')
+        and METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+         AND currency_code !='CNY'
+        and RETURN_DATE >=to_date('2019-06-01','yyyy-MM-dd')
+    </select>
+    <!--对账单增量数据的人民币计算1-->
+    <select id="selectTotalCrAmountCny" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select
+        round(sum(CR_AMOUNT_1),2)total_cr_amount
+        from cux_Det_acct_of_rec_in_adv_v@ebs_db
+        where project_name=#{projectName}
+        and LAST_UPDATE_DATE>=to_date('2019-06-01','yyyy-MM-dd')
+        and METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+         AND currency_code ='CNY'
+        and LINE_CREATION_DATE >=to_date('2019-06-01','yyyy-MM-dd')
+        and gl_Date &lt;('2019-06-01')
+    </select>
+    <!--对账单增量数据的人民币计算2-->
+    <select id="selectTotalReturnAmountCny" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select
+        (-round(sum(RETURN_AMOUNT),2))total_return_amount
+        from cux_Det_acct_of_rec_in_adv_v@ebs_db
+        where project_name=#{projectName}
+        and LAST_UPDATE_DATE>=to_date('2019-06-01','yyyy-MM-dd')
+        and METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+         AND currency_code ='CNY'
+        and RETURN_DATE >=to_date('2019-06-01','yyyy-MM-dd')
+    </select>
+    <!--对账单增量数据的等值金额计算-->
+    <select id="selectTotalReturnAmountEqu" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select
+        (-round(sum(RETURN_AMOUNT*EXCHANGE_RATE),2))total_return_amount
+        from cux_Det_acct_of_rec_in_adv_v@ebs_db
+        where project_name=#{projectName}
+        and LAST_UPDATE_DATE>=to_date('2019-06-01','yyyy-MM-dd')
+        and METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+         AND currency_code !='CNY'
+        and RETURN_DATE >=to_date('2019-06-01','yyyy-MM-dd')
+    </select>
+    <!--对账单增量数据的等值金额计算-->
+    <select id="selectTotalCrBaseAmount1" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsReceiptDetail">
+        select
+        round(sum(CR_BASE_AMOUNT_1),2)total_cr_amount
+        from cux_Det_acct_of_rec_in_adv_v@ebs_db
+        where project_name=#{projectName}
+        and LAST_UPDATE_DATE>=to_date('2019-06-01','yyyy-MM-dd')
+        and METHOD_NAME in('XJ_国外_电汇','XJ_国外_电汇'||'&amp;'||'预付款退款',
+        'XJ_国内_电汇','XJ_国内_电汇'||'&amp;'||'预付款退款','XJ_虚拟收款','XJ_虚拟收款'||'&amp;'||'预付款退款')
+         AND currency_code !='CNY'
+        and LINE_CREATION_DATE >=to_date('2019-06-01','yyyy-MM-dd')
+        and gl_Date &lt;('2019-06-01')
+    </select>
+</mapper>
+

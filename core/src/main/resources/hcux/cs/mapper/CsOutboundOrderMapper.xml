@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsOutboundOrderMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsOutboundOrder"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="ORDER_ID" property="orderId" jdbcType="DECIMAL" />
+        <result column="ORDER_TYPE" property="orderType" jdbcType="VARCHAR" />
+        <result column="INV" property="inv" jdbcType="VARCHAR" />
+        <result column="TOTAL_INV" property="totalInv" jdbcType="VARCHAR" />
+        <result column="INV_PRINT" property="invPrint" jdbcType="VARCHAR" />
+        <result column="CUSTOMER_NAME" property="customerName" jdbcType="VARCHAR" />
+        <result column="INVOICE_NO" property="invoiceNo" jdbcType="VARCHAR" />
+        <result column="INVOICE_TYPE" property="invoiceType" jdbcType="VARCHAR" />
+        <result column="EXPECT_INVOICE_DATE" property="expectInvoiceDate" jdbcType="DATE" />
+        <result column="EFFECTIVE_DATE" property="effectiveDate" jdbcType="DATE" />
+        <result column="PO_PROECT_NUM" property="poProectNum" jdbcType="VARCHAR" />
+        <result column="RECEIPTER_CODE" property="receipterCode" jdbcType="VARCHAR" />
+        <result column="RECEIPTER" property="receipter" jdbcType="VARCHAR" />
+        <result column="INVOICE_METHOD" property="invoiceMethod" jdbcType="VARCHAR" />
+        <result column="WAREHOUSE_COST" property="warehouseCost" jdbcType="VARCHAR" />
+        <result column="READ_DATE" property="readDate" jdbcType="DATE" />
+        <result column="READ_FLAG" property="readFlag" jdbcType="VARCHAR" />
+        <result column="INV_STATUS" property="invStatus" jdbcType="VARCHAR" />
+        <result column="DEPARTMENT" property="department" jdbcType="VARCHAR" />
+        <result column="ITEM_DESC" property="itemDesc" jdbcType="VARCHAR" />
+        <result column="INV_QTY" property="invQty" jdbcType="DECIMAL" />
+        <result column="ACT_INV_QTY" property="actInvQty" jdbcType="DECIMAL" />
+    </resultMap>
+
+    <select id="selectData" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundOrder">
+        SELECT
+        HCOO.ORDER_ID,
+        HCOO.CUSTOMER_NAME,
+        HCOO.ORDER_TYPE,
+        HCOO.INVOICE_NO,
+        HCOO.EXPECT_INVOICE_DATE,
+        HCOO.EFFECTIVE_DATE,
+        HCOO.PO_PROECT_NUM,
+        HCOO.RECEIPTER,
+        HCOO.INVOICE_METHOD,
+        HCOO.WAREHOUSE_COST,
+        HCOI.ITEM_DESC,
+        HCOI.INV_QTY,
+        HCOI.ACT_INV_QTY,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCOI"/>
+        </include>
+        FROM HCUX_CS_OUTBOUND_ORDER HCOO
+        LEFT JOIN HCUX_CS_OUTBOUND_ITEM HCOI
+        ON HCOO.ORDER_ID = HCOI.ORDER_ID
+        <where>
+            <if test="customerName != null">
+                AND HCOO.CUSTOMER_NAME LIKE CONCAT('%',CONCAT(#{customerName,jdbcType=VARCHAR},'%'))
+            </if>
+
+            <if test="invoiceNo != null">
+                AND HCOO.INVOICE_NO LIKE CONCAT('%', CONCAT(#{invoiceNo,jdbcType=VARCHAR},'%'))
+            </if>
+            <if test="expectDateFrom">
+                AND EXPECT_INVOICE_DATE > #{expectDateFrom,jdbcType=TIMESTAMP}
+            </if>
+            <if test="expectDateTo">
+                AND EXPECT_INVOICE_DATE &lt; #{expectDateTo,jdbcType=TIMESTAMP}
+            </if>
+        </where>
+        ORDER BY HCOO.CUSTOMER_NAME ASC
+    </select>
+</mapper>

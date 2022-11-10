@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsOutboundTransFullMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsOutboundTransFull"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="TRANS_FULL_ID" property="transFullId" jdbcType="DECIMAL" />
+        <result column="INVOICE_ID" property="invoiceId" jdbcType="DECIMAL" />
+        <result column="INVOICE_NO" property="invoiceNo" jdbcType="VARCHAR" />
+        <result column="DRIVER_NAME" property="driverName" jdbcType="VARCHAR" />
+        <result column="ID_NUMBER" property="idNumber" jdbcType="VARCHAR" />
+        <result column="TRANSPORT_NUM" property="transportNum" jdbcType="VARCHAR" />
+        <result column="PLATE_NUMBER" property="plateNumber" jdbcType="VARCHAR" />
+        <result column="CONTACT_INFO" property="contactInfo" jdbcType="VARCHAR" />
+        <result column="ITEM_CODE" property="itemCode" jdbcType="VARCHAR" />
+        <result column="ITEM_DESC" property="itemDesc" jdbcType="VARCHAR" />
+        <result column="QUANTITY" property="quantity" jdbcType="DECIMAL" />
+        <result column="PACKET_CNT" property="packetCnt" jdbcType="DECIMAL" />
+        <result column="TANK_NUM" property="tankNum" jdbcType="VARCHAR" />
+        <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+        <result column="TRANS_ID" property="transId" jdbcType="DECIMAL" />
+        <result column="ACT_INV_QTY" property="actInvQty" jdbcType="DECIMAL" />
+        <result column="LINK" property="link" jdbcType="DECIMAL" />
+        <result column="ZH_TRANSPORT_ID" property="zhTransportId" jdbcType="VARCHAR"/>
+        <result column="EXPECTED_DEPOT_DATE" property="expectedDepotDate" jdbcType="DATE" />
+    </resultMap>
+
+    <resultMap id="LmTransportMap" type="hcux.lm.dto.LmTransport">
+        <result column="LINK" property="link" jdbcType="VARCHAR"/>
+        <result column="ZH_TRANSPORT_ID" property="zhTransportId" jdbcType="DECIMAL"/>
+    </resultMap>
+
+    <select id="selectCsOutboundTransFullFromEbs" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundOrderFull">
+        SELECT INVOICE_ID,
+        INVOICE_NO,
+        DRIVER_NAME,
+        ID_NUMBER,
+        TRANSPORT_NUM,
+        PLATE_NUMBER,
+        CONTACT_INFO,
+	    ITEM_CODE,
+        ITEM_DESC,
+        QUANTITY,
+        PACKET_CNT,
+        TANK_NUM,
+        REMARK,
+        TRANS_ID,
+        null REQUEST_ID,
+        null PROGRAM_ID,
+        null OBJECT_VERSION_NUMBER,
+        null CREATED_BY,
+        null CREATION_DATE,
+        null LAST_UPDATED_BY,
+        null LAST_UPDATE_DATE,
+        null LAST_UPDATE_LOGIN
+        FROM cux_outbound_line_trans_v@ebs_db
+        WHERE LAST_UPDATE_DATE >=  TO_DATE(TO_CHAR(#{lastUpdateDate},'yyyy-MM-dd HH24:mi:ss'),'yyyy-MM-dd HH24:mi:ss')
+    </select>
+
+    <select id="selectCsOutboundTransFullFromHap" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundTransFull">
+        SELECT
+            TRANS_FULL_ID,
+            INVOICE_ID,
+            INVOICE_NO,
+            DRIVER_NAME,
+            ID_NUMBER,
+            TRANSPORT_NUM,
+            PLATE_NUMBER,
+            CONTACT_INFO,
+            ITEM_CODE,
+            ITEM_DESC,
+            QUANTITY,
+            PACKET_CNT,
+            TANK_NUM,
+            REMARK,
+            TRANS_ID,
+            <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+                <property name="std" value="HCOTF"/>
+            </include>
+        FROM
+            HCUX_CS_OUTBOUND_TRANS_FULL HCOTF
+        WHERE
+            HCOTF.TRANS_ID = #{transId,jdbcType=DECIMAL}
+    </select>
+
+    <select id="selectData" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundTransFull">
+        SELECT HCOTF.TRANS_FULL_ID,
+        HCOTF.INVOICE_ID,
+        HCOTF.INVOICE_NO,
+        HCOTF.DRIVER_NAME,
+        HCOTF.ID_NUMBER,
+        HCOTF.TRANSPORT_NUM,
+        HCOTF.PLATE_NUMBER,
+        HCOTF.CONTACT_INFO,
+        HCOTF.ITEM_CODE,
+        HCOTF.ITEM_DESC,
+        HCOTF.QUANTITY,
+        HCOTF.PACKET_CNT,
+        HCOTF.TANK_NUM,
+        HCOTF.REMARK,
+        HCOT.ACT_INV_QTY,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCOTF"/>
+        </include>
+        FROM HCUX_CS_OUTBOUND_TRANS_FULL HCOTF
+        LEFT JOIN HCUX_CS_OUTBOUND_TRANS HCOT
+        ON HCOTF.INVOICE_ID = HCOT.ORDER_ID
+        AND HCOTF.TRANS_ID = HCOT.TRANS_ID
+        WHERE HCOTF.INVOICE_ID = #{invoiceId,jdbcType=DECIMAL}
+    </select>
+
+    <select id="selectLmTransport" resultMap="LmTransportMap" parameterType="hcux.cs.dto.CsOutboundTransFull">
+        SELECT HLT.LINK,
+        HLT.ZH_TRANSPORT_ID
+        FROM HCUX_LM_TRANSPORT HLT
+        LEFT JOIN HCUX_LM_ORDER_HEADER HLOH  on HLOH.ORDER_ID = HLT.ORDER_ID
+        LEFT JOIN HCUX_CS_OUTBOUND_TRANS_FULL HCOTF on HCOTF.TRANSPORT_NUM = HLT.TRANSPORT_CODE and  substr(HCOTF.INVOICE_NO, 0, LENGTH(HCOTF.INVOICE_NO) -3) = HLOH.CONTRACT_CODE_ONE
+        where 1 = 1
+        AND HCOTF.TRANSPORT_NUM = #{transportNum,jdbcType=VARCHAR}
+        AND HCOTF.INVOICE_NO = #{invoiceNo,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectTransFullForWechat" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsOutboundTransFull">
+        SELECT
+        HCOTF.INVOICE_NO,
+        HCOTF.PLATE_NUMBER,
+        HCOTF.ITEM_DESC,
+        HCOTF.QUANTITY,
+        HCOT.ACT_INV_QTY,
+        HCOOF.EXPECTED_DEPOT_DATE,
+        HLT.ZH_TRANSPORT_ID
+        FROM HCUX_CS_OUTBOUND_TRANS_FULL HCOTF
+        LEFT JOIN HCUX_CS_OUTBOUND_TRANS HCOT
+        ON HCOTF.INVOICE_ID = HCOT.ORDER_ID
+		LEFT JOIN HCUX_CS_OUTBOUND_ORDER_FULL HCOOF
+		ON HCOTF.INVOICE_ID = HCOOF.INVOICE_ID
+		LEFT JOIN HCUX_LM_TRANSPORT HLT
+		ON HCOTF.TRANSPORT_NUM = HLT.TRANSPORT_CODE
+        WHERE 1 = 1
+        <if test='queryType == "PORTAL"'>
+            <include refid="hcux.core.mapper.DataMaskingMapper.nhPortalSql01">
+                <property name="customerCode" value="HCOOF.ACCOUNT_NUMBER"/>
+                <property name="orgName" value="HCOOF.ORG_NAME"/>
+                <property name="deptCode" value="HCOOF.DEPT_CODE"/>
+            </include>
+        </if>
+        <if test="invoiceNo != null">
+            AND LOWER(HCOTF.INVOICE_NO) LIKE '%'|| LOWER(#{invoiceNo}) ||'%'
+        </if>
+        <if test="expectedDepotDateFrom != null">
+            AND HCOOF.EXPECTED_DEPOT_DATE >= #{expectedDepotDateFrom,jdbcType=TIMESTAMP}
+        </if>
+        <if test="expectedDepotDateTo != null">
+            AND HCOOF.EXPECTED_DEPOT_DATE &lt;= #{expectedDepotDateTo,jdbcType=TIMESTAMP}
+        </if>
+        ORDER BY  HCOOF.EXPECTED_DEPOT_DATE DESC, HCOTF.INVOICE_NO
+    </select>
+</mapper>

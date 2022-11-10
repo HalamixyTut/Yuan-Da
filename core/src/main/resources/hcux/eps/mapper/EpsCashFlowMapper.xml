@@ -1,0 +1,713 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsCashFlowMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsCashFlow">
+        <result column="CASH_FLOW_ID" property="cashFlowId" jdbcType="DECIMAL" />
+        <result column="RECEIPT_NUMBER" property="receiptNumber" jdbcType="VARCHAR" />
+        <result column="RECEIPT_DATE" property="receiptDate" jdbcType="DATE" />
+        <result column="DESCRIPTION" property="description" jdbcType="VARCHAR" />
+        <result column="CURRENCY_CODE" property="currencyCode" jdbcType="VARCHAR" />
+        <result column="AMOUNT" property="amount" jdbcType="DECIMAL" />
+        <result column="EXCHANGE_RATE" property="exchangeRate" jdbcType="DECIMAL" />
+        <result column="NATURE_AMOUNT" property="natureAmount" jdbcType="DECIMAL" />
+        <result column="BANK_NAME" property="bankName" jdbcType="VARCHAR" />
+        <result column="SERIAL_NUMBER" property="serialNumber" jdbcType="VARCHAR" />
+        <result column="RETURN_DATE" property="returnDate" jdbcType="DATE" />
+        <result column="RETURN_AMOUNT" property="returnAmount" jdbcType="DECIMAL" />
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR" />
+
+        <result column="total_return_amount" property="totalReturnAmount" jdbcType="DECIMAL" />
+        <result column="total_receipt" property="totalReceipt" jdbcType="DECIMAL" />
+        <result column="total_Nature_Amount" property="totalNatureAmount" jdbcType="DECIMAL" />
+    </resultMap>
+    <select id="selectWithoutReturnDate" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCashFlow">
+         (select
+        all_count.RECEIPT_NUMBER,
+        all_count.RECEIPT_DATE,
+        all_count.DESCRIPTION,
+        all_count.CURRENCY_CODE,
+        all_count.amount,
+        all_count.exchange_rate,
+        all_count.nature_amount,
+        all_count.return_date,
+        all_count.return_amount,
+        all_count.bank_name,
+        all_count.serial_number
+        from
+        (select
+        rank () OVER ( PARTITION BY charv.RECEIPT_NUMBER,charv.serial_number order by charv.receivable_application_id) AS RN,
+        charv.RECEIPT_NUMBER,
+        charv.RECEIPT_DATE,
+        charv.DESCRIPTION,
+        charv.CURRENCY_CODE,
+        (sum(charv.receive_amount)over(partition by charv.RECEIPT_NUMBER,charv.serial_number)-decode(sum(charv.bank_charges)over(partition by charv.RECEIPT_NUMBER,charv.serial_number),null,0,sum(charv.bank_charges)over(partition by charv.RECEIPT_NUMBER,charv.serial_number))) amount,
+        charv.exchange_rate,
+        decode(charv.exchange_rate,null,
+        (sum(charv.receive_amount)over(partition by charv.RECEIPT_NUMBER,charv.serial_number)-decode(sum(charv.bank_charges)over(partition by charv.RECEIPT_NUMBER,charv.serial_number),null,0,sum(charv.bank_charges)over(partition by charv.RECEIPT_NUMBER,charv.serial_number))),
+        round((sum(charv.receive_amount)over(partition by charv.RECEIPT_NUMBER,charv.serial_number)-decode(sum(charv.bank_charges)over(partition by charv.RECEIPT_NUMBER,charv.serial_number),null,0,sum(charv.bank_charges)over(partition by charv.RECEIPT_NUMBER,charv.serial_number)))*charv.exchange_rate,2)) nature_amount,
+        charv.return_date,
+        charv.return_amount,
+        charv.bank_name,
+        charv.serial_number
+        from cux_hap_ar_receipts_v@ebs_db charv join
+        (select
+        count(distinct serial_number) numbers,
+        c1.RECEIPT_NUMBER
+        from cux_hap_ar_receipts_v@ebs_db c1
+        where c1.serial_number is not null
+        group by c1.RECEIPT_NUMBER
+        )receipt_count
+        on charv.RECEIPT_NUMBER=receipt_count.RECEIPT_NUMBER
+        and charv.serial_number is not null
+        where receipt_count.numbers>1
+        )all_count
+        where all_count.rn=1
+        )
+        union
+        (select
+        all_count.RECEIPT_NUMBER,
+        all_count.RECEIPT_DATE,
+        all_count.DESCRIPTION,
+        all_count.CURRENCY_CODE,
+        all_count.amount,
+        all_count.exchange_rate,
+        all_count.nature_amount,
+        all_count.return_date,
+        all_count.return_amount,
+        all_count.bank_name,
+        all_count.serial_number
+       from
+       (select
+       rank () OVER ( PARTITION BY charv.RECEIPT_NUMBER,charv.serial_number order by charv.receivable_application_id) AS RN,
+       charv.RECEIPT_NUMBER,
+       charv.RECEIPT_DATE,
+       charv.DESCRIPTION,
+       charv.CURRENCY_CODE,
+       charv.amount,
+       charv.exchange_rate,
+       charv.nature_amount,
+       charv.return_date,
+       charv.return_amount,
+       charv.bank_name,
+       charv.serial_number
+       from cux_hap_ar_receipts_v@ebs_db charv join
+       (select
+       count(distinct serial_number) numbers,
+        c1.RECEIPT_NUMBER
+       from cux_hap_ar_receipts_v@ebs_db c1
+       where c1.serial_number is not null
+       group by c1.RECEIPT_NUMBER
+       )receipt_count
+       on charv.RECEIPT_NUMBER=receipt_count.RECEIPT_NUMBER
+       and charv.serial_number is not null
+       where receipt_count.numbers=1
+       )all_count
+       where all_count.rn=1
+       )
+    </select>
+    <select id="selectWithReturnDate" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCashFlow">
+       (select
+        RECEIPT_NUMBER,
+        RECEIPT_DATE,
+        DESCRIPTION,
+        CURRENCY_CODE,
+        amount,
+        exchange_rate,
+        nature_amount,
+        return_date,
+        return_amount,
+        bank_name,
+        serial_number
+       from
+       (select
+        rank () OVER ( PARTITION BY c.RECEIPT_NUMBER,c.serial_number,c.return_date order by c.receivable_application_id) AS RN,
+        all_count.RECEIPT_NUMBER,
+        all_count.RECEIPT_DATE,
+        all_count.DESCRIPTION,
+        all_count.CURRENCY_CODE,
+        all_count.amount,
+        all_count.exchange_rate,
+        all_count.nature_amount,
+        c.return_date,
+        sum(c.return_amount)over(partition by c.RECEIPT_NUMBER,c.serial_number,c.return_date) return_amount,
+        all_count.bank_name,
+        all_count.serial_number
+       from cux_hap_ar_receipts_v@ebs_db c join
+       (select
+       rank () OVER ( PARTITION BY charv.RECEIPT_NUMBER,charv.serial_number order by charv.receivable_application_id) AS RN,
+       charv.RECEIPT_NUMBER,
+       charv.RECEIPT_DATE,
+       charv.DESCRIPTION,
+       charv.CURRENCY_CODE,
+       charv.amount,
+       charv.exchange_rate,
+       charv.nature_amount,
+       charv.bank_name,
+       charv.serial_number
+       from cux_hap_ar_receipts_v@ebs_db charv join
+       (select
+        count(distinct serial_number) numbers,
+        c1.RECEIPT_NUMBER
+       from cux_hap_ar_receipts_v@ebs_db c1
+       where c1.serial_number is not null
+       and c1.return_date is not null
+       group by c1.RECEIPT_NUMBER
+       )receipt_count
+       on charv.RECEIPT_NUMBER=receipt_count.RECEIPT_NUMBER
+       and charv.serial_number is not null
+       and charv.return_date is not null
+       where receipt_count.numbers=1
+       )all_count
+       on c.RECEIPT_NUMBER=all_count.receipt_number
+       and c.serial_number=all_count.serial_number
+       where all_count.rn=1
+       and c.return_date is not null
+       and c.serial_number is not null
+       )all_count_2
+       where all_count_2.rn=1
+       )
+       union
+       (
+       select
+        RECEIPT_NUMBER,
+        RECEIPT_DATE,
+        DESCRIPTION,
+        CURRENCY_CODE,
+        amount,
+        exchange_rate,
+        nature_amount,
+        return_date,
+        return_amount,
+        bank_name,
+        serial_number
+       from
+	   (select
+		rank () OVER ( PARTITION BY c.RECEIPT_NUMBER,c.serial_number,c.return_date order by c.receivable_application_id) AS RN,
+        all_count.RECEIPT_NUMBER,
+        all_count.RECEIPT_DATE,
+        all_count.DESCRIPTION,
+        all_count.CURRENCY_CODE,
+        all_count.amount,
+        all_count.exchange_rate,
+        all_count.nature_amount,
+        c.return_date,
+        sum(c.return_amount)over(partition by c.RECEIPT_NUMBER,c.serial_number,c.return_date) return_amount,
+        all_count.bank_name,
+        all_count.serial_number
+       from cux_hap_ar_receipts_v@ebs_db c join
+       (select
+       rank () OVER ( PARTITION BY charv.RECEIPT_NUMBER,charv.serial_number order by charv.receivable_application_id) AS RN,
+       charv.RECEIPT_NUMBER,
+       charv.RECEIPT_DATE,
+       charv.DESCRIPTION,
+       charv.CURRENCY_CODE,
+       (sum(charv.receive_amount)over(partition by charv.RECEIPT_NUMBER,charv.serial_number)-decode(sum(charv.bank_charges)over(partition by charv.RECEIPT_NUMBER,charv.serial_number),null,0,sum(charv.bank_charges)over(partition by charv.RECEIPT_NUMBER,charv.serial_number))) amount,
+        charv.exchange_rate,
+        (sum(charv.receive_amount)over(partition by charv.RECEIPT_NUMBER,charv.serial_number)-decode(sum(charv.bank_charges)over(partition by charv.RECEIPT_NUMBER,charv.serial_number),null,0,sum(charv.bank_charges)over(partition by charv.RECEIPT_NUMBER,charv.serial_number)))*charv.exchange_rate nature_amount,
+       charv.return_date,
+       charv.return_amount,
+       charv.bank_name,
+       charv.serial_number
+       from cux_hap_ar_receipts_v@ebs_db charv join
+       (select
+       count(distinct serial_number) numbers,
+        c1.RECEIPT_NUMBER
+       from cux_hap_ar_receipts_v@ebs_db c1
+       where c1.serial_number is not null
+       and c1.return_date is not null
+       group by c1.RECEIPT_NUMBER
+       )receipt_count
+       on charv.RECEIPT_NUMBER=receipt_count.RECEIPT_NUMBER
+       and charv.serial_number is not null
+       and charv.return_date is not null
+       where receipt_count.numbers>1
+       )all_count
+       on all_count.receipt_number=c.receipt_number
+	   and all_count.serial_number=c.serial_number
+	   where all_count.rn=1
+	   and c.return_date is not null
+	   and c.serial_number is not null
+	   )all_count_2
+	   where all_count_2.rn=1
+       )
+
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCashFlow">
+        select
+        HECF.CASH_FLOW_ID,
+        HECF.RECEIPT_NUMBER,
+        HECF.RECEIPT_DATE,
+        HECF.DESCRIPTION,
+        HECF.CURRENCY_CODE,
+        HECF.amount,
+        HECF.exchange_rate,
+        HECF.nature_amount,
+        HECF.return_date,
+        HECF.return_amount,
+        HECF.bank_name,
+        HECF.serial_number,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HECF"/>
+        </include>
+        from HCUX_EPS_CASH_FLOW HECF
+        where HECF.AMOUNT !=0
+              and HECF.AMOUNT is not null
+            <if test="serialNumberList != null and serialNumberList.size > 0">
+              and
+                <foreach collection="serialNumberList" item="item" open="(" separator=" OR " close=")">
+                    lower(HECF.serial_number) = lower(#{item})
+                </foreach>
+            </if>
+            <if test="receiptNumber != null">
+                and (HECF.RECEIPT_NUMBER) like '%'|| (#{receiptNumber}) ||'%'
+            </if>
+
+            <if test="description != null">
+                and lower(HECF.DESCRIPTION) LIKE '%'|| lower(#{description}) ||'%'
+            </if>
+
+            <if test="receiptDateFrom != null">
+                and HECF.RECEIPT_DATE >= #{receiptDateFrom}
+            </if>
+
+            <if test="receiptDateTo != null">
+                and HECF.RECEIPT_DATE &lt;= #{receiptDateTo}
+            </if>
+
+            <if test="currencyCode != null">
+                and lower(HECF.CURRENCY_CODE) like '%'|| lower(#{currencyCode}) ||'%'
+            </if>
+
+            <if test="returnDateFrom != null">
+                and HECF.RETURN_DATE >= #{returnDateFrom}
+            </if>
+
+            <if test="returnDateTo != null">
+                and HECF.RETURN_DATE &lt;= #{returnDateTo}
+            </if>
+
+            <if test="amountFrom != null">
+                and HECF.AMOUNT >= #{amountFrom}
+            </if>
+
+            <if test="amountTo != null">
+                and HECF.AMOUNT &lt;= #{amountTo}
+            </if>
+
+            <if test="serialNumber != null">
+                and lower(HECF.serial_number) like '%'|| lower(#{serialNumber}) ||'%'
+            </if>
+
+        <if test="returnAmountFrom != null">
+            and HECF.return_amount >= #{returnAmountFrom}
+        </if>
+
+        <if test="returnAmountTo != null">
+            and HECF.return_amount &lt;= #{returnAmountTo}
+        </if>
+        order by HECF.RECEIPT_DATE desc, HECF.RECEIPT_NUMBER desc
+    </select>
+    <select id="selectTotalReturnAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCashFlow">
+        select
+        sum(HECF.return_amount)total_return_amount,
+        currency_code
+        from HCUX_EPS_CASH_FLOW HECF
+        where HECF.AMOUNT !=0
+        and HECF.AMOUNT is not null
+            <if test="serialNumberList != null and serialNumberList.size > 0">
+                and
+                <foreach collection="serialNumberList" item="item" open="(" separator=" OR " close=")">
+                    lower(HECF.serial_number) = lower(#{item})
+                </foreach>
+            </if>
+            <if test="receiptNumber != null">
+                and (HECF.RECEIPT_NUMBER) like '%'|| (#{receiptNumber}) ||'%'
+            </if>
+
+            <if test="receiptDateFrom != null">
+                and HECF.RECEIPT_DATE >= #{receiptDateFrom}
+            </if>
+
+            <if test="description != null">
+                and lower(HECF.DESCRIPTION) LIKE '%'|| lower(#{description}) ||'%'
+            </if>
+
+            <if test="receiptDateTo != null">
+                and HECF.RECEIPT_DATE &lt;= #{receiptDateTo}
+            </if>
+
+            <if test="currencyCode != null">
+                and lower(HECF.CURRENCY_CODE) like '%'|| lower(#{currencyCode}) ||'%'
+            </if>
+
+            <if test="returnDateFrom != null">
+                and HECF.RETURN_DATE >= #{returnDateFrom}
+            </if>
+
+            <if test="returnDateTo != null">
+                and HECF.RETURN_DATE &lt;= #{returnDateTo}
+            </if>
+
+            <if test="amountFrom != null">
+                and HECF.AMOUNT >= #{amountFrom}
+            </if>
+
+            <if test="amountTo != null">
+                and HECF.AMOUNT &lt;= #{amountTo}
+            </if>
+
+            <if test="serialNumber != null">
+                and lower(HECF.serial_number) like '%'|| lower(#{serialNumber}) ||'%'
+            </if>
+            <if test="returnAmountFrom != null">
+                and HECF.return_amount >= #{returnAmountFrom}
+            </if>
+
+            <if test="returnAmountTo != null">
+                and HECF.return_amount &lt;= #{returnAmountTo}
+            </if>
+        group by currency_code
+    </select>
+
+    <select id="selectTotalAmountOne" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCashFlow">
+        select
+        sum(AMOUNT)total_Receipt,
+        currency_code
+        from
+        hcux_eps_cash_flow hecf join
+        (
+        select
+        count(*)numbers,
+        receipt_number,
+        serial_number
+        from hcux_eps_cash_flow
+        group by receipt_number,serial_number
+        )rs
+        on rs.serial_number=hecf.serial_number and rs.receipt_number=hecf.receipt_number
+        where rs.numbers=1
+        and HECF.AMOUNT !=0
+        and HECF.AMOUNT is not null
+            <if test="serialNumberList != null and serialNumberList.size > 0">
+                and
+                <foreach collection="serialNumberList" item="item" open="(" separator=" OR " close=")">
+                    lower(HECF.serial_number) = lower(#{item})
+                </foreach>
+            </if>
+            <if test="receiptNumber != null">
+                and (HECF.RECEIPT_NUMBER) like '%'|| (#{receiptNumber}) ||'%'
+            </if>
+
+            <if test="receiptDateFrom != null">
+                and HECF.RECEIPT_DATE >= #{receiptDateFrom}
+            </if>
+
+            <if test="description != null">
+                and lower(HECF.DESCRIPTION) LIKE '%'|| lower(#{description}) ||'%'
+            </if>
+
+            <if test="receiptDateTo != null">
+                and HECF.RECEIPT_DATE &lt;= #{receiptDateTo}
+            </if>
+
+            <if test="currencyCode != null">
+                and lower(HECF.CURRENCY_CODE) like '%'|| lower(#{currencyCode}) ||'%'
+            </if>
+
+            <if test="returnDateFrom != null">
+                and HECF.RETURN_DATE >= #{returnDateFrom}
+            </if>
+
+            <if test="returnDateTo != null">
+                and HECF.RETURN_DATE &lt;= #{returnDateTo}
+            </if>
+
+            <if test="amountFrom != null">
+                and HECF.AMOUNT >= #{amountFrom}
+            </if>
+
+            <if test="amountTo != null">
+                and HECF.AMOUNT &lt;= #{amountTo}
+            </if>
+
+            <if test="serialNumber != null">
+               and lower(HECF.serial_number) like '%'|| lower(#{serialNumber}) ||'%'
+            </if>
+        <if test="returnAmountFrom != null">
+            and HECF.return_amount >= #{returnAmountFrom}
+        </if>
+
+        <if test="returnAmountTo != null">
+            and HECF.return_amount &lt;= #{returnAmountTo}
+        </if>
+        group by hecf.currency_code
+    </select>
+    <select id="selectTotalAmountMore" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCashFlow">
+        select
+        sum(amount) total_Receipt,
+        currency_code
+        from
+        (select
+        rank () OVER ( PARTITION BY hecf.RECEIPT_NUMBER,hecf.serial_number order by hecf.cash_flow_id) AS RN,
+        AMOUNT,
+        currency_code
+        from hcux_eps_cash_flow hecf join
+        (select
+        count(*)numbers,
+        receipt_number,
+        serial_number
+        from hcux_eps_cash_flow
+        group by receipt_number,serial_number)rs
+        on rs.serial_number=hecf.serial_number and rs.receipt_number=hecf.receipt_number
+        where rs.numbers>1
+        and HECF.AMOUNT !=0
+        and HECF.AMOUNT is not null
+            <if test="serialNumberList != null and serialNumberList.size > 0">
+                and
+                <foreach collection="serialNumberList" item="item" open="(" separator=" OR " close=")">
+                    lower(HECF.serial_number) = lower(#{item})
+                </foreach>
+            </if>
+            <if test="receiptNumber != null">
+                and (HECF.RECEIPT_NUMBER) like '%'|| (#{receiptNumber}) ||'%'
+            </if>
+
+            <if test="description != null">
+                and lower(HECF.DESCRIPTION) LIKE '%'|| lower(#{description}) ||'%'
+            </if>
+
+            <if test="receiptDateFrom != null">
+                and HECF.RECEIPT_DATE >= #{receiptDateFrom}
+            </if>
+
+            <if test="receiptDateTo != null">
+                and HECF.RECEIPT_DATE &lt;= #{receiptDateTo}
+            </if>
+
+            <if test="currencyCode != null">
+                and lower(HECF.CURRENCY_CODE) like '%'|| lower(#{currencyCode}) ||'%'
+            </if>
+
+            <if test="returnDateFrom != null">
+                and HECF.RETURN_DATE >= #{returnDateFrom}
+            </if>
+
+            <if test="returnDateTo != null">
+                and HECF.RETURN_DATE &lt;= #{returnDateTo}
+            </if>
+
+            <if test="amountFrom != null">
+                and HECF.AMOUNT >= #{amountFrom}
+            </if>
+
+            <if test="amountTo != null">
+                and HECF.AMOUNT &lt;= #{amountTo}
+            </if>
+
+           <if test="serialNumber != null">
+                and lower(HECF.serial_number) like '%'|| lower(#{serialNumber}) ||'%'
+           </if>
+        <if test="returnAmountFrom != null">
+            and HECF.return_amount >= #{returnAmountFrom}
+        </if>
+
+        <if test="returnAmountTo != null">
+            and HECF.return_amount &lt;= #{returnAmountTo}
+        </if>
+        )rs2
+        where rs2.rn=1
+        group by currency_code
+    </select>
+    <select id="selectTotalNatureAmountOne" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCashFlow">
+        select sum(NATURE_AMOUNT)total_Nature_Amount
+        from
+        hcux_eps_cash_flow hecf join
+        (
+        select
+        count(*)numbers,
+        receipt_number,
+        serial_number
+        from hcux_eps_cash_flow
+        group by receipt_number,serial_number
+        )rs
+        on rs.serial_number=hecf.serial_number and rs.receipt_number=hecf.receipt_number
+        where rs.numbers=1
+        and HECF.AMOUNT !=0
+        and HECF.AMOUNT is not null
+        <if test="serialNumberList != null and serialNumberList.size > 0">
+            and
+            <foreach collection="serialNumberList" item="item" open="(" separator=" OR " close=")">
+                lower(HECF.serial_number) = lower(#{item})
+            </foreach>
+        </if>
+        <if test="receiptNumber != null">
+            and (HECF.RECEIPT_NUMBER) like '%'|| (#{receiptNumber}) ||'%'
+        </if>
+
+        <if test="description != null">
+            and lower(HECF.DESCRIPTION) LIKE '%'|| lower(#{description}) ||'%'
+        </if>
+
+        <if test="receiptDateFrom != null">
+            and HECF.RECEIPT_DATE >= #{receiptDateFrom}
+        </if>
+
+        <if test="receiptDateTo != null">
+            and HECF.RECEIPT_DATE &lt;= #{receiptDateTo}
+        </if>
+
+        <if test="currencyCode != null">
+            and lower(HECF.CURRENCY_CODE) like '%'|| lower(#{currencyCode}) ||'%'
+        </if>
+
+        <if test="returnDateFrom != null">
+            and HECF.RETURN_DATE >= #{returnDateFrom}
+        </if>
+
+        <if test="returnDateTo != null">
+            and HECF.RETURN_DATE &lt;= #{returnDateTo}
+        </if>
+
+        <if test="amountFrom != null">
+            and HECF.AMOUNT >= #{amountFrom}
+        </if>
+
+        <if test="amountTo != null">
+            and HECF.AMOUNT &lt;= #{amountTo}
+        </if>
+
+        <if test="serialNumber != null">
+            and lower(HECF.serial_number) like '%'|| lower(#{serialNumber}) ||'%'
+        </if>
+
+        <if test="returnAmountFrom != null">
+            and HECF.return_amount >= #{returnAmountFrom}
+        </if>
+
+        <if test="returnAmountTo != null">
+            and HECF.return_amount &lt;= #{returnAmountTo}
+        </if>
+    </select>
+    <select id="selectTotalNatureAmountMore" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCashFlow">
+        select
+        sum(NATURE_AMOUNT)total_Nature_Amount
+        from
+        (select
+        rank () OVER ( PARTITION BY hecf.RECEIPT_NUMBER,hecf.serial_number order by hecf.cash_flow_id) AS RN,
+        NATURE_AMOUNT
+        from hcux_eps_cash_flow hecf join
+        (select
+        count(*)numbers,
+        receipt_number,
+        serial_number
+        from hcux_eps_cash_flow
+        group by receipt_number,serial_number)rs
+        on rs.serial_number=hecf.serial_number and rs.receipt_number=hecf.receipt_number
+        where rs.numbers>1
+        and HECF.AMOUNT !=0
+        and HECF.AMOUNT is not null
+        <if test="serialNumberList != null and serialNumberList.size > 0">
+            and
+            <foreach collection="serialNumberList" item="item" open="(" separator=" OR " close=")">
+                lower(HECF.serial_number) = lower(#{item})
+            </foreach>
+        </if>
+        <if test="receiptNumber != null">
+            and (HECF.RECEIPT_NUMBER) like '%'|| (#{receiptNumber}) ||'%'
+        </if>
+
+        <if test="receiptDateFrom != null">
+            and HECF.RECEIPT_DATE >= #{receiptDateFrom}
+        </if>
+
+        <if test="description != null">
+            and lower(HECF.DESCRIPTION) LIKE '%'|| lower(#{description}) ||'%'
+        </if>
+
+        <if test="receiptDateTo != null">
+            and HECF.RECEIPT_DATE &lt;= #{receiptDateTo}
+        </if>
+
+        <if test="currencyCode != null">
+            and lower(HECF.CURRENCY_CODE) like '%'|| lower(#{currencyCode}) ||'%'
+        </if>
+
+        <if test="returnDateFrom != null">
+            and HECF.RETURN_DATE >= #{returnDateFrom}
+        </if>
+
+        <if test="returnDateTo != null">
+            and HECF.RETURN_DATE &lt;= #{returnDateTo}
+        </if>
+
+        <if test="amountFrom != null">
+            and HECF.AMOUNT >= #{amountFrom}
+        </if>
+
+        <if test="amountTo != null">
+            and HECF.AMOUNT &lt;= #{amountTo}
+        </if>
+
+        <if test="serialNumber != null">
+            and lower(HECF.serial_number) like '%'|| lower(#{serialNumber}) ||'%'
+        </if>
+
+        <if test="returnAmountFrom != null">
+            and HECF.return_amount >= #{returnAmountFrom}
+        </if>
+
+        <if test="returnAmountTo != null">
+            and HECF.return_amount &lt;= #{returnAmountTo}
+        </if>
+        )rs2
+        where rs2.rn=1
+    </select>
+    <select id="selectCurrencyCode" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCashFlow">
+        select
+        distinct currency_code
+        from hcux_eps_cash_flow
+    </select>
+
+    <delete id="deleteRepeat">
+        delete
+        from hcux_eps_cash_flow
+        where return_date is null
+        and  (receipt_number,serial_number)in
+        (select
+        receipt_number,serial_number
+        from hcux_eps_cash_flow
+        where return_date is not null
+        group by receipt_number,serial_number
+        )
+    </delete>
+    <select id="selectRepeatCount" resultMap="BaseResultMap">
+        select receipt_number
+        from hcux_eps_cash_flow
+        where return_date is null
+        and  (receipt_number,serial_number)in
+        (select
+        receipt_number,serial_number
+        from hcux_eps_cash_flow
+        where return_date is not null
+        group by receipt_number,serial_number
+        )
+    </select>
+    <select id="selectWithReceiptSerialNumber" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsCashFlow">
+        select
+       charv.RECEIPT_NUMBER,
+       charv.RECEIPT_DATE,
+       charv.DESCRIPTION,
+       charv.CURRENCY_CODE,
+       charv.amount,
+       charv.exchange_rate,
+       charv.nature_amount,
+       charv.return_date,
+       charv.return_amount,
+       charv.bank_name,
+       charv.serial_number
+       from cux_hap_ar_receipts_v@ebs_db charv
+       where charv.RECEIPT_NUMBER=#{receiptNumber}
+       and charv.serial_number=#{serialNumber}
+    </select>
+</mapper>

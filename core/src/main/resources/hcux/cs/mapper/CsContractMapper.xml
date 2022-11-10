@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsContractMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsContract"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="CONTRACT_ID" property="contractId" jdbcType="DECIMAL" />
+        <result column="HEADER_ID" property="headerId" jdbcType="DECIMAL" />
+        <result column="LINE_ID" property="lineId" jdbcType="DECIMAL" />
+        <result column="ORG_NAME" property="orgName" jdbcType="VARCHAR" />
+        <result column="CHINESE_ORG_NAME" property="chineseOrgName" jdbcType="VARCHAR" />
+        <result column="CUST_PO_NUMBER" property="custPoNumber" jdbcType="VARCHAR" />
+        <result column="CUSTOMER_NAME" property="customerName" jdbcType="VARCHAR" />
+        <result column="ORDERED_DATE" property="orderedDate" jdbcType="DATE" />
+        <result column="ITEM_CODE" property="itemCode" jdbcType="VARCHAR" />
+        <result column="ITEM_NAME" property="itemName" jdbcType="VARCHAR" />
+        <result column="SO_UOM" property="soUom" jdbcType="VARCHAR" />
+        <result column="SO_UOM_DESC" property="soUomDesc" jdbcType="VARCHAR" />
+        <result column="SO_QTY" property="soQty" jdbcType="DECIMAL" />
+        <result column="UNIT_SELLING_PRICE" property="unitSellingPrice" jdbcType="DECIMAL" />
+        <result column="SO_AMOUNT" property="soAmount" jdbcType="DECIMAL" />
+        <result column="SO_PERSON" property="soPerson" jdbcType="VARCHAR" />
+        <result column="CREATE_PERSON" property="createPerson" jdbcType="VARCHAR" />
+        <result column="DEPT_CODE" property="deptCode" jdbcType="VARCHAR" />
+        <result column="CUSTOMER_CODE" property="customerCode" jdbcType="VARCHAR" />
+        <result column="LINE_CATEGORY_CODE" property="lineCategoryCode" jdbcType="VARCHAR" />
+
+        <result column="OUT_QUANTITY" property="outQuantity" jdbcType="DECIMAL" />
+        <result column="UN_OUT_QUANTITY" property="unOutQuantity" jdbcType="DECIMAL" />
+        <result column="VAT_QUANTITY" property="vatQuantity" jdbcType="DECIMAL" />
+
+        <result column="CONTRACT_CODE_ONE" property="contractCodeOne" jdbcType="DECIMAL" />
+        <result column="CONTRACT_CODE_TWO" property="contractCodeTwo" jdbcType="DECIMAL" />
+        <result column="CONTRACT_CODE_THREE" property="contractCodeThree" jdbcType="DECIMAL" />
+        <result column="ACTUAL_CONTRACT_NO" property="actualContractNo" jdbcType="VARCHAR" />
+    </resultMap>
+    <select id="selectCsContractFromEbs" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsContract">
+        select
+        HEADER_ID,
+        LINE_ID,
+        ORG_NAME,
+        CHINESE_ORG_NAME,
+        DEPT_CODE,
+        CUSTOMER_CODE,
+        CUST_PO_NUMBER,
+        CUSTOMER_NAME,
+        ORDERED_DATE,
+        ITEM_CODE,
+        ITEM_DESC ITEM_NAME,
+        SO_UOM,
+        SO_UOM_DESC,
+        SO_QTY,
+        UNIT_SELLING_PRICE,
+        SO_AMOUNT,
+        SO_PERSON,
+        CREATED_BY CREATE_PERSON,
+        LINE_CATEGORY_CODE,
+        null REQUEST_ID,
+        null PROGRAM_ID,
+        null OBJECT_VERSION_NUMBER,
+        null CREATED_BY,
+        null CREATION_DATE,
+        null LAST_UPDATED_BY,
+        LAST_UPDATE_DATE,
+        null LAST_UPDATE_LOGIN,
+        decode(ACTUAL_CONTRACT_NO,null,CUST_PO_NUMBER||version_number,ACTUAL_CONTRACT_NO)ACTUAL_CONTRACT_NO
+        from cux_contract_soexe_V1@ebs_db
+        WHERE LAST_UPDATE_DATE >=  TO_DATE(TO_CHAR(#{lastUpdateDate},'yyyy-MM-dd HH24:mi:ss'),'yyyy-MM-dd HH24:mi:ss')
+    </select>
+    <select id="selectCsContractFromHap" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsContract">
+        select
+        CONTRACT_ID,
+        HEADER_ID,
+        LINE_ID,
+        ORG_NAME,
+        CHINESE_ORG_NAME,
+        DEPT_CODE,
+        CUSTOMER_CODE,
+        CUST_PO_NUMBER,
+        CUSTOMER_NAME,
+        ORDERED_DATE,
+        ITEM_CODE,
+        ITEM_NAME,
+        SO_UOM,
+        SO_UOM_DESC,
+        SO_QTY,
+        UNIT_SELLING_PRICE,
+        SO_AMOUNT,
+        SO_PERSON,
+        CREATE_PERSON,
+        ACTUAL_CONTRACT_NO,
+        LINE_CATEGORY_CODE,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCC"/>
+        </include>
+        from HCUX_CS_CONTRACT HCC
+        where HCC.HEADER_ID = #{headerId}
+        and HCC.LINE_ID = #{lineId}
+    </select>
+    <select id="selectLists" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsContract">
+        SELECT *
+        FROM (
+            SELECT HCC.CHINESE_ORG_NAME,
+                HCC.DEPT_CODE,
+                HCC.HEADER_ID,
+                HCC.CUSTOMER_CODE,
+                HCC.CUST_PO_NUMBER,
+                HCC.CUSTOMER_NAME,
+                HCC.ORDERED_DATE,
+                HCC.ITEM_CODE,
+                HCC.ITEM_NAME,
+                HCC.SO_UOM,
+                HCC.SO_PERSON,
+                HCC.CREATE_PERSON,
+                HCC.ACTUAL_CONTRACT_NO,
+                HCC2.SO_QTY,
+                HCC2.UNIT_SELLING_PRICE,
+                HCC2.SO_AMOUNT,
+                (HCC2.SO_QTY - NVL(HCCO.OUT_QUANTITY, 0)) UN_OUT_QUANTITY,
+                HCCO.OUT_QUANTITY OUT_QUANTITY,
+                HCCV.VAT_QUANTITY VAT_QUANTITY,
+                ROW_NUMBER() OVER(PARTITION BY HCC.CUST_PO_NUMBER, HCC.ITEM_CODE, HCC.SO_UOM, HCC.LINE_CATEGORY_CODE ORDER BY HCC.CUST_PO_NUMBER) CN
+            FROM HCUX_CS_CONTRACT HCC
+            LEFT JOIN (SELECT CUST_PO_NUMBER,
+                ITEM_CODE,
+                SO_UOM,
+                LINE_CATEGORY_CODE,
+                SUM(SO_QTY) SO_QTY,
+                ROUND(DECODE(SUM(SO_QTY),
+                0,
+                0,
+                SUM(SO_AMOUNT) / SUM(SO_QTY)),
+                2) UNIT_SELLING_PRICE,
+                SUM(SO_AMOUNT) SO_AMOUNT
+                FROM HCUX_CS_CONTRACT
+                GROUP BY CUST_PO_NUMBER,
+                ITEM_CODE,
+                SO_UOM,
+                LINE_CATEGORY_CODE) HCC2
+                ON HCC.CUST_PO_NUMBER = HCC2.CUST_PO_NUMBER
+                AND HCC.ITEM_CODE = HCC2.ITEM_CODE
+                AND HCC.SO_UOM = HCC2.SO_UOM
+                AND HCC.LINE_CATEGORY_CODE = HCC2.LINE_CATEGORY_CODE
+            LEFT JOIN (SELECT CUST_PO_NUMBER,
+                ITEM_CODE,
+                UOM_CODE,
+                LINE_CATEGORY_CODE,
+                SUM(OUT_QUANTITY) OUT_QUANTITY
+                FROM HCUX_CS_CONTRACT_OUT
+                GROUP BY CUST_PO_NUMBER,
+                ITEM_CODE,
+                UOM_CODE,
+                LINE_CATEGORY_CODE) HCCO
+                ON HCC.CUST_PO_NUMBER = HCCO.CUST_PO_NUMBER
+                AND HCC.ITEM_CODE = HCCO.ITEM_CODE
+                AND HCC.SO_UOM = HCCO.UOM_CODE
+                AND HCC.LINE_CATEGORY_CODE = HCCO.LINE_CATEGORY_CODE
+            LEFT JOIN (SELECT SO_PJ_NUM,
+                ITEM_CODE,
+                ORDER_QUANTITY_UOM,
+                LINE_CATEGORY_CODE,
+                SUM(VAT_QUANTITY) VAT_QUANTITY
+                FROM HCUX_CS_CONTRACT_VAT
+                GROUP BY SO_PJ_NUM,
+                ITEM_CODE,
+                ORDER_QUANTITY_UOM,
+                LINE_CATEGORY_CODE) HCCV
+                ON HCC.CUST_PO_NUMBER = HCCV.SO_PJ_NUM
+                AND HCC.ITEM_CODE = HCCV.ITEM_CODE
+                AND HCC.SO_UOM = HCCV.ORDER_QUANTITY_UOM
+                AND HCC.LINE_CATEGORY_CODE = HCCV.LINE_CATEGORY_CODE
+            WHERE 1 = 1
+            AND (HCC2.SO_QTY != 0 OR HCC2.SO_QTY IS NULL)
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.nhPortalSql01">
+                    <property name="customerCode" value="HCC.CUSTOMER_CODE"/>
+                    <property name="orgName" value="HCC.ORG_NAME"/>
+                    <property name="deptCode" value="HCC.DEPT_CODE"/>
+                </include>
+            </if>
+
+            <if test='queryType == "HAP"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.nhHapSql01">
+                    <property name="orgName" value="HCC.ORG_NAME"/>
+                    <property name="deptCode" value="HCC.DEPT_CODE"/>
+                </include>
+            </if>
+
+            <if test="chineseOrgName != null">
+                AND HCC.CHINESE_ORG_NAME like '%'||#{chineseOrgName}||'%'
+            </if>
+            <if test="custPoNumber != null">
+                AND UPPER(HCC.CUST_PO_NUMBER) like '%'||UPPER(#{custPoNumber})||'%'
+            </if>
+            <if test="customerName != null">
+                AND HCC.CUSTOMER_NAME like '%'||#{customerName}||'%'
+            </if>
+            <if test="orderedDateFrom != null">
+                AND TO_CHAR(HCC.ORDERED_DATE,'yyyyMMdd') &gt;= TO_CHAR(#{orderedDateFrom},'yyyyMMdd')
+            </if>
+            <if test="orderedDateTo != null">
+                AND TO_CHAR(HCC.ORDERED_DATE,'yyyyMMdd') &lt;= TO_CHAR(#{orderedDateTo},'yyyyMMdd')
+            </if>
+            <if test="itemName != null">
+                AND HCC.ITEM_NAME like '%'||#{itemName}||'%'
+            </if>
+            <if test="unOutQuantity != null">
+                AND HCC2.SO_QTY - NVL(HCCO.OUT_QUANTITY, 0) > #{unOutQuantity}
+            </if>
+            ORDER BY HCC.ORDERED_DATE DESC
+            ) t
+        WHERE t.CN = 1
+    </select>
+    <select id="selectListByCustPoNumber" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsTransportInfo">
+        select
+        distinct HCC.ITEM_CODE,
+        HCC.ITEM_NAME
+        from HCUX_CS_CONTRACT HCC
+        where HCC.CUST_PO_NUMBER=#{custPoNumber}
+    </select>
+
+    <!--查询所有合同号-->
+    <select id="selectCustPoNumberForLov" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsContract">
+        select DISTINCT CUST_PO_NUMBER, CUSTOMER_NAME
+        from HCUX_CS_CONTRACT
+        where 1=1
+        <if test="custPoNumber != null">
+            and CUST_PO_NUMBER like '%'||#{custPoNumber}||'%'
+        </if>
+    </select>
+
+    <!--查询合同号下所有客户-->
+    <select id="selectCustomForLov" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsContract">
+        select DISTINCT CUSTOMER_NAME,CUSTOMER_CODE
+        from HCUX_CS_CONTRACT
+        where 1=1
+        <if test="customerName != null">
+            and CUSTOMER_NAME like '%'||#{customerName}||'%'
+        </if>
+        <if test="customerCode != null">
+            and CUSTOMER_CODE like '%'||#{customerCode}||'%'
+        </if>
+        and CUSTOMER_NAME is not null
+    </select>
+
+
+    <!--根据3个合同号查出物料-->
+    <select id="selectItemFromContract" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsContract">
+        SELECT DISTINCT
+        ITEM_CODE,
+        ITEM_NAME
+        FROM HCUX_CS_CONTRACT
+        WHERE 1=1
+        AND CUST_PO_NUMBER IN (#{contractCodeOne}, #{contractCodeTwo}, #{contractCodeThree})
+        <if test="itemCode !=null">
+            and ITEM_CODE like '%'||#{itemCode}||'%'
+        </if>
+        <if test="itemName !=null">
+            and ITEM_NAME like '%'||#{itemName}||'%'
+        </if>
+        and ITEM_CODE is not null
+        and ITEM_NAME is not null
+    </select>
+</mapper>

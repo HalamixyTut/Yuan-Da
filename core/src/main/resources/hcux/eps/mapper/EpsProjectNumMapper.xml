@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsProjectNumMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsProjectNum">
+        <result column="PROJECT_ID" property="projectId" jdbcType="DECIMAL" />
+        <result column="PROJECT_NUM" property="projectNum" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <insert id="insertAll">
+        INSERT INTO
+        HCUX_EPS_PROJECT_NUM (
+            PROJECT_ID,
+            PROJECT_NUM
+        )
+        SELECT
+            HCUX_EPS_PROJECT_NUM_S.nextval,
+            PROJECT_NUM
+        FROM
+            (
+            SELECT DISTINCT
+                PROJECT_NUM
+            FROM
+                cux_Dt_acct_pay_in_advance_v2 @ebs_db
+            WHERE IOUS_FLAG = 'Y'
+            AND SUBSTR( PROJECT_NUM, 0, 1 ) = 'A'
+            AND CR_AMOUNT != 0
+			AND CR_BASE_AMOUNT != 0
+            )
+    </insert>
+</mapper>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsInvoiceExpressMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsInvoiceExpress"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="EXPRESS_ID" property="expressId" jdbcType="DECIMAL"/>
+        <result column="PLATE" property="plate" jdbcType="VARCHAR"/>
+        <result column="CUSTOMER_CODE" property="customerCode" jdbcType="VARCHAR"/>
+        <result column="CUSTOMER_NAME" property="customerName" jdbcType="VARCHAR"/>
+        <result column="INVOICE_DATE" property="invoiceDate" jdbcType="TIMESTAMP"/>
+        <result column="EXPRESS_NUMBER" property="expressNumber" jdbcType="VARCHAR"/>
+        <result column="EXPRESS_COMPANY" property="expressCompany" jdbcType="VARCHAR"/>
+        <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+        <result column="RECEIVER" property="receiver" jdbcType="VARCHAR"/>
+        <result column="RECEIVER_MOBILE" property="receiverMobile" jdbcType="VARCHAR"/>
+        <result column="SENDER" property="sender" jdbcType="VARCHAR"/>
+        <result column="SENDER_MOBILE" property="senderMobile" jdbcType="VARCHAR"/>
+        <result column="LOGISTICS_FLOW" property="logisticsFlow" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+
+    </resultMap>
+
+    <select id="selectData" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsInvoiceExpress">
+        SELECT
+        HCIE.EXPRESS_ID,
+        HCIE.PLATE,
+        HCIE.CUSTOMER_CODE,
+        HCIE.CUSTOMER_NAME,
+        HCIE.INVOICE_DATE,
+        HCIE.EXPRESS_NUMBER,
+        HCIE.EXPRESS_COMPANY,
+        HCIE.REMARK,
+        HCIE.RECEIVER,
+        HCIE.RECEIVER_MOBILE,
+        HCIE.SENDER,
+        HCIE.SENDER_MOBILE,
+        HCIE.DELETE_FLAG,
+        NULL LOGISTICS_FLOW,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCIE"/>
+        </include>
+        FROM HCUX_CS_INVOICE_EXPRESS HCIE
+        <where>
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.nhPortalSql02">
+                </include>
+            </if>
+
+            <if test='queryType == "HAP"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.nhHapSql02">
+                </include>
+            </if>
+
+            <if test="plate != null">
+                AND HCIE.PLATE = #{plate,jdbcType=DECIMAL}
+            </if>
+
+            <if test="customerName != null">
+                AND HCIE.CUSTOMER_NAME LIKE CONCAT('%',CONCAT(#{customerName,jdbcType=VARCHAR},'%'))
+            </if>
+
+            <if test="invoiceDateFrom != null">
+                AND TO_CHAR(HCIE.INVOICE_DATE,'yyyyMMdd') &gt;=
+                TO_CHAR(#{invoiceDateFrom,jdbcType=TIMESTAMP},'yyyyMMdd')
+            </if>
+
+            <if test="invoiceDateTo != null">
+                AND TO_CHAR(HCIE.INVOICE_DATE,'yyyyMMdd') &lt;=TO_CHAR(
+                #{invoiceDateTo,jdbcType=TIMESTAMP},'yyyyMMdd')
+            </if>
+
+        </where>
+        ORDER BY HCIE.EXPRESS_ID DESC
+    </select>
+
+    <select id="queryPlate" resultMap="com.hand.hap.system.mapper.CodeValueMapper.BaseResultMap">
+        SELECT * FROM HCUX_CODE_VALUE_V
+        WHERE CODE = 'HCUX_SYS_PLATE'
+        AND VALUE IN (
+            SELECT REGEXP_SUBSTR(PLATE,'[^,]+',1,ROWNUM) VALUE
+            FROM (SELECT PLATE FROM SYS_USER WHERE USER_ID = #{request.userId})
+            CONNECT BY ROWNUM &lt;= LENGTH(PLATE)-LENGTH(REPLACE(PLATE,',')) + 1
+            )
+    </select>
+
+    <select id="queryCustoms" resultMap="com.hand.hap.account.mapper.UserMapper.BaseResultMap" parameterType="hcux.cs.dto.CsInvoiceExpress">
+        SELECT
+        SU.USER_ID,
+        SU.USER_NAME,
+        SU.DESCRIPTION
+        FROM SYS_USER SU
+        WHERE 1 =1
+        <if test="customerName != null">
+            AND SU.DESCRIPTION = #{customerName}
+        </if>
+    </select>
+</mapper>

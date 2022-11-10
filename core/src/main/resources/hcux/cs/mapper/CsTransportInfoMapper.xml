@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.cs.mapper.CsTransportInfoMapper">
+    <resultMap id="BaseResultMap" type="hcux.cs.dto.CsTransportInfo"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="TRANSPORT_ID" property="transportId" jdbcType="DECIMAL" />
+        <result column="AMOUNT" property="amount" jdbcType="DECIMAL" />
+        <result column="DRIVER_NAME" property="driverName" jdbcType="VARCHAR" />
+        <result column="DRIVER_ID" property="driverId" jdbcType="VARCHAR" />
+        <result column="CAR_NUMBER" property="carNumber" jdbcType="VARCHAR" />
+        <result column="SEND_DATE" property="sendDate" jdbcType="DATE" />
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR" />
+        <result column="CUST_PO_NUMBER" property="custPoNumber" jdbcType="VARCHAR" />
+        <result column="ITEM_CODE" property="itemCode" jdbcType="VARCHAR" />
+        <result column="ITEM_NAME" property="itemName" jdbcType="VARCHAR" />
+        <result column="TRANSPORT_CODE" property="transportCode" jdbcType="VARCHAR" />
+        <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+    </resultMap>
+    <select id="selectLists" resultMap="BaseResultMap" parameterType="hcux.cs.dto.CsTransportInfo">
+        select
+        HCTI.TRANSPORT_ID,
+        HCTI.AMOUNT,
+        HCTI.DRIVER_NAME,
+        HCTI.DRIVER_ID,
+        HCTI.CAR_NUMBER,
+        HCTI.SEND_DATE,
+        HCTI.DELETE_FLAG,
+        HCTI.CUST_PO_NUMBER,
+        HCTI.ITEM_CODE,
+        HCTI.ITEM_NAME,
+        HCTI.TRANSPORT_CODE,
+        HCTI.REMARK,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HCTI"/>
+        </include>
+        from HCUX_CS_TRANSPORT_INFO HCTI
+        where HCTI.CUST_PO_NUMBER=#{custPoNumber}
+    </select>
+
+
+</mapper>

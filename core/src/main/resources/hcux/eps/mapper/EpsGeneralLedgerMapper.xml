@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsGeneralLedgerMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsGeneralLedger"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="LEDGER_ID" property="ledgerId" jdbcType="DECIMAL" />
+        <result column="NAME" property="name" jdbcType="VARCHAR" />
+        <result column="LEDGER_NAME" property="ledgerName" jdbcType="VARCHAR" />
+        <result column="CURRENCY_CODE" property="currencyCode" jdbcType="VARCHAR" />
+        <result column="CATEGORY_NAME" property="categoryName" jdbcType="VARCHAR" />
+        <result column="EFFECTIVE_DATE" property="effectiveDate" jdbcType="DATE" />
+        <result column="ACCOUNT" property="account" jdbcType="VARCHAR" />
+        <result column="PROJECT_NUMBER" property="projectNumber" jdbcType="VARCHAR" />
+        <result column="PERIOD_NAME" property="periodName" jdbcType="VARCHAR" />
+        <result column="ENTERED_DR" property="enteredDr" jdbcType="DECIMAL" />
+
+    </resultMap>
+
+    <insert id="insertAll">
+        INSERT INTO HCUX_EPS_GENERAL_LEDGER (
+        LEDGER_ID,
+        NAME,
+        LEDGER_NAME,
+        CURRENCY_CODE,
+        CATEGORY_NAME,
+        EFFECTIVE_DATE,
+        ACCOUNT,
+        PROJECT_NUMBER,
+         period_name,
+        ENTERED_DR,
+        CREATION_DATE,
+        LAST_UPDATE_DATE
+        ) SELECT
+        HCUX_EPS_GENERAL_LEDGER_S.nextval,
+       NAME,
+       LEDGER_NAME,
+       CURRENCY_CODE,
+       JE_CATEGORY_NAME,
+       EFFECTIVE_DATE,
+       ACCOUNT,
+       PROJECT_NUMBER,
+        period_name,
+       ENTERED_DR,
+       CREATION_DATE,
+       LAST_UPDATE_DATE
+        FROM
+        CUX_HAP_JOURNAL_V@ebs_db
+    </insert>
+
+</mapper>

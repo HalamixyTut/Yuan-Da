@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.doc.mapper.DocCustomsHeaderMapper">
+    <resultMap id="BaseResultMap" type="hcux.doc.dto.DocCustomsHeader"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="CUSTOMS_ID" property="customsId" jdbcType="DECIMAL"/>
+        <result column="BOOKING_ID" property="bookingId" jdbcType="DECIMAL"/>
+        <result column="INVOICE_NUMBER" property="invoiceNumber" jdbcType="VARCHAR"/>
+        <result column="CONTRACT_NUMBER" property="contractNumber" jdbcType="VARCHAR"/>
+        <result column="INVOICE_DATE" property="invoiceDate" jdbcType="DATE"/>
+        <result column="SAILING_DATE" property="sailingDate" jdbcType="DATE"/>
+        <result column="SHIPPER_CODE" property="shipperCode" jdbcType="VARCHAR"/>
+        <result column="SHIPPER_NAME" property="shipperName" jdbcType="VARCHAR"/>
+        <result column="EXIT_PORT" property="exitPort" jdbcType="VARCHAR"/>
+        <result column="EXIT_DATE" property="exitDate" jdbcType="DATE"/>
+        <result column="RECORD_NUMBER" property="recordNumber" jdbcType="VARCHAR"/>
+        <result column="RECORD_DATE" property="recordDate" jdbcType="DATE"/>
+        <result column="CONSIGNEE" property="consignee" jdbcType="VARCHAR"/>
+        <result column="TRANSPORT_WAY" property="transportWay" jdbcType="VARCHAR"/>
+        <result column="VESSEL_VOYAGE" property="vesselVoyage" jdbcType="VARCHAR"/>
+        <result column="DELIVERY_NUMBER" property="deliveryNumber" jdbcType="VARCHAR"/>
+        <result column="PRODUCTION_UNIT_CODE" property="productionUnitCode" jdbcType="VARCHAR"/>
+        <result column="PRODUCTION_UNIT" property="productionUnit" jdbcType="VARCHAR"/>
+        <result column="SUPERVISION_MODE" property="supervisionMode" jdbcType="VARCHAR"/>
+        <result column="EXEMPTION_NATURE" property="exemptionNature" jdbcType="VARCHAR"/>
+        <result column="LICENSE_KEY" property="licenseKey" jdbcType="VARCHAR"/>
+        <result column="TRADING_COUNTRY" property="tradingCountry" jdbcType="VARCHAR"/>
+        <result column="ARRIVAL_COUNTRY" property="arrivalCountry" jdbcType="VARCHAR"/>
+        <result column="DISCHARGE_PORT" property="dischargePort" jdbcType="VARCHAR"/>
+        <result column="DESTINATION_PORT" property="destinationPort" jdbcType="VARCHAR"/>
+        <result column="DEPARTURE_PORT" property="departurePort" jdbcType="VARCHAR"/>
+        <result column="PACKAGE_TYPE" property="packageType" jdbcType="VARCHAR"/>
+        <result column="PACKAGE_NUMBER" property="packageNumber" jdbcType="DECIMAL"/>
+        <result column="PACKAGE_NUMBER_UNIT" property="packageNumberUnit" jdbcType="VARCHAR"/>
+        <result column="GROSS_WEIGHT" property="grossWeight" jdbcType="DECIMAL"/>
+        <result column="NET_WEIGHT" property="netWeight" jdbcType="DECIMAL"/>
+        <result column="TRANSACTION_MODE" property="transactionMode" jdbcType="VARCHAR"/>
+        <result column="FREIGHT" property="freight" jdbcType="DECIMAL"/>
+        <result column="PREMIUM" property="premium" jdbcType="DECIMAL"/>
+        <result column="INCIDENTAL" property="incidental" jdbcType="DECIMAL"/>
+        <result column="ATTACHED_DOCUMENT" property="attachedDocument" jdbcType="VARCHAR"/>
+        <result column="SHIPPING_MARK" property="shippingMark" jdbcType="VARCHAR"/>
+        <result column="SPECIAL_RELATION" property="specialRelation" jdbcType="VARCHAR"/>
+        <result column="PRICE_IMPACT" property="priceImpact" jdbcType="VARCHAR"/>
+        <result column="PAYMENT_ROYALTIES" property="paymentRoyalties" jdbcType="VARCHAR"/>
+        <result column="STATUS" property="status" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="CURRENCY_SYSTEM" property="currencySystem" jdbcType="VARCHAR"/>
+        <result column="DOCUMENT_ID" property="documentId" jdbcType="DECIMAL"/>
+        <result column="APPROVAL_ID" property="approvalId" jdbcType="DECIMAL"/>
+        <result column="CUSTOMS_MODIFY_SN" property="customsModifySn" jdbcType="DECIMAL"/>
+        <result column="OTHER_PACKAGE_TYPE" property="otherPackageType" jdbcType="VARCHAR"/>
+
+        <result column="CREATED_BY_NAME" property="createdByName" jdbcType="VARCHAR"/>
+        <result column="DOCUMENT_NAME" property="documentName" jdbcType="VARCHAR"/>
+        <result column="APPROVAL_NAME" property="approvalName" jdbcType="VARCHAR"/>
+        <result column="TOTAL_PRICE" property="totalPrice" jdbcType="DECIMAL"/>
+        <result column="PRODUCT_NAME" property="productName" jdbcType="VARCHAR"/>
+        <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+        <result column="ATTACHMENT_ID" property="attachmentId" jdbcType="DECIMAL"/>
+        <result column="FILE_ID" property="fileId" jdbcType="DECIMAL"/>
+        <result column="FILE_NAME" property="fileName" jdbcType="VARCHAR"/>
+
+        <result column="BILL_NUMBER" property="billNumber" jdbcType="VARCHAR"/>
+        <result column="DECLARE_CUSTOM_LINE" property="declareCustomLine" jdbcType="VARCHAR"/>
+</resultMap>
+
+
+    <select id="selectList" parameterType="hcux.doc.dto.DocCustomsHeader"
+            resultMap="BaseResultMap">
+        SELECT
+        HDCH.CUSTOMS_ID,
+        HDCH.BOOKING_ID,
+        HDCH.INVOICE_NUMBER,
+        HDCH.CONTRACT_NUMBER,
+        HDCH.INVOICE_DATE,
+        HDCH.SAILING_DATE,
+        HDCH.SHIPPER_CODE,
+        HDCH.SHIPPER_NAME,
+        HDCH.EXIT_PORT,
+        HDCH.EXIT_DATE,
+        HDCH.RECORD_NUMBER,
+        HDCH.RECORD_DATE,
+        HDCH.CONSIGNEE,
+        HDCH.TRANSPORT_WAY,
+        HDCH.VESSEL_VOYAGE,
+        HDCH.DELIVERY_NUMBER,
+        HDCH.PRODUCTION_UNIT,
+        HDCH.PRODUCTION_UNIT_CODE,
+        HDCH.SUPERVISION_MODE,
+        HDCH.EXEMPTION_NATURE,
+        HDCH.LICENSE_KEY,
+        HDCH.TRADING_COUNTRY,
+        HDCH.ARRIVAL_COUNTRY,
+        HDCH.DISCHARGE_PORT,
+        HDCH.DESTINATION_PORT,
+        HDCH.DEPARTURE_PORT,
+        HDCH.PACKAGE_TYPE,
+        HDCH.PACKAGE_NUMBER,
+        HDCH.GROSS_WEIGHT,
+        HDCH.NET_WEIGHT,
+        HDCH.TRANSACTION_MODE,
+        HDCH.FREIGHT,
+        HDCH.PREMIUM,
+        HDCH.INCIDENTAL,
+        HDCH.ATTACHED_DOCUMENT,
+        HDCH.SHIPPING_MARK,
+        HDCH.SPECIAL_RELATION,
+        HDCH.PRICE_IMPACT,
+        HDCH.PAYMENT_ROYALTIES,
+        HDCH.STATUS,
+        HDCH.DELETE_FLAG,
+        HDCH.REMARK,
+        HDCH.ATTACHMENT_ID,
+        HDCH.CURRENCY_SYSTEM,
+        HDCH.OTHER_PACKAGE_TYPE,
+        HDCH.DOCUMENT_ID,
+        HDCH.APPROVAL_ID,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HDCH"/>
+        </include>,
+        HE.NAME DOCUMENT_NAME,
+        HE_APPROVAL.NAME APPROVAL_NAME,
+        HDCL.TOTAL_PRICE,
+        HDCL_1.PRODUCT_NAME_CN PRODUCT_NAME,
+        SF.FILE_ID AS FILE_ID,
+        SF.FILE_NAME AS FILE_NAME
+        FROM HCUX_DOC_CUSTOMS_HEADER HDCH
+        LEFT JOIN HR_EMPLOYEE HE ON HDCH.DOCUMENT_ID = HE.EMPLOYEE_ID
+        LEFT JOIN HR_EMPLOYEE HE_APPROVAL ON HDCH.APPROVAL_ID = HE_APPROVAL.EMPLOYEE_ID
+        LEFT JOIN SYS_FILE SF ON HDCH.ATTACHMENT_ID = SF.ATTACHMENT_ID
+        LEFT JOIN (
+            SELECT
+            CUSTOMS_ID,
+            SUM( TOTAL_PRICE ) TOTAL_PRICE
+            FROM
+            HCUX_DOC_CUSTOMS_LINE
+            GROUP BY
+            CUSTOMS_ID
+        ) HDCL ON HDCH.CUSTOMS_ID = HDCL.CUSTOMS_ID
+        LEFT JOIN (
+            SELECT *
+            FROM
+            (
+            SELECT
+            CUSTOMS_ID,
+            PRODUCT_NAME_CN,
+            ROW_NUMBER () OVER ( PARTITION BY CUSTOMS_ID ORDER BY CUSTOMS_LINE_ID ) AS RN
+            FROM HCUX_DOC_CUSTOMS_LINE
+            )
+            WHERE RN = 1
+        ) HDCL_1 ON HDCH.CUSTOMS_ID = HDCL_1.CUSTOMS_ID
+        <where>
+            <if test="customsId != null">
+                AND HDCH.CUSTOMS_ID = #{customsId,jdbcType=DECIMAL}
+            </if>
+
+            <if test="invoiceNumber != null">
+                AND LOWER(HDCH.INVOICE_NUMBER) LIKE CONCAT('%',CONCAT(LOWER(#{invoiceNumber,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="consignee != null">
+                AND LOWER(HDCH.CONSIGNEE) LIKE CONCAT('%',CONCAT(LOWER(#{consignee,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="departurePort != null">
+                AND LOWER(HDCH.DEPARTURE_PORT) LIKE CONCAT('%',CONCAT(LOWER(#{departurePort,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="dischargePort != null">
+                AND LOWER(HDCH.DISCHARGE_PORT) LIKE CONCAT('%',CONCAT(LOWER(#{dischargePort,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="productName != null">
+                AND LOWER(HDCL_1.PRODUCT_NAME_CN) LIKE CONCAT('%',CONCAT(LOWER(#{productName,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="invoiceDateFrom != null">
+                AND TO_CHAR(HDCH.INVOICE_DATE,'yyyy-MM-dd') &gt;=
+                TO_CHAR(#{invoiceDateFrom,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+
+            <if test="invoiceDateTo != null">
+                AND TO_CHAR(HDCH.INVOICE_DATE,'yyyy-MM-dd') &lt;=
+                TO_CHAR(#{invoiceDateTo,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+
+            <if test="status != null">
+                AND HDCH.STATUS = #{status,jdbcType=VARCHAR}
+            </if>
+            <if test="statusList != null and statusList.size > 0">
+                AND HDCH.STATUS in
+                <foreach collection="statusList" open="(" separator="," close=")" item="status">
+                    #{status,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+
+            <if test='currentUserName != null and currentUserName != ""'>
+                AND (LOWER(HE.NAME) LIKE CONCAT('%',CONCAT(LOWER(#{currentUserName,jdbcType=VARCHAR}),'%'))
+                    OR LOWER(HE_APPROVAL.NAME) LIKE CONCAT('%',CONCAT(LOWER(#{currentUserName,jdbcType=VARCHAR}),'%')))
+            </if>
+        </where>
+        ORDER BY HDCH.INVOICE_DATE DESC
+    </select>
+    <select id="queryCustomsHeaderByInvoiceNumber" parameterType="collection"
+            resultMap="BaseResultMap">
+        SELECT
+        HDCH.CUSTOMS_ID,
+        HDCH.BOOKING_ID,
+        HDCH.INVOICE_NUMBER,
+        HDCH.CONTRACT_NUMBER,
+        HDCH.INVOICE_DATE,
+        HDCH.SAILING_DATE,
+        HDCH.SHIPPER_CODE,
+        HDCH.SHIPPER_NAME,
+        HDCH.EXIT_PORT,
+        HDCH.EXIT_DATE,
+        HDCH.RECORD_NUMBER,
+        HDCH.RECORD_DATE,
+        HDCH.CONSIGNEE,
+        HDCH.TRANSPORT_WAY,
+        HDCH.VESSEL_VOYAGE,
+        HDCH.DELIVERY_NUMBER,
+        HDCH.PRODUCTION_UNIT,
+        HDCH.PRODUCTION_UNIT_CODE,
+        HDCH.SUPERVISION_MODE,
+        HDCH.EXEMPTION_NATURE,
+        HDCH.LICENSE_KEY,
+        HDCH.TRADING_COUNTRY,
+        HDCH.ARRIVAL_COUNTRY,
+        HDCH.DISCHARGE_PORT,
+        HDCH.DESTINATION_PORT,
+        HDCH.DEPARTURE_PORT,
+        HDCH.PACKAGE_TYPE,
+        HDCH.PACKAGE_NUMBER,
+        HDCH.GROSS_WEIGHT,
+        HDCH.NET_WEIGHT,
+        HDCH.TRANSACTION_MODE,
+        HDCH.FREIGHT,
+        HDCH.PREMIUM,
+        HDCH.INCIDENTAL,
+        HDCH.ATTACHED_DOCUMENT,
+        HDCH.SHIPPING_MARK,
+        HDCH.SPECIAL_RELATION,
+        HDCH.PRICE_IMPACT,
+        HDCH.PAYMENT_ROYALTIES,
+        HDCH.STATUS,
+        HDCH.DELETE_FLAG,
+        HDCH.REMARK,
+        HDCH.ATTACHMENT_ID,
+        HDCH.CURRENCY_SYSTEM,
+        HDCH.OTHER_PACKAGE_TYPE,
+        HDCH.DOCUMENT_ID,
+        HDCH.APPROVAL_ID,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HDCH"/>
+        </include>
+        FROM HCUX_DOC_CUSTOMS_HEADER HDCH
+        where HDCH.INVOICE_NUMBER in
+        <foreach collection="collection" open="(" separator="," close=")" item="invoiceNumber">
+            #{invoiceNumber}
+        </foreach>
+    </select>
+
+    <select id="queryMaxSn" parameterType="hcux.doc.dto.DocCustomsHeader"
+            resultType="long">
+        SELECT MAX(CUSTOMS_MODIFY_SN)
+        FROM HCUX_DOC_CUSTOMS_HEADER HDCH
+        WHERE HDCH.INVOICE_NUMBER LIKE 'X%' || #{invoiceNumber,jdbcType=VARCHAR}
+    </select>
+
+    <select id="queryTotalAmount" parameterType="hcux.doc.dto.DocCustomsHeader"
+            resultType="double">
+        SELECT
+        SUM( TOTAL_PRICE ) TOTAL_PRICE
+        FROM
+        HCUX_DOC_CUSTOMS_LINE HDCL
+        JOIN HCUX_DOC_CUSTOMS_HEADER HDCH ON HDCH.CUSTOMS_ID = HDCL.CUSTOMS_ID
+        <where>
+            <if test="customsId != null">
+                AND HDCH.CUSTOMS_ID = #{customsId,jdbcType=DECIMAL}
+            </if>
+
+            <if test="invoiceNumber != null">
+                AND HDCH.INVOICE_NUMBER LIKE CONCAT('%',CONCAT(#{invoiceNumber,jdbcType=VARCHAR},'%'))
+            </if>
+
+            <if test="exitPort != null">
+                AND HDCH.EXIT_PORT LIKE CONCAT('%',CONCAT(#{exitPort,jdbcType=VARCHAR},'%'))
+            </if>
+
+            <if test="destinationPort != null">
+                AND HDCH.DESTINATION_PORT LIKE CONCAT('%',CONCAT(#{destinationPort,jdbcType=VARCHAR},'%'))
+            </if>
+
+            <if test="productName != null">
+                AND HDCL.PRODUCT_NAME_CN LIKE CONCAT('%',CONCAT(#{productName,jdbcType=VARCHAR},'%'))
+            </if>
+
+            <if test="invoiceDateFrom != null">
+                AND TO_CHAR(HDCH.INVOICE_DATE,'yyyy-MM-dd') &gt;=
+                TO_CHAR(#{invoiceDateFrom,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+
+            <if test="invoiceDateTo != null">
+                AND TO_CHAR(HDCH.INVOICE_DATE,'yyyy-MM-dd') &lt;=
+                TO_CHAR(#{invoiceDateTo,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+
+            <if test="status != null">
+                AND HDCH.STATUS = #{status,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByBookingId" parameterType="hcux.doc.dto.DocCustomsHeader"
+            resultMap="BaseResultMap">
+        SELECT *
+        FROM HCUX_DOC_CUSTOMS_HEADER
+        WHERE BOOKING_ID = #{bookingId,jdbcType=DECIMAL}
+          AND STATUS NOT IN ('3','4','6', '7')
+        ORDER BY customs_Id ASC
+    </select>
+
+    <select id="selectCopyInfo" parameterType="hcux.doc.dto.DocCustomsHeader"
+            resultMap="BaseResultMap">
+        SELECT
+         HDCH.INVOICE_NUMBER,
+         HDCH.CURRENCY_SYSTEM,
+         HDS.BILL_NUMBER,
+         HDBN.DECLARE_CUSTOM_LINE
+         from HCUX_DOC_CUSTOMS_HEADER HDCH left JOIN HCUX_DOC_SYNTHESIS HDS
+         ON  HDCH.CUSTOMS_ID=HDS.CUSTOMS_ID
+         left JOIN HCUX_DOC_BOOKING_NOTE HDBN
+         ON HDCH.invoice_number= HDBN.invoice_number
+         WHERE
+         HDCH.CUSTOMS_ID=#{customsId}
+    </select>
+
+    <select id="queryCurrencySystemTotal" resultMap="BaseResultMap" parameterType="hcux.doc.dto.DocCustomsHeader">
+        SELECT
+            HDCH.CURRENCY_SYSTEM,
+            ROUND(SUM( TOTAL_PRICE ), 2) TOTAL_PRICE
+        FROM
+            HCUX_DOC_CUSTOMS_LINE HDCL
+            JOIN HCUX_DOC_CUSTOMS_HEADER HDCH ON HDCH.CUSTOMS_ID = HDCL.CUSTOMS_ID
+            LEFT JOIN HR_EMPLOYEE HE ON HDCH.DOCUMENT_ID = HE.EMPLOYEE_ID
+            LEFT JOIN HR_EMPLOYEE HE_APPROVAL ON HDCH.APPROVAL_ID = HE_APPROVAL.EMPLOYEE_ID
+        <where>
+            <if test="customsId != null">
+                AND HDCH.CUSTOMS_ID = #{customsId,jdbcType=DECIMAL}
+            </if>
+
+            <if test="invoiceNumber != null">
+                AND LOWER(HDCH.INVOICE_NUMBER) LIKE CONCAT('%',CONCAT(LOWER(#{invoiceNumber,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="consignee != null">
+                AND LOWER(HDCH.CONSIGNEE) LIKE CONCAT('%',CONCAT(LOWER(#{consignee,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="departurePort != null">
+                AND LOWER(HDCH.DEPARTURE_PORT) LIKE CONCAT('%',CONCAT(LOWER(#{departurePort,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="dischargePort != null">
+                AND LOWER(HDCH.DISCHARGE_PORT) LIKE CONCAT('%',CONCAT(LOWER(#{dischargePort,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="productName != null">
+                AND LOWER(HDCL.PRODUCT_NAME_CN) LIKE CONCAT('%',CONCAT(LOWER(#{productName,jdbcType=VARCHAR}),'%'))
+            </if>
+
+            <if test="invoiceDateFrom != null">
+                AND TO_CHAR(HDCH.INVOICE_DATE,'yyyy-MM-dd') &gt;=
+                TO_CHAR(#{invoiceDateFrom,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+
+            <if test="invoiceDateTo != null">
+                AND TO_CHAR(HDCH.INVOICE_DATE,'yyyy-MM-dd') &lt;=
+                TO_CHAR(#{invoiceDateTo,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+
+            <if test="status != null">
+                AND HDCH.STATUS = #{status,jdbcType=VARCHAR}
+            </if>
+            <if test="statusList != null and statusList.size > 0">
+                AND HDCH.STATUS in
+                <foreach collection="statusList" open="(" separator="," close=")" item="status">
+                    #{status,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+
+            <if test='currentUserName != null and currentUserName != ""'>
+                AND (LOWER(HE.NAME) LIKE CONCAT('%',CONCAT(LOWER(#{currentUserName,jdbcType=VARCHAR}),'%'))
+                OR LOWER(HE_APPROVAL.NAME) LIKE CONCAT('%',CONCAT(LOWER(#{currentUserName,jdbcType=VARCHAR}),'%')))
+            </if>
+        </where>
+        GROUP BY HDCH.CURRENCY_SYSTEM
+    </select>
+</mapper>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.mdm.mapper.MdmInventoryAddressMapper">
+    <resultMap id="BaseResultMap" type="hcux.mdm.dto.MdmInventoryAddress"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="INV_ADDRESS_ID" property="invAddressId" jdbcType="DECIMAL" />
+        <result column="MAREHOUSE_NAME" property="marehouseName" jdbcType="VARCHAR" />
+        <result column="PROVINCE" property="province" jdbcType="VARCHAR" />
+        <result column="CITY" property="city" jdbcType="VARCHAR" />
+        <result column="AREA" property="area" jdbcType="VARCHAR" />
+        <result column="ADDRESS" property="address" jdbcType="VARCHAR" />
+        <result column="PROVINCE_MEANING" property="provinceMeaning" jdbcType="VARCHAR" />
+        <result column="CITY_MEANING" property="cityMeaning" jdbcType="VARCHAR" />
+        <result column="AREA_MEANING" property="areaMeaning" jdbcType="VARCHAR" />
+        <result column="ENABLED_FLAG" property="enabledFlag" jdbcType="VARCHAR" />
+        <result column="REMARK" property="remark" jdbcType="VARCHAR" />
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR" />
+        <result column="DRAW_GOODS_UNIT" property="drawGoodsUnit" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmInventoryAddress">
+        SELECT
+            HMIA.INV_ADDRESS_ID,
+            HMIA.MAREHOUSE_NAME DRAW_GOODS_UNIT,
+            HMIA.PROVINCE,
+            HMIA.CITY,
+            HMIA.AREA,
+            HMIA.ADDRESS,
+            HMIA.REMARK,
+            HMIA.ENABLED_FLAG,
+            <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+                <property name="std" value="HMIA"/>
+            </include>
+        FROM HCUX_MDM_INVENTORY_ADDRESS HMIA
+        <where>
+            <if test="marehouseName != null">
+                AND HMIA.MAREHOUSE_NAME LIKE CONCAT('%',CONCAT(#{marehouseName,jdbcType=VARCHAR},'%'))
+            </if>
+        </where>
+        ORDER BY HMIA.INV_ADDRESS_ID DESC
+    </select>
+
+    <select id="queryForLov" resultMap="BaseResultMap" parameterType="hcux.mdm.dto.MdmInventoryAddress">
+        SELECT HMIA.INV_ADDRESS_ID,
+        HMIA.MAREHOUSE_NAME,
+        HMIA.PROVINCE,
+        HMIA.CITY,
+        HMIA.AREA,
+        HMIA.ADDRESS,
+        (
+            SELECT SCVT.MEANING
+            FROM SYS_CODE_VALUE_B SCVB
+            LEFT JOIN SYS_CODE_VALUE_TL SCVT
+            ON (SCVB.CODE_VALUE_ID = SCVT.CODE_VALUE_ID AND
+                SCVT.LANG = #{request.locale,jdbcType=VARCHAR})
+            LEFT JOIN SYS_CODE_B SCB
+            ON SCVB.CODE_ID = SCB.CODE_ID
+            WHERE SCB.CODE = 'HCUX_LM.ORDER_ADDRESS'
+            AND SCVB.VALUE = HMIA.PROVINCE
+        ) PROVINCE_MEANING,
+        (
+            SELECT SCVT.MEANING
+            FROM SYS_CODE_VALUE_B SCVB
+            LEFT JOIN SYS_CODE_VALUE_TL SCVT
+            ON (SCVB.CODE_VALUE_ID = SCVT.CODE_VALUE_ID AND
+                SCVT.LANG = #{request.locale,jdbcType=VARCHAR})
+            LEFT JOIN SYS_CODE_B SCB
+            ON SCVB.CODE_ID = SCB.CODE_ID
+            WHERE SCB.CODE = 'HCUX_LM.ORDER_ADDRESS'
+            AND SCVB.VALUE = HMIA.CITY
+        ) CITY_MEANING,
+        (
+            SELECT SCVT.MEANING
+            FROM SYS_CODE_VALUE_B SCVB
+            LEFT JOIN SYS_CODE_VALUE_TL SCVT
+            ON (SCVB.CODE_VALUE_ID = SCVT.CODE_VALUE_ID AND
+                SCVT.LANG = #{request.locale,jdbcType=VARCHAR})
+            LEFT JOIN SYS_CODE_B SCB
+            ON SCVB.CODE_ID = SCB.CODE_ID
+            WHERE SCB.CODE = 'HCUX_LM.ORDER_ADDRESS'
+            AND SCVB.VALUE = HMIA.AREA
+        ) AREA_MEANING,
+        HMIA.REMARK,
+        HMIA.ENABLED_FLAG
+        FROM HCUX_MDM_INVENTORY_ADDRESS HMIA
+        <where>
+            <if test="marehouseName != null">
+                AND HMIA.MAREHOUSE_NAME LIKE CONCAT('%',CONCAT(#{marehouseName,jdbcType=VARCHAR},'%'))
+            </if>
+            AND HMIA.ENABLED_FLAG = 'Y'
+        </where>
+        ORDER BY HMIA.INV_ADDRESS_ID DESC
+    </select>
+</mapper>

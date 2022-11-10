@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.sys.mapper.SysJobRecordMapper">
+    <resultMap id="BaseResultMap" type="hcux.sys.dto.SysJobRecord"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="JOB_RECORD_ID" property="jobRecordId" jdbcType="DECIMAL"/>
+        <result column="JOB_CODE" property="jobCode" jdbcType="VARCHAR"/>
+        <result column="PREVIOUS_FIRE_DATE" property="previousFireDate" jdbcType="DATE"/>
+    </resultMap>
+
+
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsAgencyFeeMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsAgencyFee">
+        <result column="project_number" property="projectNumber" jdbcType="VARCHAR" />
+        <result column="back_tax" property="backTax" jdbcType="DECIMAL" />
+        <result column="extended_price" property="extendedPrice" jdbcType="DECIMAL" />
+        <result column="invoice_amount" property="invoiceAmount" jdbcType="DECIMAL" />
+    </resultMap>
+    <select id="queryEpsAgencyFee" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsAgencyFee">
+        SELECT
+        project_name project_number,
+        back_tax,
+        extended_price
+        FROM cux_0_agency_fee_v@ebs_db
+        where project_name=#{projectNumber}
+        and back_tax=#{backTax}
+    </select>
+    <!--查询行总金额-->
+    <select id="queryTotalExtendedPrice" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsAgencyFee">
+        SELECT
+        project_name project_number,
+        back_tax,
+        extended_price
+        FROM cux_0_agency_fee_v@ebs_db
+        where project_name=#{projectNumber}
+    </select>
+<!--各档开票金额计算-->
+    <select id="queryInvoiceAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsAgencyFee">
+        SELECT
+        (nvl(base_amount,0)+nvl(in_tax,0))invoice_amount
+        FROM cux_0_back_tax_v@ebs_db
+        where
+        in_tax_percent=#{inTaxPercent} --进项税率
+        and back_tax_percent=#{backTax} --退税率
+        and project_number=#{projectNumber}
+    </select>
+</mapper>

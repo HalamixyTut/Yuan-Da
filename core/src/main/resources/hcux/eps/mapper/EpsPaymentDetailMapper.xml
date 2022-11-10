@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.eps.mapper.EpsPaymentDetailMapper">
+    <resultMap id="BaseResultMap" type="hcux.eps.dto.EpsPaymentDetail"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="PAYMENT_ID" property="paymentId" jdbcType="DECIMAL"/>
+        <result column="INVOICE_ID" property="invoiceId" jdbcType="DECIMAL"/>
+        <result column="LINE_NUMBER" property="lineNumber" jdbcType="DECIMAL"/>
+        <result column="PROJECT_ID" property="projectId" jdbcType="DECIMAL"/>
+        <result column="VENDOR_ID" property="vendorId" jdbcType="DECIMAL"/>
+        <result column="VENDOR_NAME" property="vendorName" jdbcType="VARCHAR"/>
+        <result column="PROJECT_NUM" property="projectNum" jdbcType="VARCHAR"/>
+        <result column="PAYMENT_DATE" property="paymentDate" jdbcType="DATE"/>
+        <result column="EXPENDITURE_TYPE" property="expenditureType" jdbcType="VARCHAR"/>
+        <result column="CURRENCY_CODE" property="currencyCode" jdbcType="VARCHAR"/>
+        <result column="AMOUNT" property="amount" jdbcType="DECIMAL"/>
+        <result column="BASE_AMOUNT" property="baseAmount" jdbcType="DECIMAL"/>
+        <result column="TOTAL_AMOUNT" property="totalAmount" jdbcType="DECIMAL"/>
+        <result column="STATUS" property="status" jdbcType="VARCHAR"/>
+        <result column="total_line_amount" property="totalLineAmount" jdbcType="DECIMAL"/>
+    </resultMap>
+
+    <select id="selectEpsPaymentDetailFromEbs" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsPaymentDetail">
+        select INVOICE_ID,
+               LINE_NUMBER,
+               PROJECT_ID,
+               VENDOR_ID,
+               VENDOR_NAME,
+               PROJECT_NUM,
+               PAYMENT_DATE,
+               EXPENDITURE_TYPE,
+               CURRENCY_CODE,
+               AMOUNT,
+               BASE_AMOUNT,
+               STATUS,
+               null REQUEST_ID,
+               null PROGRAM_ID,
+               null OBJECT_VERSION_NUMBER,
+               null CREATED_BY,
+               null CREATION_DATE,
+               null LAST_UPDATED_BY,
+               LAST_UPDATE_DATE,
+               null LAST_UPDATE_LOGIN
+        from cux_req_for_pending_payment_v4@ebs_db purchase
+        where purchase.LAST_UPDATE_DATE >= #{lastUpdateDate}
+    </select>
+    <select id="selectEpsPaymentDetailFromHap" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsPaymentDetail">
+        select
+        purchase.PAYMENT_ID,
+        purchase.INVOICE_ID,
+        purchase.LINE_NUMBER,
+        purchase.PROJECT_ID,
+        purchase.VENDOR_ID,
+        purchase.VENDOR_NAME,
+        purchase.PROJECT_NUM,
+        purchase.PAYMENT_DATE,
+        purchase.EXPENDITURE_TYPE,
+        purchase.CURRENCY_CODE,
+        purchase.AMOUNT,
+        purchase.BASE_AMOUNT,
+        purchase.STATUS,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="purchase"/>
+        </include>
+        from HCUX_EPS_PAYMENT_DETAIL purchase
+        where purchase.INVOICE_ID=#{invoiceId}
+        and purchase.LINE_NUMBER=#{lineNumber}
+        and purchase.PROJECT_ID=#{projectId}
+        and purchase.VENDOR_ID=#{vendorId}
+    </select>
+    <select id="queryEpsPaymentDetail" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsPaymentDetail">
+        select
+        purchase.PAYMENT_ID,
+        purchase.INVOICE_ID,
+        purchase.LINE_NUMBER,
+        purchase.PROJECT_ID,
+        purchase.VENDOR_ID,
+        purchase.VENDOR_NAME,
+        purchase.PROJECT_NUM,
+        purchase.PAYMENT_DATE,
+        purchase.EXPENDITURE_TYPE,
+        purchase.CURRENCY_CODE,
+        purchase.AMOUNT,
+        purchase.BASE_AMOUNT,
+        purchase.STATUS,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="purchase"/>
+        </include>
+        from HCUX_EPS_PAYMENT_DETAIL purchase
+        <where>
+            AND purchase.STATUS = '已付'
+
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                    <property name="projectNum" value="purchase.PROJECT_NUM"/>
+                </include>
+            </if>
+
+            <if test="projectNum != null">
+                and lower(purchase.PROJECT_NUM) like '%'|| lower(#{projectNum}) ||'%'
+            </if>
+            <if test="projectNumFrom != null">
+                and lower(PROJECT_NUM) >= lower(#{projectNumFrom})
+            </if>
+
+            <if test="projectNumTo != null">
+                and lower(PROJECT_NUM) &lt;= lower(#{projectNumTo})
+            </if>
+            <if test="vendorName != null">
+                and purchase.VENDOR_NAME like '%'||#{vendorName}||'%'
+            </if>
+            <if test="paymentDateFrom != null">
+                and to_char(purchase.PAYMENT_DATE,'yyyy-MM-dd') >=
+                to_char(#{paymentDateFrom,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+            <if test="paymentDateTo != null">
+                and to_char(purchase.PAYMENT_DATE,'yyyy-MM-dd') &lt;=
+                to_char(#{paymentDateTo,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+            <if test="expenditureType != null">
+                and purchase.EXPENDITURE_TYPE = #{expenditureType}
+            </if>
+
+            AND purchase.AMOUNT != 0
+        </where>
+        order by purchase.PAYMENT_DATE desc,purchase.PAYMENT_ID desc
+    </select>
+
+    <select id="selectTotalAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsPaymentDetail">
+        select
+        purchase.CURRENCY_CODE CURRENCY_CODE,
+        ROUND(sum(purchase.AMOUNT),2)  TOTAL_AMOUNT
+        from HCUX_EPS_PAYMENT_DETAIL purchase
+        <where>
+            AND purchase.STATUS = '已付'
+
+            <if test='queryType == "PORTAL"'>
+                <include refid="hcux.core.mapper.DataMaskingMapper.xjPortalSql">
+                    <property name="projectNum" value="purchase.PROJECT_NUM"/>
+                </include>
+            </if>
+
+            <if test="projectNum != null">
+                and lower(purchase.PROJECT_NUM) like '%'|| lower(#{projectNum}) ||'%'
+            </if>
+
+            <if test="projectNumFrom != null">
+                and lower(purchase.PROJECT_NUM) >= lower(#{projectNumFrom})
+            </if>
+
+            <if test="projectNumTo != null">
+                and lower(purchase.PROJECT_NUM) &lt;= lower(#{projectNumTo})
+            </if>
+
+            <if test="vendorName != null">
+                and purchase.VENDOR_NAME like '%'||#{vendorName}||'%'
+            </if>
+            <if test="paymentDateFrom != null">
+                and to_char(purchase.PAYMENT_DATE,'yyyy-MM-dd') >=
+                to_char(#{paymentDateFrom,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+            <if test="paymentDateTo != null">
+                and to_char(purchase.PAYMENT_DATE,'yyyy-MM-dd') &lt;=
+                to_char(#{paymentDateTo,jdbcType=TIMESTAMP},'yyyy-MM-dd')
+            </if>
+            <if test="expenditureType != null">
+                and purchase.EXPENDITURE_TYPE = #{expenditureType}
+            </if>
+        </where>
+        group by purchase.CURRENCY_CODE
+    </select>
+
+    <!--删除hap里面所有数据-->
+    <delete id="deleteAll">
+        delete from HCUX_EPS_PAYMENT_DETAIL
+    </delete>
+
+    <insert id="insertAll">
+        INSERT INTO HCUX_EPS_PAYMENT_DETAIL (
+            PAYMENT_ID,
+            INVOICE_ID,
+            LINE_NUMBER,
+            PROJECT_ID,
+            VENDOR_ID,
+            VENDOR_NAME,
+            PROJECT_NUM,
+            PAYMENT_DATE,
+            EXPENDITURE_TYPE,
+            CURRENCY_CODE,
+            AMOUNT,
+            BASE_AMOUNT,
+            STATUS
+        ) SELECT
+            HCUX_EPS_PAYMENT_DETAIL_S.nextval,
+            INVOICE_ID,
+            LINE_NUMBER,
+            PROJECT_ID,
+            VENDOR_ID,
+            VENDOR_NAME,
+            PROJECT_NUM,
+            PAYMENT_DATE,
+            EXPENDITURE_TYPE,
+            CURRENCY_CODE,
+            AMOUNT,
+            BASE_AMOUNT,
+            STATUS
+        FROM
+          cux_req_for_pending_payment_v4 @ebs_db
+    </insert>
+
+    <select id="selectTotalLineAmount" resultMap="BaseResultMap" parameterType="hcux.eps.dto.EpsPaymentDetail">
+        select
+        round(sum(amount),2) total_line_amount
+        from cux_req_for_pending_payment_v5@ebs_db
+        where status='已付'
+        and project_num=#{projectNum}
+        and payment_date&lt;to_date('2019/06/01','yyyy/MM/dd')
+        and dis_creation_date>=to_date('2019/06/01','yyyy/MM/dd')
+        and expenditure_type=#{expenditureType}
+        and LAST_UPDATE_DATE>=to_date('2019-06-01','yyyy-MM-dd')
+    </select>
+</mapper>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.sys.mapper.SysUserSectionMapper">
+    <resultMap id="BaseResultMap" type="hcux.sys.dto.SysUserSection"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="USER_SECTION_ID" property="userSectionId" jdbcType="DECIMAL"/>
+        <result column="COMPANY_ID" property="companyId" jdbcType="DECIMAL"/>
+        <result column="USER_ID" property="userId" jdbcType="DECIMAL"/>
+        <result column="SECTION" property="section" jdbcType="VARCHAR"/>
+        <result column="PLATE_SECTION_ID" property="plateSectionId" jdbcType="DECIMAL"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+
+        <result column="SECTION_MEANING" property="sectionMeaning" jdbcType="VARCHAR"/>
+        <result column="COMPANY_NAME" property="companyName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysUserSection">
+        SELECT
+        HSUS.USER_SECTION_ID,
+        HSUS.COMPANY_ID,
+        HSUS.USER_ID,
+        HSUS.SECTION,
+        HSUS.PLATE_SECTION_ID,
+        HSUS.DELETE_FLAG,
+        FCT.COMPANY_FULL_NAME AS COMPANY_NAME,
+        HCVV.MEANING AS SECTION_MEANING,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HSUS"/>
+        </include>
+        FROM HCUX_SYS_USER_SECTION HSUS
+        LEFT OUTER JOIN FND_COMPANY_TL FCT ON HSUS.COMPANY_ID = FCT.COMPANY_ID AND FCT.LANG = 'zh_CN'
+        LEFT JOIN HCUX_CODE_VALUE_V HCVV ON HCVV.CODE = 'HCUX_SYS_SECTION' AND HCVV.VALUE = HSUS.SECTION
+        <where>
+            <if test="userSectionId != null">
+                AND HSUS.USER_SECTION_ID = #{userSectionId}
+            </if>
+            <if test="userId != null">
+                AND HSUS.USER_ID = #{userId}
+            </if>
+        </where>
+        ORDER BY user_section_Id ASC
+    </select>
+
+</mapper>

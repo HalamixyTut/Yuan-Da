@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd">
+    <!--文件上传解析器-->
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="307200000"/>
+        <property name="maxInMemorySize" value="4096"/>
+    </bean>
+
+    <!--微信端token获取方法 增加特殊逻辑：存储token-->
+    <security:http pattern="/api/public/wechat/oauth/token" create-session="stateless"
+                   authentication-manager-ref="oauth2AuthenticationManager"
+                   entry-point-ref="oauth2AuthenticationEntryPoint">
+        <security:csrf disabled="true"/>
+        <security:intercept-url pattern="/oauth/token" access="isFullyAuthenticated()"/>
+        <security:anonymous enabled="false"/>
+        <security:http-basic entry-point-ref="oauth2AuthenticationEntryPoint"/>
+        <security:custom-filter ref="requestContextFilter" before="PRE_AUTH_FILTER"/>
+        <security:custom-filter ref="clientCredentialsTokenEndpointFilter" before="BASIC_AUTH_FILTER"/>
+        <security:access-denied-handler ref="oauth2AccessDeniedHandler"/>
+    </security:http>
+</beans>

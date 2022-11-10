@@ -1,0 +1,85 @@
+<!--
+* description: 发票快递单号excel上传
+* version: 1.0
+* author:haojie.zhang@hand-china.com
+-->
+<#include "../include/header.html">
+<link href="${base.contextPath}/lib/bootstrap-3.3.7/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="${base.contextPath}/lib/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet" type="text/css"/>
+<link href="${base.contextPath}/lib/bootstrap-fileinput/themes/explorer/theme.min.css" rel="stylesheet" type="text/css"/>
+
+<script src="${base.contextPath}/lib/jquery-3.3.1/jquery-3.3.1.min.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+
+<script src="${base.contextPath}/lib/bootstrap-fileinput/js/plugins/piexif.min.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-fileinput/js/plugins/sortable.min.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-fileinput/js/plugins/purify.min.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-fileinput/js/fileinput.min.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-fileinput/js/locales/zh.js"></script>
+<script src="${base.contextPath}/lib/bootstrap-fileinput/themes/explorer/theme.min.js"></script>
+<body>
+<script>
+    var ajaxUrl='${base.contextPath}/hcux/cs/invoice/express/excel/import?${_csrf.parameterName}=${_csrf.token}';
+</script>
+<div id="content-container">
+    <div id="page-content" style="margin: 2px;">
+        <form id="mainform" class="form-horizontal" enctype="multipart/form-data">
+            <div class="file-loading">
+                <input name="file" class="file" id="files" type="file"/>
+            </div>
+
+            <script>
+                $("#files").fileinput({
+                    language: "zh",
+                    showUpload: true,
+                    previewFileType: 'any',
+                    browseOnZoneClick: true,
+                    // 'theme': 'explorer',
+                    uploadUrl: ajaxUrl,
+                    showRemove: true,
+                    allowedFileExtensions: ['xlsx', 'xls'],
+                    // uploadExtraData: function() {
+                    //     return {
+                    //         '${_csrf.parameterName}': '${_csrf.token}',
+                    //     };
+                    // },
+                    ajaxSettings: {
+                        datatype: "json",
+                        /* contentType: "multipart/form-data",*/
+                        success: function (e) {
+                            // window.parent.$('#importWin').data("kendoWindow").close();
+                            if(e.success){
+                                if(e.message.length>0){
+                                    kendo.ui.showConfirmDialog({
+                                        title: '提示',
+                                        message: e.message
+                                    });
+                                    /* Hap.showToast({
+                                         type: 'success',
+                                         message: '上传成功！'
+                                     });*/
+                                   // Hap.showToast({
+                                   //     type:'error',
+                                   //     message: e.message
+                                   // });
+                                }
+                            }
+                            if(!e.success){
+                                var message=e.message;
+                            }
+                        },
+                        error: function (e) {
+                            var message=e.response.message;
+                            Hap.showToast({
+                                type:'error',
+                                message: message
+                            });
+                        }
+                    },
+                    mergeAjaxCallbacks: 'before'
+                });
+            </script>
+        </form>
+    </div>
+</div>
+</body>

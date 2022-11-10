@@ -1,0 +1,269 @@
+<#--
+* description: 报关单审批拒绝界面
+* version: 1.0
+* author: feng.liu01@hand-china.com
+-->
+
+<#include "../include/header.html">
+
+<script type="text/javascript">
+
+    var customsId = '${RequestParameters.customsId!}';
+
+    var viewModel = Hap.createGridViewModel("#grid", {
+        model: {
+            customsId: customsId,
+            operationType: 'APPROVE_REJECT',
+            text01: '报关金额或币种有误',
+            text02: '中英文品名或海关编码有误',
+            text03: '件数/数量/毛重/净重/体积有误',
+            text04: '申报要素有误或不完整',
+            text05: '运输方式有误',
+            text06: '起运港或目的港有误',
+            text07: '境内货源地有误',
+            remark: ''
+        },
+
+        reject: function () {
+
+            var remarkArr = [];
+
+            for (let i = 1; i <= 8; i++) {
+                if (viewModel.model['checkbox0' + i] === 'Y') {
+                    remarkArr.push(viewModel.model['text0' + i])
+                }
+            }
+
+            viewModel.model.set('remark', remarkArr.join('，'));
+
+            if ($.isEmpty(viewModel.model.remark)) {
+                Hap.showToast({
+                    type: 'warning',
+                    message: '请输入审批意见！'
+                });
+                return
+            }
+
+            Hap.blockUI();
+
+            $.ajax({
+                type: 'POST',
+                url: '${base.contextPath}/hcux/doc/customs/header/approval',
+                datatype: "json",
+                contentType: "application/json",
+                data: JSON.stringify([viewModel.model]),
+                complete: function () {
+                    Hap.unblockUI();
+                },
+                success: function (data) {
+
+                    if (data.success) {
+                        Hap.showToast({
+                            type: 'success',
+                            message: '操作成功'
+                        });
+                        window.parent.$('#grid').data('kendoGrid').dataSource.read();
+
+                        viewModel.cancel();
+                    } else {
+                        Hap.showToast({
+                            type: 'error',
+                            message: data.message || ' 操作成功'
+                        });
+                    }
+                }
+            });
+        },
+        cancel: function () {
+            window.parent.$("#rejectWindow").data("kendoWindow").close();
+        }
+    });
+
+</script>
+<body>
+<div id="page-content">
+
+    <form class="form-horizontal" id="query-form" style="">
+
+        <div class="row">
+            <div class="col-xs-3">
+                <input data-bind="value:model.checkbox01" id="checkbox01Input"
+                       style="margin-top:6px;float: right;"
+                       type="text"/>
+                <script>
+                    $("#checkbox01Input").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'N'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-9">
+                <input class="k-textbox" data-bind="value:model.text01"
+                       style="width: 100%;" type="text"/>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 5px">
+            <div class="col-xs-3">
+                <input data-bind="value:model.checkbox02" id="checkbox02Input"
+                       style="margin-top:6px;float: right;"
+                       type="text"/>
+                <script>
+                    $("#checkbox02Input").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'N'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-9">
+                <input class="k-textbox" data-bind="value:model.text02"
+                       style="width: 100%;" type="text"/>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 5px">
+            <div class="col-xs-3">
+                <input data-bind="value:model.checkbox03" id="checkbox03Input"
+                       style="margin-top:6px;float: right;"
+                       type="text"/>
+                <script>
+                    $("#checkbox03Input").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'N'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-9">
+                <input class="k-textbox" data-bind="value:model.text03"
+                       style="width: 100%;" type="text"/>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 5px">
+            <div class="col-xs-3">
+                <input data-bind="value:model.checkbox04" id="checkbox04Input"
+                       style="margin-top:6px;float: right;"
+                       type="text"/>
+                <script>
+                    $("#checkbox04Input").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'N'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-9">
+                <input class="k-textbox" data-bind="value:model.text04"
+                       style="width: 100%;" type="text"/>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 5px">
+            <div class="col-xs-3">
+                <input data-bind="value:model.checkbox05" id="checkbox05Input"
+                       style="margin-top:6px;float: right;"
+                       type="text"/>
+                <script>
+                    $("#checkbox05Input").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'N'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-9">
+                <input class="k-textbox" data-bind="value:model.text05"
+                       style="width: 100%;" type="text"/>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 5px">
+            <div class="col-xs-3">
+                <input data-bind="value:model.checkbox06" id="checkbox06Input"
+                       style="margin-top:6px;float: right;"
+                       type="text"/>
+                <script>
+                    $("#checkbox06Input").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'N'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-9">
+                <input class="k-textbox" data-bind="value:model.text06"
+                       style="width: 100%;" type="text"/>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 5px">
+            <div class="col-xs-3">
+                <input data-bind="value:model.checkbox07" id="checkbox07Input"
+                       style="margin-top:6px;float: right;"
+                       type="text"/>
+                <script>
+                    $("#checkbox07Input").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'N'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-9">
+                <input class="k-textbox" data-bind="value:model.text07"
+                       style="width: 100%;" type="text"/>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 5px">
+            <div class="col-xs-3">
+                <input data-bind="value:model.checkbox08" id="checkbox08Input"
+                       style="margin-top:6px;float: right;"
+                       type="text"/>
+                <script>
+                    $("#checkbox08Input").kendoCheckbox({
+                        checkedValue: 'Y',
+                        uncheckedValue: 'N',
+                        defaultValue: 'N'
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-9">
+                <input class="k-textbox" data-bind="value:model.text08" placeholder="其他拒绝原因"
+                       style="width: 100%;" type="text"/>
+            </div>
+        </div>
+
+
+        <div class="row" style="margin-top: 10px">
+            <div class="col-xs-3">
+                <span class="btn btn-success" data-bind="click:reject" style="float:left;width:70px">
+                    <@spring.message "确认"/></span>
+
+            </div>
+
+            <div class="col-xs-offset-6 col-xs-3">
+                <span class="btn btn-danger" data-bind="click:cancel" style="float:right;width:70px">
+                    <@spring.message "取消"/></span>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        kendo.bind($('#query-form'), viewModel);
+    </script>
+
+</div>
+</body>
+</html>

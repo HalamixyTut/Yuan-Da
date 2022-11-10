@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.pm.mapper.PmNewsMapper">
+    <resultMap id="BaseResultMap" type="hcux.pm.dto.PmNews"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="NEWS_ID" property="newsId" jdbcType="DECIMAL"/>
+        <result column="TITLE" property="title" jdbcType="VARCHAR"/>
+        <result column="START_DATE" property="startDate" jdbcType="DATE"/>
+        <result column="END_DATE" property="endDate" jdbcType="DATE"/>
+        <result column="DISPLAY_RANGE" property="displayRange" jdbcType="VARCHAR"/>
+        <result column="CONTENT" property="content" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+        <result column="USER_NAME" property="userName" jdbcType="VARCHAR"/>
+        <result column="CREATION_DATE" property="creationDate" jdbcType="DATE"/>
+        <result column="DOWNLOAD_FLAG" property="downloadFlag" jdbcType="DATE"/>
+    </resultMap>
+    <select id="selectLists" resultMap="BaseResultMap" parameterType="hcux.pm.dto.PmNews">
+        select
+        HPN.NEWS_ID,
+        HPN.TITLE,
+        HPN.START_DATE,
+        HPN.END_DATE,
+        HPN.DISPLAY_RANGE,
+        HPN.DELETE_FLAG,
+        HPN.DOWNLOAD_FLAG,
+        HE.NAME USER_NAME,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HPN"/>
+        </include>
+        from HCUX_PM_NEWS HPN
+            JOIN SYS_USER SU ON HPN.CREATED_BY=SU.USER_ID
+        LEFT JOIN HR_EMPLOYEE HE ON SU.EMPLOYEE_ID = HE.EMPLOYEE_ID
+        where 1=1
+        <if test="newsId !=null">
+            and NEWS_ID =#{newsId}
+        </if>
+        <if test="title !=null">
+            and TITLE like '%'||#{title}||'%'
+        </if>
+        <if test="displayRange !=null">
+            and DISPLAY_RANGE like '%'||#{displayRange}||'%'
+        </if>
+        <if test='isEffective=="0" '>/*有效*/
+            and (select to_date(to_char(sysdate,'yyyy/MM/dd'),'yyyy/MM/dd') from dual)>=START_DATE
+            and (select to_date(to_char(sysdate,'yyyy/MM/dd'),'yyyy/MM/dd') from dual) &lt;= nvl(END_DATE,(select sysdate+1 from dual))
+        </if>
+        <if test='isEffective=="1" '>/*无效*/
+            and (select to_date(to_char(sysdate,'yyyy/MM/dd'),'yyyy/MM/dd') from dual) &lt; START_DATE
+            or (select to_date(to_char(sysdate,'yyyy/MM/dd'),'yyyy/MM/dd') from dual) > END_DATE
+        </if>
+        order by HPN.CREATION_DATE DESC
+    </select>
+    <select id="selectNews" resultMap="BaseResultMap" parameterType="hcux.pm.dto.PmNews">
+        select
+        HPN.NEWS_ID,
+        HPN.TITLE,
+        HPN.START_DATE,
+        HPN.END_DATE,
+        HPN.DISPLAY_RANGE,
+        HPN.CONTENT,
+        HPN.DELETE_FLAG,
+        HPN.DOWNLOAD_FLAG,
+        HE.NAME USER_NAME,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HPN"/>
+        </include>
+        from HCUX_PM_NEWS HPN
+        JOIN SYS_USER SU ON HPN.CREATED_BY=SU.USER_ID
+        LEFT JOIN HR_EMPLOYEE HE ON SU.EMPLOYEE_ID = HE.EMPLOYEE_ID
+        where 1=1
+        <if test="newsId !=null">
+            and NEWS_ID =#{newsId}
+        </if>
+    </select>
+</mapper>

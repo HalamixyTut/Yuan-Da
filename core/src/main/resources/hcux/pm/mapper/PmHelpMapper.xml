@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.pm.mapper.PmHelpMapper">
+    <resultMap id="BaseResultMap" type="hcux.pm.dto.PmHelp"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="HELP_ID" property="helpId" jdbcType="DECIMAL" />
+        <result column="TITLE" property="title" jdbcType="VARCHAR" />
+        <result column="START_DATE" property="startDate" jdbcType="DATE" />
+        <result column="END_DATE" property="endDate" jdbcType="DATE" />
+        <result column="DISPLAY_RANGE" property="displayRange" jdbcType="VARCHAR" />
+        <result column="CONTENT" property="content" jdbcType="VARCHAR" />
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR" />
+        <result column="USER_NAME" property="userName" jdbcType="VARCHAR"/>
+        <result column="CREATE_DATE" property="createDate" jdbcType="DATE"/>
+    </resultMap>
+
+    <select id="selectLists" resultMap="BaseResultMap" parameterType="hcux.pm.dto.PmHelp">
+        SELECT
+            HPH.HELP_ID,
+            HPH.TITLE,
+            HPH.START_DATE,
+            HPH.END_DATE,
+            HPH.DISPLAY_RANGE,
+            HPH.CREATION_DATE CREATE_DATE,
+            HE.NAME USER_NAME,
+            <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+                <property name="std" value="HPH"/>
+            </include>
+        FROM HCUX_PM_HELP HPH
+        JOIN SYS_USER SU ON HPH.CREATED_BY=SU.USER_ID
+        LEFT JOIN HR_EMPLOYEE HE ON SU.EMPLOYEE_ID = HE.EMPLOYEE_ID
+        <where>
+            <if test="displayRange != null">
+                AND HPH.DISPLAY_RANGE = #{displayRange}
+            </if>
+        </where>
+        ORDER BY HPH.END_DATE DESC
+    </select>
+
+    <select id="selectHelp" resultMap="BaseResultMap" parameterType="hcux.pm.dto.PmHelp">
+        SELECT
+        HPH.HELP_ID,
+        HPH.TITLE,
+        HPH.START_DATE,
+        HPH.END_DATE,
+        HPH.DISPLAY_RANGE,
+        HPH.CREATION_DATE CREATE_DATE,
+        HPH.CONTENT,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HPH"/>
+        </include>
+        FROM HCUX_PM_HELP HPH
+        <where>
+            <if test="helpId != null">
+                AND HPH.HELP_ID = #{helpId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectEffective" resultMap="BaseResultMap" parameterType="hcux.pm.dto.PmHelp">
+        SELECT
+        HPH.HELP_ID,
+        HPH.TITLE,
+        HPH.START_DATE,
+        HPH.END_DATE,
+        HPH.DISPLAY_RANGE,
+        HPH.CREATION_DATE CREATE_DATE,
+        HPH.CONTENT
+        FROM HCUX_PM_HELP HPH
+        <where>
+            HPH.START_DATE &lt;= (select to_date(to_char(sysdate,'yyyy-MM-dd'),'yyyy-MM-dd') from dual)
+            AND (HPH.END_DATE >= (select to_date(to_char(sysdate,'yyyy-MM-dd'),'yyyy-MM-dd') from dual) or HPH.End_DATE IS NULL)
+            <if test="displayRange != null">
+                AND HPH.DISPLAY_RANGE = #{displayRange}
+            </if>
+            <if test="helpId != null">
+                AND HPH.HELP_ID != #{helpId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectEffectiveForNH" resultMap="BaseResultMap" parameterType="hcux.pm.dto.PmHelp">
+        SELECT
+        HPH.TITLE,
+        HPH.CONTENT
+        FROM HCUX_PM_HELP HPH
+        <where>
+            HPH.START_DATE &lt;= (select to_date(to_char(sysdate,'yyyy-MM-dd'),'yyyy-MM-dd') from dual)
+            AND (HPH.END_DATE >= (select to_date(to_char(sysdate,'yyyy-MM-dd'),'yyyy-MM-dd') from dual) or HPH.End_DATE IS NULL)
+            AND HPH.DISPLAY_RANGE = 'NH'
+        </where>
+    </select>
+</mapper>

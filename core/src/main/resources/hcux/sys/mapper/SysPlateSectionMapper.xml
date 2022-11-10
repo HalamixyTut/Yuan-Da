@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="hcux.sys.mapper.SysPlateSectionMapper">
+    <resultMap id="BaseResultMap" type="hcux.sys.dto.SysPlateSection"
+               extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="PLATE_SECTION_ID" property="plateSectionId" jdbcType="DECIMAL"/>
+        <result column="COMPANY_ID" property="companyId" jdbcType="DECIMAL"/>
+        <result column="PLATE" property="plate" jdbcType="VARCHAR"/>
+        <result column="SECTION" property="section" jdbcType="VARCHAR"/>
+        <result column="REMARK" property="remark" jdbcType="VARCHAR"/>
+        <result column="DELETE_FLAG" property="deleteFlag" jdbcType="VARCHAR"/>
+
+        <result column="SECTION_MEANING" property="sectionMeaning" jdbcType="VARCHAR"/>
+        <result column="COMPANY_NAME" property="companyName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <select id="queryPlateSection" resultType="string" parameterType="long">
+        SELECT DISTINCT SECTION
+        FROM HCUX_SYS_PLATE_SECTION
+        WHERE PLATE IN (
+            SELECT REGEXP_SUBSTR(PLATE, '[^,]+', 1, ROWNUM) PLATE
+            FROM (SELECT PLATE FROM SYS_USER WHERE USER_ID = #{userId})
+            CONNECT BY ROWNUM &lt;= LENGTH(PLATE) - LENGTH(REPLACE(PLATE, ',')) + 1
+        )
+    </select>
+
+    <select id="queryUserSection" resultType="string" parameterType="long">
+        SELECT DISTINCT SECTION
+        FROM HCUX_SYS_USER_SECTION
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap"
+            parameterType="hcux.sys.dto.SysPlateSection">
+        SELECT
+        HSPS.PLATE_SECTION_ID,
+        HSPS.COMPANY_ID,
+        HSPS.PLATE,
+        HSPS.SECTION,
+        HSPS.REMARK,
+        HSPS.DELETE_FLAG,
+        FCT.COMPANY_FULL_NAME AS COMPANY_NAME,
+        HCVV.MEANING AS SECTION_MEANING,
+        <include refid="hcux.core.mapper.HcuxBaseMapper.BaseSTDColumn">
+            <property name="std" value="HSPS"/>
+        </include>
+        FROM HCUX_SYS_PLATE_SECTION HSPS
+        LEFT OUTER JOIN FND_COMPANY_TL FCT ON HSPS.COMPANY_ID = FCT.COMPANY_ID AND FCT.LANG = 'zh_CN'
+        LEFT JOIN HCUX_CODE_VALUE_V HCVV ON HCVV.CODE = 'HCUX_SYS_SECTION' AND HCVV.VALUE = HSPS.SECTION
+        <where>
+            <if test="plateSectionId != null">
+                AND HSPS.PLATE_SECTION_ID = #{plateSectionId}
+            </if>
+            <if test="companyId != null">
+                AND HSPS.COMPANY_ID = #{companyId}
+            </if>
+            <if test="plate != null">
+                AND HSPS.PLATE = #{plate}
+            </if>
+            <if test="section != null">
+                AND HSPS.SECTION = #{section}
+            </if>
+            <if test="companyName != null">
+                AND FCT.COMPANY_FULL_NAME like '%'||#{companyName}||'%'
+            </if>
+        </where>
+        ORDER BY HSPS.PLATE_SECTION_ID ASC
+    </select>
+</mapper>
